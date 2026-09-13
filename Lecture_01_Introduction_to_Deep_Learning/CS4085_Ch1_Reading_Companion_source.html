@@ -1,0 +1,855 @@
+<meta charset="utf-8">
+<title>CS 4085 — Chapter 1 — Reading Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=Public+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+@page { size: A4; margin: 16mm 16mm 17mm 16mm; }
+:root{
+  --ink:#12283c; --ink-2:#33495e; --mute:#6b8299; --hair:#d9e0e7;
+  --panel:#fff; --panel-2:#f2f5f8; --accent:#1c6fa8; --accent-soft:#e6f2f8;
+  --amber:#a4661b; --amber-soft:#fbf1e2; --green:#1f7a4d; --green-soft:#e8f4ee;
+  --disp:"Fraunces",Georgia,serif; --body:"Public Sans",-apple-system,sans-serif;
+  --mono:"JetBrains Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--body);font-size:10pt;line-height:1.55;color:var(--ink);background:#fff;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:400;margin:0}
+p{margin:0 0 .62em}
+.mono,code{font-family:var(--mono);font-size:.94em}
+strong,b{font-weight:600;color:var(--ink)}
+b.e{color:var(--accent)} b.t{color:var(--green)} b.p{color:var(--amber)}
+
+.cover{height:246mm;display:flex;flex-direction:column;justify-content:center;page-break-after:always}
+.cover .eyebrow{font-size:9pt;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:13mm}
+.cover h1{font-size:33pt;line-height:1.04;letter-spacing:-.02em}
+.cover .sub{font-family:var(--disp);font-size:14pt;color:var(--ink-2);margin-top:7mm;line-height:1.4}
+.cover .rule{height:2px;background:var(--accent);width:34mm;margin:11mm 0}
+.cover .meta{font-size:9.4pt;color:var(--mute);line-height:1.85}
+.cover .how{margin-top:13mm;background:var(--accent-soft);border-radius:3mm;padding:6mm 7mm}
+.cover .how h4{font-size:8.4pt;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+  font-family:var(--body);font-weight:700;margin-bottom:2.5mm}
+.cover .how p{font-size:9.5pt;color:var(--ink-2);margin:0}
+
+.toc{page-break-after:always}
+.toc .intro{color:var(--ink-2);max-width:150mm;font-size:10.2pt}
+.toc ol{list-style:none;padding:0;margin:6mm 0 0;counter-reset:t}
+.toc li{counter-increment:t;display:flex;gap:5mm;padding:2.4mm 0;border-bottom:1px solid var(--hair);
+  font-size:10.2pt;align-items:baseline}
+.toc li::before{content:"Part " counter(t);font-family:var(--mono);font-size:8pt;color:var(--accent);
+  min-width:16mm;font-weight:500}
+.toc .tt{flex:1;color:var(--ink);font-weight:500}
+.toc .td{color:var(--mute);font-size:8.8pt;max-width:70mm;text-align:right}
+
+.sec{page-break-before:always}
+.sec-h{border-bottom:2px solid var(--ink);padding-bottom:3mm;margin-bottom:5mm;
+  display:flex;align-items:baseline;gap:4mm}
+.sec-n{font-family:var(--mono);font-size:8.6pt;color:var(--accent);font-weight:600;white-space:nowrap}
+.sec-h h2{font-size:19pt;letter-spacing:-.012em;line-height:1.15}
+h3{font-size:12.4pt;margin:6.5mm 0 2.2mm;color:var(--ink)}
+h4{font-family:var(--body);font-size:9pt;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent);font-weight:700;margin:5.5mm 0 2mm}
+
+.key{background:var(--accent-soft);border-left:3px solid var(--accent);padding:4.2mm 5.5mm;
+  border-radius:0 2mm 2mm 0;margin:4.5mm 0;page-break-inside:avoid}
+.key .kl{font-size:7.8pt;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+  font-weight:700;display:block;margin-bottom:1.5mm}
+.key p{font-family:var(--disp);font-size:11.2pt;line-height:1.42;color:var(--ink);margin:0}
+
+.quote{background:var(--panel-2);border-radius:2.5mm;padding:5mm 6mm;margin:4mm 0;
+  font-size:11pt;line-height:1.5;font-family:var(--disp);page-break-inside:avoid}
+.quote .cite{display:block;font-family:var(--body);font-size:8.6pt;color:var(--mute);margin-top:2.5mm}
+
+.notation{background:var(--panel-2);border:1px solid var(--hair);border-radius:2.5mm;
+  padding:4.5mm 5.5mm;margin:5mm 0;page-break-inside:avoid}
+.notation h4{margin-top:0}
+.ntab{width:100%;border-collapse:collapse;font-size:9.4pt}
+.ntab td{padding:1.5mm 0;vertical-align:baseline;border-bottom:1px solid var(--hair)}
+.ntab tr:last-child td{border-bottom:0}
+.ntab .sym{font-family:var(--mono);color:var(--accent);width:28mm;font-weight:500;white-space:nowrap}
+.ntab .sym .q{color:var(--mute);font-family:var(--body);font-size:.85em}
+.ntab .dsc{color:var(--ink-2)}
+.notation .nb{font-size:9.3pt;color:var(--ink-2);margin:3mm 0 0;padding-top:2.5mm;border-top:1px solid var(--hair)}
+
+.ex{border:1px solid var(--hair);border-radius:2.5mm;padding:4.5mm 5.5mm;margin:4.5mm 0;page-break-inside:avoid}
+.ex h4{margin-top:0}
+.ex table{width:100%;border-collapse:collapse;font-size:9.4pt;margin:2.5mm 0}
+.ex th{text-align:left;font-size:7.8pt;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);
+  font-weight:700;padding:1.4mm 3mm 1.4mm 0;border-bottom:1px solid var(--hair)}
+.ex td{padding:1.6mm 3mm 1.6mm 0;border-bottom:1px solid var(--hair)}
+.ex td.t{font-family:var(--body)}
+.ex td.mono,.ex .mono{font-family:var(--mono)}
+.ex tr:last-child td{border-bottom:0}
+.ex .note{font-size:9.4pt;color:var(--ink-2);margin:2.5mm 0 0}
+.ex p{font-size:9.6pt}
+
+.math{font-family:var(--mono);font-size:10.4pt;color:var(--ink);background:var(--panel-2);
+  border-radius:2mm;padding:3.2mm 5mm;margin:3.2mm 0;text-align:center;page-break-inside:avoid}
+.math .an{display:block;font-family:var(--body);font-size:8.4pt;color:var(--mute);margin-top:1.6mm}
+
+figure{margin:4.5mm 0;page-break-inside:avoid}
+figure svg{width:100%;height:auto;display:block;max-height:66mm}
+figcaption{font-size:8.6pt;color:var(--mute);margin-top:2.2mm;line-height:1.45;
+  padding-top:1.8mm;border-top:1px solid var(--hair)}
+figcaption b{color:var(--ink-2);font-weight:600}
+
+ul.plain{margin:0 0 .7em;padding-left:5mm;font-size:10pt}
+ul.plain li{margin-bottom:1.8mm;line-height:1.52}
+ol.steps{margin:0 0 .7em;padding-left:5.5mm;font-size:10pt}
+ol.steps li{margin-bottom:2.2mm;line-height:1.52}
+
+.warn{background:var(--amber-soft);border-left:3px solid var(--amber);padding:3.5mm 5mm;
+  border-radius:0 2mm 2mm 0;margin:4mm 0;font-size:9.6pt;color:var(--ink-2);page-break-inside:avoid}
+
+.chk{background:var(--green-soft);border-radius:2.5mm;padding:4.2mm 5.5mm;margin:5.5mm 0;page-break-inside:auto}
+.chk h4{color:var(--green);margin-top:0}
+.chk ol{margin:0;padding-left:5mm;font-size:9.5pt;color:var(--ink-2)}
+.chk li{margin-bottom:1.6mm;page-break-inside:avoid}
+.chk .ans{color:var(--mute);font-size:8.9pt;font-style:italic}
+
+.gl{font-size:9.5pt}
+.gl dt{font-weight:600;color:var(--ink);margin-top:2.6mm}
+.gl dd{margin:.4mm 0 0;color:var(--ink-2)}
+
+.wk{display:inline-block;background:var(--amber-soft);color:var(--amber);font-size:7.6pt;
+  padding:.5mm 1.8mm;border-radius:1.5mm;font-weight:600}
+.foot{margin-top:7mm;padding-top:3mm;border-top:1px solid var(--hair);font-size:8.4pt;color:var(--mute)}
+h3,h4{page-break-after:avoid}
+p{orphans:3;widows:3}
+/* figure text styles (deck classes do not apply here) */
+.dgm{font-family:"Public Sans",sans-serif}
+table.apps{width:100%;border-collapse:collapse;font-size:9.4pt}
+table.apps th{text-align:left;font-size:7.8pt;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mute);font-weight:700;padding:1.6mm 3mm 1.6mm 0;border-bottom:1.5px solid var(--hair)}
+table.apps td{padding:1.8mm 3mm 1.8mm 0;border-bottom:1px solid var(--hair);color:var(--ink-2)}
+table.apps td.k{font-family:var(--mono);color:var(--accent);font-weight:500;white-space:nowrap}
+</style>
+
+
+<div class="cover">
+  <p class="eyebrow">CS 4085 · Deep Learning · Chapter 1</p>
+  <h1>Introduction to<br>Deep Learning</h1>
+  <p class="sub">A reading companion — read this after the lecture,<br>with the slides beside you</p>
+  <div class="rule"></div>
+  <p class="meta">
+    Dr Naila Marir<br>
+    Effat University · College of Engineering · Computer Science Department<br>
+    Fall 2026
+  </p>
+  <div class="how">
+    <h4>How to use this document</h4>
+    <p>This follows the lecture in four parts, in the same order as the slides. Where the lecture
+    showed you a figure, the same figure is here — so you can look at it slowly. Every symbol is
+    defined before it is used, and the worked numbers are carried all the way through so you can
+    check each step yourself. Each part ends with a <strong>Check yourself</strong> box: answer
+    those from memory, and you will know whether the part landed.</p>
+  </div>
+</div>
+
+<div class="toc">
+  <div class="sec-h"><h2>What this chapter covers</h2></div>
+  <p class="intro">The chapter answers four questions in order. Each one depends on the answer
+  before it, so read them in sequence the first time.</p>
+  <ol>
+    <li><span class="tt">Introduction to Deep Learning</span><span class="td">what AI, ML and deep learning are, and how a model learns at all</span></li>
+    <li><span class="tt">What is a Neural Network?</span><span class="td">from a single neuron to a network that invents its own features</span></li>
+    <li><span class="tt">Supervised Learning with Neural Networks</span><span class="td">where these models actually earn their keep</span></li>
+    <li><span class="tt">Why is Deep Learning Taking Off?</span><span class="td">the ideas are old — so what changed?</span></li>
+    <li><span class="tt">Glossary</span><span class="td">every term in the chapter, one line each</span></li>
+  </ol>
+  <div class="key">
+    <span class="kl">The sentence to carry out of this chapter</span>
+    <p>A neural network is not programmed with the rule. It is corrected until its error is
+    small — and the rule is what remains.</p>
+  </div>
+  <div class="notation">
+    <h4>Notation used throughout · learn this once</h4>
+    <table class="ntab">
+      <tr><td class="sym">x</td><td class="dsc">one <strong>input example</strong> — the features we measure</td></tr>
+      <tr><td class="sym">y</td><td class="dsc">the <strong>true label</strong> — the correct answer</td></tr>
+      <tr><td class="sym">ŷ <span class="q">("y-hat")</span></td><td class="dsc">the model's <strong>prediction</strong>. The hat always means <em>estimated</em>, never true</td></tr>
+      <tr><td class="sym">(x, y)</td><td class="dsc">one <strong>training example</strong> — an input with its correct answer</td></tr>
+      <tr><td class="sym">m</td><td class="dsc">the <strong>number of training examples</strong></td></tr>
+      <tr><td class="sym">n<sub>x</sub></td><td class="dsc">the <strong>number of features</strong> in each example</td></tr>
+      <tr><td class="sym">x⁽ⁱ⁾, y⁽ⁱ⁾</td><td class="dsc">the <strong>i-th example</strong>. Round brackets index <em>examples</em></td></tr>
+      <tr><td class="sym">w, b</td><td class="dsc">the <strong>parameters</strong> — weights and bias. Training changes only these</td></tr>
+      <tr><td class="sym">L(ŷ, y)</td><td class="dsc">the <strong>loss</strong> on a single example</td></tr>
+      <tr><td class="sym">J(w, b)</td><td class="dsc">the <strong>cost</strong> over the whole training set — what we minimise</td></tr>
+      <tr><td class="sym">α <span class="q">("alpha")</span></td><td class="dsc">the <strong>learning rate</strong> — how big a correction step to take</td></tr>
+    </table>
+    <p class="nb"><strong>One convention to fix now.</strong> A superscript in <em>round</em> brackets
+    indexes a training example: <span class="mono">x⁽³⁾</span> is the third house in the dataset.
+    A superscript in <em>square</em> brackets indexes a <em>layer</em> of a network:
+    <span class="mono">a<sup>[3]</sup></span> is the output of layer 3. You will meet layers in
+    Chapter 2; the two are never mixed.</p>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="sec-h"><span class="sec-n">Part 1</span><h2>Introduction to Deep Learning</h2></div>
+
+  <h3>AI is the new electricity</h3>
+  <p>About a hundred years ago, electricity transformed nearly every industry in turn —
+  transportation, manufacturing, healthcare, communications. It was not a product; it was a
+  <strong>general-purpose technology</strong>, something so broadly useful that each industry had to
+  rebuild itself around it.</p>
+  <p>Andrew Ng's claim, and the reason this course exists, is that <strong>AI is now doing the same
+  thing</strong>. That is a claim about breadth, not about any single clever program: the same
+  underlying technique is reshaping medicine, logistics, translation and finance at once.</p>
+
+  <h3>Three words that are often confused</h3>
+  <figure><svg viewBox="0 0 620 460" role="img" aria-label="Three nested circles: artificial intelligence contains machine learning, which contains deep learning.">
+          <circle cx="310" cy="240" r="212" fill="none" stroke="#1c6fa8" stroke-width="3" opacity=".55"/>
+          <circle cx="310" cy="286" r="156" fill="none" stroke="#1f7a4d" stroke-width="3" opacity=".7"/>
+          <circle cx="310" cy="330" r="92"  fill="none" stroke="#c2560c" stroke-width="3"/>
+          <text x="310" y="76"  fill="#1c6fa8"   font-size="26" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Artificial Intelligence</text>
+          <text x="310" y="100" fill="#6b8299" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">machines that behave intelligently</text>
+          <text x="310" y="172" fill="#1f7a4d"  font-size="24" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Machine Learning</text>
+          <text x="310" y="196" fill="#6b8299" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">learning from data, not rules</text>
+          <text x="310" y="326" fill="#c2560c" font-size="23" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Deep</text>
+          <text x="310" y="354" fill="#c2560c" font-size="23" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Learning</text>
+        </svg><figcaption><b>Figure 1.</b> AI contains machine learning, which contains deep learning. The circles are nested, not alternatives.</figcaption></figure>
+  <p>These three terms are nested, not interchangeable, and being sloppy about them causes real
+  confusion later:</p>
+  <ul class="plain">
+    <li><strong>Artificial Intelligence</strong> is the widest circle — any technique that makes a
+    machine behave intelligently. A hand-written set of if–then rules counts.</li>
+    <li><strong>Machine Learning</strong> is a subset of AI: the system is not given rules, it
+    <em>learns</em> them from data.</li>
+    <li><strong>Deep Learning</strong> is a subset of machine learning: it uses neural networks with
+    many layers, and it learns not only the rule but also <em>the features the rule uses</em>.</li>
+  </ul>
+
+  <h3>What "learning" actually means</h3>
+  <p>The definition used across the field is Tom Mitchell's, from 1997. It is worth memorising
+  because it is precise about what must improve:</p>
+  <div class="quote">
+    A computer program is said to <strong>learn</strong> from experience <b class="e">E</b> with
+    respect to some task <b class="t">T</b> and performance measure <b class="p">P</b>, if its
+    performance at <b class="t">T</b>, as measured by <b class="p">P</b>, <strong>improves with
+    experience <b class="e">E</b></strong>.
+    <span class="cite">Tom Mitchell, <em>Machine Learning</em>, 1997</span>
+  </div>
+  <p>Abstract on its own, so put the house-price problem into it:</p>
+  <div class="ex">
+    <table>
+      <tr><th>Term</th><th>In the house-price problem</th></tr>
+      <tr><td class="t"><b class="e">Experience E</b></td><td>thousands of past houses, each with the price it really sold for</td></tr>
+      <tr><td class="t"><b class="t">Task T</b></td><td>predict the price of a house the model has never seen</td></tr>
+      <tr><td class="t"><b class="p">Performance P</b></td><td>how close its predictions are to the real prices</td></tr>
+    </table>
+    <p class="note">Show the program more houses (more <b class="e">E</b>) and its price predictions
+    get closer (better <b class="p">P</b>). That improvement <em>is</em> the learning. Nothing else
+    about the program changed.</p>
+  </div>
+  <p class="warn"><strong>A common misreading.</strong> Learning is not "the program stored more
+  houses." A lookup table stores every house and has learned nothing — ask it about a house not in
+  the table and it fails. Learning means performance improves on examples the model has
+  <strong>never seen</strong>. That property has a name: <strong>generalisation</strong>, and it is
+  the real goal of everything in this course.</p>
+
+  <h3>Three kinds of machine learning</h3>
+  
+  <p>Textbooks usually split machine learning into three families. The clean way to tell them apart
+  is to ask one question: <strong>what signal tells the model it was right?</strong></p>
+  <ul class="plain">
+    <li><strong>Supervised learning</strong> — every example arrives with the correct answer
+    attached, as a pair <span class="mono">(x, y)</span>. The model predicts, compares against
+    <span class="mono">y</span>, and corrects itself. Splits into <em>regression</em> (the output is
+    a number, like a price) and <em>classification</em> (the output is a category, like cat/not-cat).</li>
+    <li><strong>Unsupervised learning</strong> — no labels at all, only <span class="mono">x</span>.
+    The model must find structure that is already there: grouping similar customers
+    (<em>clustering</em>), or squeezing many features into a few (<em>dimensionality reduction</em>).</li>
+    <li><strong>Reinforcement learning</strong> — no correct answer is ever given, only a
+    <strong>reward, later</strong>. A chess engine learns only at the end of the game whether it
+    won, and must work backwards to decide which moves deserved credit.</li>
+  </ul>
+  <p>Almost everything of economic value today — and almost everything in this course — is
+  <strong>supervised</strong> learning.</p>
+
+  <h3>The training loop</h3>
+  <p>"The algorithm finds the rule" sounds like magic until you see the loop. It is not magic. It is
+  repeated small correction, and it has exactly three steps.</p>
+  <figure><svg viewBox="0 0 900 380" role="img" aria-label="A cycle: predict, then measure error, then adjust parameters, looping back to predict.">
+          <!-- boxes -->
+          <rect x="60"  y="140" width="200" height="92" rx="12" fill="#e8f2f8" stroke="#1c6fa8" stroke-width="2.5"/>
+          <text x="160" y="180" fill="#1c6fa8" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">1 · Predict</text>
+          <text x="160" y="207" fill="#33495e" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">ŷ = f(x)</text>
+
+          <rect x="350" y="40"  width="200" height="92" rx="12" fill="#e8f2f8" stroke="#1c6fa8" stroke-width="2.5"/>
+          <text x="450" y="80"  fill="#1c6fa8" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">2 · Measure</text>
+          <text x="450" y="107" fill="#33495e" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">J(w,b)</text>
+
+          <rect x="640" y="140" width="200" height="92" rx="12" fill="#fdf0e2" stroke="#c2560c" stroke-width="2.5"/>
+          <text x="740" y="180" fill="#c2560c" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">3 · Adjust</text>
+          <text x="740" y="207" fill="#7a4a12" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">w := w − α dJ/dw</text>
+
+          <!-- arcs -->
+          <path d="M262 165 C310 130 320 100 346 92" fill="none" stroke="#1c6fa8" stroke-width="3" marker-end="url(#ah)"/>
+          <path d="M554 92 C580 100 590 130 638 165" fill="none" stroke="#1c6fa8" stroke-width="3" marker-end="url(#ah)"/>
+          <path d="M700 236 C620 330 300 330 190 240" fill="none" stroke="#c2560c" stroke-width="3" marker-end="url(#ao)"/>
+          <text x="450" y="322" fill="#c2560c" font-size="17" text-anchor="middle" font-family="Poppins,sans-serif">a slightly better f — repeat for every example</text>
+
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 10 5 0 10z" fill="#1c6fa8"/>
+            </marker>
+            <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 10 5 0 10z" fill="#c2560c"/>
+            </marker>
+          </defs>
+        </svg><figcaption><b>Figure 2.</b> The training loop: predict, measure the error, correct the parameters, then repeat.</figcaption></figure>
+  <ol class="steps">
+    <li><strong>Predict.</strong> Take one example <span class="mono">x</span> and compute the
+    model's current guess <span class="mono">ŷ = f(x)</span>.</li>
+    <li><strong>Measure the error.</strong> Compare <span class="mono">ŷ</span> against the true
+    answer <span class="mono">y</span>. This tells us not just <em>that</em> we were wrong, but
+    <strong>how</strong> wrong and <strong>in which direction</strong>.</li>
+    <li><strong>Correct.</strong> Nudge the parameters <span class="mono">w</span> and
+    <span class="mono">b</span> slightly, in the direction that makes that error smaller.</li>
+  </ol>
+  <p>Then repeat — for every example, and over the whole dataset many times. Notice that this loop
+  <em>needs</em> the true <span class="mono">y</span> in step 2. That is why the loop belongs to
+  supervised learning: without a correct answer there is no error to measure.</p>
+
+  <h3>Every ML system has the same four components</h3>
+  <p>Whatever the problem, whatever the algorithm, you can always point at these four parts. Getting
+  used to naming them makes every later topic easier to place.</p>
+
+  <h4>1 · The Dataset — what it learns from</h4>
+  <figure><svg viewBox="0 0 980 400" role="img"
+             aria-label="A table of houses with living area and price. The left column is the feature x, the right column is the output y, one row is a training example, and there are m rows in total.">
+          <!-- table -->
+          <rect x="330" y="34" width="330" height="44" fill="#eef2f5"/>
+          <text x="415" y="64" fill="#0a6b5e" font-size="21" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Living area</text>
+          <text x="590" y="64" fill="#0a6b5e" font-size="21" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Price</text>
+          <g stroke="#2a2a2a" stroke-width="1.5" fill="none">
+            <rect x="330" y="78"  width="330" height="42"/>
+            <rect x="330" y="120" width="330" height="42"/>
+            <rect x="330" y="162" width="330" height="42"/>
+            <rect x="330" y="204" width="330" height="42"/>
+            <rect x="330" y="246" width="330" height="42"/>
+          </g>
+          <g font-family="Poppins,sans-serif" font-size="21" fill="#12283c" text-anchor="middle">
+            <text x="415" y="107">2104</text><text x="590" y="107">400</text>
+            <text x="415" y="149">1600</text><text x="590" y="149">330</text>
+            <text x="415" y="191" font-weight="700">2400</text><text x="590" y="191" font-weight="700">369</text>
+            <text x="415" y="233">1461</text><text x="590" y="233">232</text>
+            <text x="415" y="275">3000</text><text x="590" y="275">540</text>
+          </g>
+          <text x="495" y="310" fill="#6b8299" font-size="22" text-anchor="middle">⋮</text>
+
+          <!-- feature / output labels -->
+          <text x="150" y="52" fill="#1c6fa8" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Feature</text>
+          <text x="150" y="78" fill="#6b8299" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">x⁽ⁱ⁾</text>
+          <path d="M196 56 h118" stroke="#1c6fa8" stroke-width="2.5" fill="none" marker-end="url(#dz)"/>
+
+          <text x="840" y="52" fill="#c2560c" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Output</text>
+          <text x="840" y="78" fill="#6b8299" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">y⁽ⁱ⁾</text>
+          <path d="M794 56 h-118" stroke="#c2560c" stroke-width="2.5" fill="none" marker-end="url(#dz2)"/>
+
+          <!-- one training example -->
+          <rect x="322" y="160" width="346" height="46" fill="none" stroke="#1f7a4d" stroke-width="3" rx="4"/>
+          <text x="150" y="180" fill="#1f7a4d" font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">One training</text>
+          <text x="150" y="202" fill="#1f7a4d" font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">example</text>
+          <text x="150" y="228" fill="#6b8299" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">(x⁽³⁾, y⁽³⁾)</text>
+          <path d="M214 190 h100" stroke="#1f7a4d" stroke-width="2.5" fill="none" marker-end="url(#dz3)"/>
+
+          <!-- m examples brace -->
+          <path d="M690 78 h16 v212 h-16" stroke="#6b8299" stroke-width="2" fill="none"/>
+          <text x="790" y="190" fill="#12283c" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">m training</text>
+          <text x="790" y="214" fill="#12283c" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">examples</text>
+
+          <defs>
+            <marker id="dz"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#1c6fa8"/></marker>
+            <marker id="dz2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#c2560c"/></marker>
+            <marker id="dz3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#1f7a4d"/></marker>
+          </defs>
+        </svg><figcaption><b>Figure 3.</b> The dataset. Each row is one training example: the feature x⁽ⁱ⁾ we measure and the answer y⁽ⁱ⁾ we want.</figcaption></figure>
+  <p>The dataset is <span class="mono">m</span> examples. Each one is a pair: the
+  <strong>features</strong> we measured (<span class="mono">x⁽ⁱ⁾</span>) and the
+  <strong>answer</strong> we want to predict (<span class="mono">y⁽ⁱ⁾</span>). In the figure the
+  left column is the living area of a house and the right column is its price, so
+  <span class="mono">x⁽³⁾ = 2400</span> and <span class="mono">y⁽³⁾ = 369</span>.</p>
+
+  <h4>2 · The Model and its Parameters — the shape we allow</h4>
+  <figure><svg viewBox="0 0 980 330" role="img"
+             aria-label="Three straight lines with different slopes over the same data points. The model is the family of straight lines; the parameters w and b pick which one.">
+          <g stroke="#12283c" stroke-width="2" opacity=".55">
+            <line x1="60" y1="286" x2="920" y2="286"/><line x1="60" y1="286" x2="60" y2="30"/>
+          </g>
+          <!-- candidate lines -->
+          <line x1="80" y1="250" x2="900" y2="230" stroke="#c9d2da" stroke-width="3" stroke-dasharray="7 7"/>
+          <line x1="80" y1="270" x2="900" y2="90"  stroke="#c9d2da" stroke-width="3" stroke-dasharray="7 7"/>
+          <line x1="80" y1="262" x2="900" y2="52"  stroke="#1f7a4d" stroke-width="4.5"/>
+          <!-- points -->
+          <g stroke="#12283c" stroke-width="5" stroke-linecap="round">
+            <path d="M172 236l14 14M186 236l-14 14"/>
+            <path d="M320 200l14 14M334 200l-14 14"/>
+            <path d="M470 158l14 14M484 158l-14 14"/>
+            <path d="M620 118l14 14M634 118l-14 14"/>
+            <path d="M770 78l14 14M784 78l-14 14"/>
+          </g>
+          <text x="915" y="46"  fill="#1f7a4d" font-size="17" font-weight="700" font-family="Poppins,sans-serif" text-anchor="end">a good w, b</text>
+          <text x="915" y="228" fill="#6b8299"   font-size="16" font-family="Poppins,sans-serif" text-anchor="end">other w, b</text>
+        </svg><figcaption><b>Figure 4.</b> The model is the family of straight lines; the parameters w and b choose which one.</figcaption></figure>
+  <p>The <strong>model</strong> is the <em>family</em> of functions we permit. If we choose straight
+  lines, then the model is "all straight lines" and every candidate has the form:</p>
+  <div class="math">ŷ = wx + b</div>
+  <p>The <strong>parameters</strong> <span class="mono">w</span> and <span class="mono">b</span>
+  pick <em>which</em> line out of that infinite family. The engineer chooses the family; training
+  chooses the member. In the figure, the grey dashed lines are other choices of
+  <span class="mono">w, b</span>; the green one fits the data.</p>
+
+  <h4>3 · The Cost Function — how wrong we are, in one number</h4>
+  <figure><svg viewBox="0 0 980 300" role="img"
+             aria-label="Each point has a red gap to the line. The cost squares every gap and averages them into a single number.">
+          <line x1="60" y1="256" x2="620" y2="256" stroke="#12283c" stroke-width="2" opacity=".55"/>
+          <line x1="60" y1="256" x2="60"  y2="26"  stroke="#12283c" stroke-width="2" opacity=".55"/>
+          <line x1="80" y1="238" x2="600" y2="66" stroke="#1c6fa8" stroke-width="4"/>
+          <!-- gaps -->
+          <g stroke="#c8202c" stroke-width="5" stroke-linecap="round">
+            <line x1="170" y1="208" x2="170" y2="172"/>
+            <line x1="290" y1="168" x2="290" y2="204"/>
+            <line x1="410" y1="128" x2="410" y2="92"/>
+            <line x1="530" y1="88"  x2="530" y2="122"/>
+          </g>
+          <g stroke="#12283c" stroke-width="5" stroke-linecap="round">
+            <path d="M163 165l14 14M177 165l-14 14"/>
+            <path d="M283 197l14 14M297 197l-14 14"/>
+            <path d="M403 85l14 14M417 85l-14 14"/>
+            <path d="M523 115l14 14M537 115l-14 14"/>
+          </g>
+          <text x="340" y="292" fill="#c8202c" font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">each gap = one error</text>
+          <!-- arrow to the single number -->
+          <path d="M648 150 h70" stroke="#12283c" stroke-width="3" marker-end="url(#cz)"/>
+          <rect x="736" y="104" width="212" height="92" rx="12" fill="#fdf0e2" stroke="#c2560c" stroke-width="3"/>
+          <text x="842" y="142" fill="#c2560c" font-size="18" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">one number</text>
+          <text x="842" y="174" fill="#12283c" font-size="21" text-anchor="middle" font-family="JetBrains Mono,monospace">J(w,b)</text>
+          <defs><marker id="cz" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#12283c"/></marker></defs>
+        </svg><figcaption><b>Figure 5.</b> Every point has a gap to the line. The cost squares those gaps and averages them into one number.</figcaption></figure>
+  <p>For a single example the gap between prediction and truth is
+  <span class="mono">ŷ⁽ⁱ⁾ − y⁽ⁱ⁾</span>. We need one number for the <em>whole</em> dataset, so we
+  square each gap and average them:</p>
+  <div class="math">J(w, b) = (1/m) Σ<sub>i=1..m</sub> (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)²
+    <span class="an">the mean squared error</span></div>
+  <p>Why square? Two reasons, both practical. First, a prediction that is 50 too low and one that is
+  50 too high are equally bad — squaring makes both count as positive, so they cannot cancel out.
+  Second, squaring punishes large misses much more than small ones, which is usually what we want.</p>
+  <p class="warn"><strong>Keep L and J apart.</strong> <span class="mono">L(ŷ, y)</span> is the error
+  on <em>one</em> example. <span class="mono">J(w, b)</span> is the average over <em>all</em>
+  <span class="mono">m</span> of them. Training minimises <span class="mono">J</span>.</p>
+
+  <h4>4 · The Learning Algorithm — how it improves</h4>
+  <figure><svg viewBox="0 0 980 300" role="img"
+             aria-label="A bowl-shaped cost curve. A ball starts high on one side and steps down the slope to the minimum at the bottom.">
+          <line x1="70" y1="262" x2="910" y2="262" stroke="#12283c" stroke-width="2" opacity=".55"/>
+          <line x1="70" y1="262" x2="70"  y2="24"  stroke="#12283c" stroke-width="2" opacity=".55"/>
+          <text x="490" y="294" fill="#6b8299" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">w</text>
+          <text x="40"  y="145" fill="#6b8299" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace" transform="rotate(-90 40 145)">J</text>
+          <!-- bowl -->
+          <path d="M130 40 Q490 330 850 40" fill="none" stroke="#6b3fb5" stroke-width="4.5"/>
+          <!-- steps down -->
+          <g fill="#c2560c">
+            <circle cx="216.4" cy="101.2" r="11" opacity=".95"/><circle cx="302.8" cy="145.8" r="11" opacity=".8"/><circle cx="389.2" cy="173.6" r="11" opacity=".65"/><circle cx="446.8" cy="182.9" r="11" opacity=".5"/>
+          </g>
+          <circle cx="490.0" cy="185.0" r="14" fill="#1f7a4d"/>
+          <text x="490.0" y="228.0" fill="#1f7a4d" font-size="18" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">smallest cost</text>
+          <g stroke="#c2560c" stroke-width="2.5" fill="none" opacity=".75">
+            <path d="M229.7 108.1 L287.7 138.0" marker-end="url(#lz)"/><path d="M317.1 150.4 L373.0 168.4" marker-end="url(#lz)"/><path d="M404.0 176.0 L430.0 180.2" marker-end="url(#lz)"/>
+          </g>
+          <text x="240" y="58" fill="#6b8299" font-size="16" font-family="Poppins,sans-serif">start anywhere</text>
+          <defs><marker id="lz" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0 0 10 5 0 10z" fill="#c2560c"/></marker></defs>
+        </svg><figcaption><b>Figure 6.</b> Gradient descent: start anywhere on the cost curve and step downhill until it stops falling.</figcaption></figure>
+  <p>We now have a number, <span class="mono">J(w, b)</span>, that says how bad the current
+  parameters are. The learning algorithm changes <span class="mono">w</span> and
+  <span class="mono">b</span> to make it smaller. The standard method is
+  <strong>gradient descent</strong>:</p>
+  <div class="math">w := w − α · ∂J/∂w &nbsp;&nbsp;&nbsp;&nbsp; b := b − α · ∂J/∂b</div>
+  <p>Read it as "step downhill". The derivative <span class="mono">∂J/∂w</span> is the
+  <strong>slope</strong> of the cost curve — it says which direction is downhill and how steep it is.
+  The minus sign means we move <em>against</em> the slope. The <strong>learning rate</strong>
+  <span class="mono">α</span> controls how big each step is: too small and training crawls, too
+  large and it can overshoot the bottom entirely.</p>
+
+  <h3>Worked example — one full correction step</h3>
+  <div class="ex">
+    <h4>Predicting house price from floor area</h4>
+    <p>Suppose the model currently holds <span class="mono">w = 2000</span> and
+    <span class="mono">b = 50000</span>, and we meet one training example: a 100 m² house that
+    really sold for 300,000.</p>
+    <table>
+      <tr><th>Quantity</th><th>Symbol</th><th>Value</th></tr>
+      <tr><td class="t">Input — floor area</td><td class="mono">x</td><td class="mono">100</td></tr>
+      <tr><td class="t">True price</td><td class="mono">y</td><td class="mono">300,000</td></tr>
+      <tr><td class="t">Prediction</td><td class="mono">ŷ = wx + b</td><td class="mono">2000(100) + 50000 = 250,000</td></tr>
+      <tr><td class="t">Error</td><td class="mono">ŷ − y</td><td class="mono">250,000 − 300,000 = −50,000</td></tr>
+    </table>
+    <p class="note">The error is <strong>negative</strong>, which tells us the prediction was
+    <em>too low</em>. So <span class="mono">w</span> should increase. Nudge it to
+    <span class="mono">w = 2050</span> and this house now predicts 255,000 — still low, but closer.
+    Repeat across thousands of houses and <span class="mono">w</span> and <span class="mono">b</span>
+    settle at values that price houses well <em>in general</em>.</p>
+  </div>
+  <p>Notice what never happened: <strong>nobody wrote the pricing rule.</strong> No one told the
+  system "price rises by roughly 3,000 per square metre". That relationship was <em>discovered</em>,
+  purely by making an error smaller over and over.</p>
+
+  <div class="chk">
+    <h4>Check yourself</h4>
+    <ol>
+      <li>State Mitchell's definition, and say what E, T and P are for spam filtering.
+        <span class="ans">— E: emails already marked spam / not spam. T: label a new email. P: how many it labels correctly.</span></li>
+      <li>What is the difference between <span class="mono">L</span> and <span class="mono">J</span>?
+        <span class="ans">— L is the error on one example; J is the average over all m examples.</span></li>
+      <li>Why do we square the errors in the cost function?
+        <span class="ans">— So too-high and too-low misses don't cancel, and so large errors are punished more.</span></li>
+      <li>In the worked example the error was −50,000. Should w go up or down, and why?
+        <span class="ans">— Up: a negative error means the prediction was below the true price.</span></li>
+      <li>Which of the four components does the engineer choose, and which does training choose?
+        <span class="ans">— The engineer chooses the dataset, the model family and the cost function; training chooses the parameters w and b.</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="sec-h"><span class="sec-n">Part 2</span><h2>What is a Neural Network?</h2></div>
+
+  <p>The phrase "neural network" sounds like it requires a whole new theory. It does not. Everything
+  in Part 1 was already, in effect, a neural network with exactly one neuron. This part builds up
+  from that.</p>
+
+  <h3>A single neuron</h3>
+  <figure><svg viewBox="0 0 620 300" role="img" aria-label="A single neuron: size flows in, a circle computes, price flows out.">
+          <text x="60"  y="158" fill="#12283c" font-size="24" text-anchor="middle" font-family="Poppins,sans-serif">size</text>
+          <text x="60"  y="186" fill="#6b8299"   font-size="19" text-anchor="middle" font-family="JetBrains Mono,monospace">x</text>
+          <path d="M110 150h120" stroke="#12283c" stroke-width="3" marker-end="url(#n1)"/>
+          <circle cx="300" cy="150" r="52" fill="none" stroke="#1c6fa8" stroke-width="3.5"/>
+          <text x="300" y="145" fill="#1c6fa8" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">wx+b</text>
+          <text x="300" y="170" fill="#6b8299" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">ReLU</text>
+          <path d="M372 150h120" stroke="#12283c" stroke-width="3" marker-end="url(#n1)"/>
+          <text x="552" y="158" fill="#12283c" font-size="24" text-anchor="middle" font-family="Poppins,sans-serif">price</text>
+          <text x="552" y="186" fill="#6b8299"   font-size="19" text-anchor="middle" font-family="JetBrains Mono,monospace">y</text>
+          <text x="300" y="252" fill="#6b8299" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">a single neuron</text>
+          <defs>
+            <marker id="n1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 10 5 0 10z" fill="#12283c"/>
+            </marker>
+          </defs>
+        </svg><figcaption><b>Figure 7.</b> A single neuron. Size goes in, wx + b is computed, a price comes out.</figcaption></figure>
+  <p>Go back to the house-price example. The size of the house goes in, some arithmetic happens, a
+  price comes out. Draw that arithmetic as a circle and you have drawn a
+  <strong>neuron</strong>:</p>
+  <div class="math">x &nbsp;→&nbsp; ( wx + b ) &nbsp;→&nbsp; ŷ</div>
+  <p>That is the whole idea. A neuron takes inputs, multiplies each by a weight, adds a bias, and
+  produces an output. The little function applied at the end is called the
+  <strong>activation function</strong>.</p>
+
+  <h4>ReLU — the activation you will see most</h4>
+  <p>A house price can never be negative, so a sensible neuron should output zero rather than a
+  negative price. The function that does this is <strong>ReLU</strong>, the
+  <em>Rectified Linear Unit</em>:</p>
+  <div class="math">ReLU(z) = max(0, z)
+    <span class="an">flat at zero for negative input, then a straight line</span></div>
+  <p>It is deliberately simple — "take the bigger of zero and the input" — and that simplicity turns
+  out to matter enormously for training speed. We return to why in Part 4.</p>
+
+  <h3>Stacking neurons into a network</h3>
+  <figure><svg viewBox="0 0 900 340" role="img" aria-label="A neural network with four inputs, three hidden units, and one output price.">
+          <!-- inputs -->
+          <g font-family="Poppins,sans-serif" font-size="17" fill="#12283c" text-anchor="end">
+            <text x="150" y="66">size</text>
+            <text x="150" y="136">#bedrooms</text>
+            <text x="150" y="206">zip code</text>
+            <text x="150" y="276">wealth</text>
+          </g>
+          <g fill="#6b8299" font-family="JetBrains Mono,monospace" font-size="14" text-anchor="start">
+            <text x="162" y="66">x₁</text><text x="162" y="136">x₂</text>
+            <text x="162" y="206">x₃</text><text x="162" y="276">x₄</text>
+          </g>
+          <!-- edges -->
+          <g stroke="#c9d2da" stroke-width="1.6">
+            <path d="M196 60 L420 100M196 60 L420 170M196 60 L420 240"/>
+            <path d="M196 130L420 100M196 130L420 170M196 130L420 240"/>
+            <path d="M196 200L420 100M196 200L420 170M196 200L420 240"/>
+            <path d="M196 270L420 100M196 270L420 170M196 270L420 240"/>
+            <path d="M462 100L640 170M462 170L640 170M462 240L640 170"/>
+          </g>
+          <!-- hidden -->
+          <g fill="#e8f2f8" stroke="#1c6fa8" stroke-width="3">
+            <circle cx="441" cy="100" r="26"/><circle cx="441" cy="170" r="26"/><circle cx="441" cy="240" r="26"/>
+          </g>
+          <!-- output -->
+          <circle cx="666" cy="170" r="28" fill="#e8f2f8" stroke="#1f7a4d" stroke-width="3"/>
+          <path d="M700 170h70" stroke="#12283c" stroke-width="3" marker-end="url(#n2)"/>
+          <text x="812" y="177" fill="#1f7a4d" font-size="22" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">price</text>
+          <text x="441" y="316" fill="#6b8299" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">the network invents these features itself</text>
+          <defs>
+            <marker id="n2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 10 5 0 10z" fill="#12283c"/>
+            </marker>
+          </defs>
+        </svg><figcaption><b>Figure 8.</b> A network with a hidden layer. Nobody tells the middle neurons what to represent — they work it out.</figcaption></figure>
+  <p>One neuron with one feature is limited. A real house has a size, a number of bedrooms, a
+  postcode, and a neighbourhood wealth level. So we use several input features, and — this is the
+  key move — we put a <strong>layer of neurons in the middle</strong>.</p>
+  <p>Every input connects to every middle neuron, and those connect to the output. The middle column
+  is called a <strong>hidden layer</strong>: hidden because you never supply its values and never
+  read them out, you only see <span class="mono">x</span> going in and
+  <span class="mono">ŷ</span> coming out.</p>
+
+  <div class="key">
+    <span class="kl">The property that makes deep learning different</span>
+    <p>You never tell the hidden neurons what to represent. Given enough examples of
+    (features → price), they work out useful intermediate quantities <em>on their own</em>.</p>
+  </div>
+
+  <p>In the housing case, the network may end up with one hidden neuron that effectively measures
+  <em>family size</em> (from size and bedrooms), another that measures <em>walkability</em> (from
+  the postcode), and another that measures <em>school quality</em> (from postcode and wealth).
+  Nobody designed those. Nobody labelled them. They emerged because they were useful for reducing
+  the price error.</p>
+  <p class="warn"><strong>Why this is such a big deal.</strong> Before deep learning, a human expert
+  had to invent those intermediate quantities by hand — a slow, brittle process called
+  <strong>feature engineering</strong>, which had to start over for every new task. Deep learning
+  removes that step: the features are <em>learned, not designed</em>.</p>
+
+  <h3>The word "deep"</h3>
+  <p>"Deep" simply means <strong>many hidden layers</strong> rather than one. Depth is what produces
+  a <strong>hierarchy of features</strong>: early layers pick up simple things, later layers combine
+  them into complicated things. Trained on faces, a network typically learns edges in its first
+  layer, then eyes and noses in the middle, then whole faces near the output — each layer built from
+  the one before it.</p>
+</div>
+
+<div class="sec">
+  <div class="sec-h"><span class="sec-n">Part 3</span><h2>Supervised Learning with Neural Networks</h2></div>
+
+  <p>Almost all of the economic value created by neural networks so far has come from one setting:
+  <strong>supervised learning</strong>, where you have inputs <span class="mono">x</span> paired
+  with correct answers <span class="mono">y</span>, and you want a function that maps one to the
+  other.</p>
+
+  <figure><table class="apps">
+  <tr><th>Input (x)</th><th>Output (y)</th><th>Application</th><th>Network</th></tr>
+  <tr><td>Home features</td><td>Price</td><td>Real estate</td><td class="k">Standard NN</td></tr>
+  <tr><td>Ad, user info</td><td>Click? (0/1)</td><td>Online advertising</td><td class="k">Standard NN</td></tr>
+  <tr><td>Image</td><td>Object (1…1000)</td><td>Photo tagging</td><td class="k">CNN</td></tr>
+  <tr><td>Audio</td><td>Text transcript</td><td>Speech recognition</td><td class="k">RNN</td></tr>
+  <tr><td>English</td><td>Arabic</td><td>Machine translation</td><td class="k">RNN</td></tr>
+  <tr><td>Image, radar</td><td>Position of cars</td><td>Autonomous driving</td><td class="k">Hybrid</td></tr>
+</table><figcaption><b>Figure 9.</b> Supervised learning in practice. Every row is the same pattern: assemble (x, y) pairs, then train a network to map one to the other.</figcaption></figure>
+  <p>Read that table as a single pattern repeated. In every row somebody assembled a dataset of
+  <span class="mono">(x, y)</span> pairs and trained a network to map <span class="mono">x</span> to
+  <span class="mono">y</span>. Only the data changes.</p>
+
+  <h3>Different data, different architecture</h3>
+  <p>The right-hand column of the table names the kind of network used, and the choice is not
+  arbitrary — it follows from the <em>shape</em> of the input:</p>
+  <ul class="plain">
+    <li><strong>Standard neural networks</strong> for tabular data such as house features or
+    advertising records, where each input is a plain list of numbers.</li>
+    <li><strong>Convolutional Neural Networks (CNNs)</strong> for <em>images</em>. A CNN is built
+    around the fact that pixels near each other are related, and that a cat is a cat wherever it
+    appears in the frame. <span class="wk">Weeks 7–9</span></li>
+    <li><strong>Recurrent Neural Networks (RNNs)</strong> for <em>sequences</em> — audio, text,
+    anything with a time order, where what came earlier changes the meaning of what comes next.
+    <span class="wk">Week 10</span></li>
+    <li><strong>Hybrid or custom architectures</strong> for complex inputs such as autonomous
+    driving, which fuses camera images with radar.</li>
+  </ul>
+
+  <h3>Structured and unstructured data</h3>
+  
+  <p>This distinction explains where deep learning changed things most.</p>
+  <ul class="plain">
+    <li><strong>Structured data</strong> is a table. Each column has a name and a meaning: size in
+    m², number of bedrooms, user age. Each feature is already meaningful on its own.</li>
+    <li><strong>Unstructured data</strong> is raw pixels, audio samples, or text. A single pixel
+    value means nothing by itself; the meaning lives in the pattern across thousands of them.</li>
+  </ul>
+  <p>Humans are extraordinarily good at unstructured data — you recognise a face or a spoken word
+  effortlessly. Computers historically were terrible at it. Deep learning is what closed that gap,
+  and it is why the headline results are in vision, speech and language.</p>
+  <p class="warn"><strong>Do not over-read this.</strong> On structured, tabular data, classical
+  methods such as gradient boosting remain extremely strong and are often the first thing a
+  practitioner should try. Deep learning is not automatically the right tool; it is the right tool
+  when the input is raw and high-dimensional.</p>
+
+  <div class="chk">
+    <h4>Check yourself</h4>
+    <ol>
+      <li>What makes an application "supervised"?
+        <span class="ans">— The training data contains the correct answer y for every input x.</span></li>
+      <li>Why is a CNN suited to images rather than a standard network?
+        <span class="ans">— It is built for the fact that nearby pixels are related and that an object keeps its identity wherever it appears in the image.</span></li>
+      <li>Give an example of structured and of unstructured data.
+        <span class="ans">— Structured: a table of house size and price. Unstructured: the photograph of the house.</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="sec-h"><span class="sec-n">Part 4</span><h2>Why is Deep Learning Taking Off?</h2></div>
+
+  <p>Here is the puzzle. Neural networks are not new — the core mathematics dates to the 1950s–80s,
+  and backpropagation was popularised in 1986. So why did almost nothing happen for decades, and
+  then everything happened at once after about 2010?</p>
+  <p>The answer is <strong>scale</strong>, and the clearest way to see it is this figure.</p>
+
+  <figure><svg viewBox="0 0 900 420" role="img" aria-label="Performance against amount of data. Traditional algorithms plateau early, while larger neural networks keep improving as data grows.">
+          <line x1="90" y1="360" x2="850" y2="360" stroke="#12283c" stroke-width="3"/>
+          <line x1="90" y1="360" x2="90"  y2="30"  stroke="#12283c" stroke-width="3"/>
+          <text x="470" y="402" fill="#6b8299" font-size="18" text-anchor="middle" font-family="Poppins,sans-serif">amount of labelled data  (m)</text>
+          <text x="40" y="195" fill="#6b8299" font-size="18" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(-90 40 195)">performance</text>
+
+          <path d="M90 360 C220 250 300 214 460 208 C600 204 720 202 850 202" fill="none" stroke="#c8202c"    stroke-width="4"/>
+          <path d="M90 360 C230 232 330 178 470 158 C610 140 730 134 850 130" fill="none" stroke="#a8760e" stroke-width="4"/>
+          <path d="M90 360 C240 218 350 146 500 112 C640 82  740 74  850 70"  fill="none" stroke="#1c6fa8"   stroke-width="4"/>
+          <path d="M90 360 C250 206 370 118 530 74  C660 40  760 30  850 26"  fill="none" stroke="#1f7a4d"  stroke-width="4"/>
+
+          <g font-family="Poppins,sans-serif" font-size="16" font-weight="600">
+            <text x="862" y="206" fill="#c8202c">traditional</text>
+            <text x="862" y="134" fill="#a8760e">small NN</text>
+            <text x="862" y="74"  fill="#1c6fa8">medium NN</text>
+            <text x="862" y="30"  fill="#1f7a4d">large NN</text>
+          </g>
+        </svg><figcaption><b>Figure 10.</b> Scale drives progress. Traditional algorithms plateau; larger networks keep improving as data grows.</figcaption></figure>
+
+  <h3>Reading the scale curve</h3>
+  <p>The horizontal axis is the amount of <strong>labelled data</strong> available
+  (<span class="mono">m</span>). The vertical axis is <strong>performance</strong>. There are four
+  curves, and the story is in their shapes:</p>
+  <ul class="plain">
+    <li><strong>Traditional algorithms</strong> (red) — support vector machines, logistic
+    regression. They improve as data grows, then <strong>plateau</strong>. Past a certain point,
+    feeding them more data buys you almost nothing.</li>
+    <li><strong>Small, medium and large neural networks</strong> (yellow, blue, green) — each keeps
+    climbing for longer, and the larger the network, the higher it eventually reaches.</li>
+  </ul>
+  <p>Two consequences follow, and both matter for how you work:</p>
+  <div class="ex">
+    <h4>What the curve actually tells you</h4>
+    <p><strong>1. To get the best performance you need two things at once</strong> — a big enough
+    network <em>and</em> enough data. A large network trained on a small dataset does not help; the
+    green curve only pulls ahead on the right-hand side of the graph.</p>
+    <p><strong>2. On the far left, the ordering is unreliable.</strong> With very little data, a
+    well-engineered traditional algorithm can easily beat a neural network. Which method wins is
+    down to skill and hand-crafted features, not to the method itself. Deep learning's dominance is
+    a large-data phenomenon.</p>
+  </div>
+
+  <h3>The three drivers</h3>
+  
+  <p>So what moved us to the right-hand side of that graph? Three things arrived together, and all
+  three were necessary.</p>
+  <ul class="plain">
+    <li><strong>Data.</strong> Society digitised. Activity moved onto computers and phones, so
+    enormous labelled datasets became possible for the first time.</li>
+    <li><strong>Computation.</strong> GPUs, and specialised hardware after them, made it feasible to
+    train a large network in hours instead of months.</li>
+    <li><strong>Algorithms.</strong> Better ideas made training faster — and, importantly, most of
+    these were <em>aimed at</em> speed.</li>
+  </ul>
+
+  <h4>One algorithmic change worth understanding: sigmoid → ReLU</h4>
+  <p>Early networks used the <strong>sigmoid</strong> activation, an S-shaped curve. Its problem is
+  visible in its shape: at both ends the curve goes almost flat, so its slope is nearly zero. And
+  gradient descent moves using the slope. When the slope vanishes, learning effectively
+  <strong>stalls</strong>.</p>
+  <p><strong>ReLU</strong> — <span class="mono">max(0, z)</span> — has a constant slope of 1 for all
+  positive inputs. The gradient does not vanish, so gradient descent keeps making real progress.
+  Swapping one function for another made training dramatically faster, with no new hardware
+  required.</p>
+
+  <h3>Why faster training matters more than it sounds</h3>
+  <figure><svg viewBox="0 0 620 400" role="img" aria-label="A cycle of idea, code, experiment repeating.">
+          <circle cx="310" cy="200" r="132" fill="none" stroke="#c9d2da" stroke-width="2.5" stroke-dasharray="6 9"/>
+          <text x="310" y="54"  fill="#12283c" font-size="27" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Idea</text>
+          <text x="500" y="292" fill="#12283c" font-size="27" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Code</text>
+          <text x="122" y="292" fill="#12283c" font-size="27" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Experiment</text>
+          <g fill="none" stroke="#1f7a4d" stroke-width="4" stroke-linecap="round">
+            <path d="M372 96 C424 124 452 168 456 220" marker-end="url(#c1)"/>
+            <path d="M420 306 C372 332 250 332 200 306" marker-end="url(#c1)"/>
+            <path d="M164 220 C168 168 196 124 248 96"  marker-end="url(#c1)"/>
+          </g>
+          <text x="310" y="208" fill="#6b8299" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">10 min</text>
+          <text x="310" y="232" fill="#6b8299" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">not 1 month</text>
+          <defs>
+            <marker id="c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto">
+              <path d="M0 0 10 5 0 10z" fill="#1f7a4d"/>
+            </marker>
+          </defs>
+        </svg><figcaption><b>Figure 11.</b> Faster training means more turns of the idea → code → experiment loop, and more turns means better models.</figcaption></figure>
+  <p>Speed is not just convenience. Research and engineering both run as a loop: you have an
+  <strong>idea</strong>, you write the <strong>code</strong>, you run the
+  <strong>experiment</strong>, and the result gives you your next idea.</p>
+  <p>If one turn of that loop takes ten minutes, you can try dozens of ideas in a day. If it takes a
+  month, you might try ten in a year — and you will choose conservatively, because each attempt is
+  expensive. <strong>Faster computation buys more iterations, and more iterations buy better
+  models.</strong> That is the real reason hardware progress translated so directly into better AI.</p>
+
+  <div class="chk">
+    <h4>Check yourself</h4>
+    <ol>
+      <li>Why did neural networks not "take off" in the 1990s, given the maths already existed?
+        <span class="ans">— Not enough labelled data and not enough computing power to train large networks.</span></li>
+      <li>On the scale curve, why does the red traditional-algorithm line flatten?
+        <span class="ans">— Those methods cannot exploit extra data beyond a point; their capacity is limited.</span></li>
+      <li>Why does ReLU train faster than sigmoid?
+        <span class="ans">— Sigmoid's slope goes almost to zero at both ends so learning stalls; ReLU has slope 1 for all positive inputs.</span></li>
+      <li>If you have only 200 labelled examples, is a very large network the right choice?
+        <span class="ans">— Probably not — on the left of the curve a simpler method with good features is often better.</span></li>
+    </ol>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="sec-h"><span class="sec-n">Part 5</span><h2>Glossary</h2></div>
+  <dl class="gl">
+    <dt>Activation function</dt><dd>The small function applied at a neuron's output, such as ReLU or sigmoid.</dd>
+    <dt>Artificial Intelligence (AI)</dt><dd>Any technique that makes a machine behave intelligently, including hand-written rules.</dd>
+    <dt>Backpropagation</dt><dd>The algorithm that computes how much each parameter contributed to the error. Chapter 2.</dd>
+    <dt>Bias, b</dt><dd>The parameter added after the weighted inputs; it shifts the output up or down.</dd>
+    <dt>Classification</dt><dd>Supervised learning where the output is a category.</dd>
+    <dt>Clustering</dt><dd>Unsupervised learning that groups similar examples with no labels.</dd>
+    <dt>CNN</dt><dd>Convolutional Neural Network — the architecture used for images. Weeks 7–9.</dd>
+    <dt>Cost function, J(w,b)</dt><dd>The average loss over the whole training set; the single number training minimises.</dd>
+    <dt>Deep learning</dt><dd>Machine learning with neural networks of many layers, which learn their own features.</dd>
+    <dt>Dimensionality reduction</dt><dd>Unsupervised learning that compresses many features into fewer.</dd>
+    <dt>Feature</dt><dd>One input variable describing an example — one of the numbers in x.</dd>
+    <dt>Feature engineering</dt><dd>Designing input variables by hand. The step deep learning removes.</dd>
+    <dt>Generalisation</dt><dd>Performing well on new, unseen data. The actual goal of training.</dd>
+    <dt>Gradient descent</dt><dd>Repeatedly stepping the parameters in the direction that reduces the cost.</dd>
+    <dt>Hidden layer</dt><dd>A layer between input and output whose values you neither supply nor read.</dd>
+    <dt>Label</dt><dd>The correct answer y attached to a training input x.</dd>
+    <dt>Learning rate, α</dt><dd>How large a step gradient descent takes. Too small is slow; too large overshoots.</dd>
+    <dt>Loss, L(ŷ, y)</dt><dd>How wrong a single prediction was.</dd>
+    <dt>Machine Learning</dt><dd>A subset of AI in which the rule is learned from data instead of written by hand.</dd>
+    <dt>Mean squared error</dt><dd>A cost function that squares each error and averages them.</dd>
+    <dt>Model</dt><dd>The family of functions allowed, e.g. all straight lines ŷ = wx + b.</dd>
+    <dt>Neuron</dt><dd>A unit that weights its inputs, adds a bias, and applies an activation function.</dd>
+    <dt>Overfitting</dt><dd>Fitting the training data so closely that performance on new data suffers. Revisited later.</dd>
+    <dt>Parameters</dt><dd>The numbers inside the model that training adjusts: the weights w and bias b.</dd>
+    <dt>Regression</dt><dd>Supervised learning where the output is a continuous number.</dd>
+    <dt>Reinforcement learning</dt><dd>Learning from delayed, sparse rewards rather than labelled answers.</dd>
+    <dt>ReLU</dt><dd>Rectified Linear Unit, max(0, z). The most common activation function.</dd>
+    <dt>RNN</dt><dd>Recurrent Neural Network — the architecture used for sequences. Week 10.</dd>
+    <dt>Sigmoid</dt><dd>An older S-shaped activation whose flat ends make training stall.</dd>
+    <dt>Structured data</dt><dd>Data in a table, where each column has a defined meaning.</dd>
+    <dt>Supervised learning</dt><dd>Learning from labelled pairs (x, y).</dd>
+    <dt>Training example</dt><dd>One pair (x⁽ⁱ⁾, y⁽ⁱ⁾) from the dataset.</dd>
+    <dt>Unstructured data</dt><dd>Raw pixels, audio or text, where no single value is meaningful alone.</dd>
+    <dt>Unsupervised learning</dt><dd>Learning structure from data that has no labels.</dd>
+    <dt>Weight, w</dt><dd>The parameter multiplying an input; it sets how much that input matters.</dd>
+  </dl>
+  <p class="foot">CS 4085 — Deep Learning · Chapter 1 · Reading companion ·
+  Dr Naila Marir · Effat University · Fall 2026<br>
+  Adapted from Andrew Ng, <em>Deep Learning Specialization</em> (deeplearning.ai), Course 1
+  Modules 1–2, and Tom Mitchell, <em>Machine Learning</em> (1997).<br>
+  Next: Chapter 2 — inside the neuron: logistic regression, the loss function, and gradient descent
+  derived properly.</p>
+</div>
+

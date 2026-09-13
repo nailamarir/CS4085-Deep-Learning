@@ -1,0 +1,15 @@
+# third-party source material — not redistributed
+Resources/
+**/Resources/
+*C1M1*.pdf
+*C1M2*.pdf
+*6S191*.pdf
+
+# working files
+*.bak
+.DS_Store
+**/.DS_Store
+
+# SCORM packages — built locally, not published
+*_SCORM.zip
+*_SCORM/

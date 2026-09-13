@@ -1,0 +1,1169 @@
+<title>Deep Learning — Chapter 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
+
+<style>
+/* ============================================================
+   CS4085 · Chapter 1 — CS50 AI house style (matches CS3081)
+   Pure black ground, one idea per slide, illustration carries
+   the meaning. Deliberately single-theme: a dark room and a
+   projector, in every viewing context.
+   Source: Ng, Deep Learning Specialization C1M1 + C1M2.
+   ============================================================ */
+:root{
+  --black:#000000;
+  --white:#ffffff;
+  --blue:#0091ff;
+  --orange:#e8590c;
+  --yellow:#f5a623;
+  --green:#28a138;
+  --red:#e01b24;
+  --purple:#a56cf5;
+  --node:#3d3d3d;
+  --dim:#8a8a8a;
+  --sans:"Poppins","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono","SF Mono",Menlo,monospace;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--black)}
+body{
+  background:var(--black);
+  color:var(--white);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden;background:var(--black)}
+
+.slide{
+  position:absolute;inset:0;
+  display:none;
+  background:var(--black);
+  padding:6vh 7vw;
+  font-size:clamp(13px,1.7vh,28px);
+}
+.slide.active{display:flex}
+
+/* ---------- word left, picture right ---------- */
+.split{
+  width:100%;height:100%;
+  display:grid;grid-template-columns:1fr 1.15fr;
+  align-items:center;gap:4vw;
+}
+.split .word{
+  font-size:clamp(38px,6.6vw,104px);
+  font-weight:700;line-height:1.06;
+  letter-spacing:-.022em;
+  text-align:center;
+  text-wrap:balance;
+}
+.split .art{display:flex;align-items:center;justify-content:center}
+.split .art svg{width:100%;height:auto;max-height:74vh}
+
+/* ---------- centered single statement ---------- */
+.center{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;gap:.55em;
+}
+.center .big{
+  font-size:clamp(40px,7.2vw,116px);
+  font-weight:700;line-height:1.05;letter-spacing:-.024em;
+  text-wrap:balance;
+}
+.center .mid{
+  font-size:clamp(26px,4.2vw,64px);
+  font-weight:600;line-height:1.14;letter-spacing:-.018em;
+  max-width:19ch;text-wrap:balance;
+}
+.center .sub{
+  font-size:clamp(15px,1.85vw,30px);
+  font-weight:400;color:var(--dim);line-height:1.5;
+  max-width:34ch;text-wrap:balance;
+}
+.center .tag{
+  font-family:var(--mono);
+  font-size:clamp(10px,.92vw,15px);
+  letter-spacing:.26em;text-transform:uppercase;
+  color:#5a7d99;font-weight:400;
+}
+
+/* ---------- readable content slides ---------- */
+.doc{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;justify-content:center;
+  gap:2.6vh;
+}
+.doc h2{
+  margin:0;
+  font-size:clamp(34px,5.4vw,86px);
+  font-weight:700;letter-spacing:-.026em;line-height:1.04;
+  text-wrap:balance;
+}
+.doc .kicker{
+  font-family:var(--mono);
+  font-size:clamp(10px,.88vw,14px);
+  letter-spacing:.26em;text-transform:uppercase;
+  color:#5a7d99;margin-bottom:-1vh;font-weight:400;
+}
+.doc p{
+  margin:0;
+  font-size:clamp(14px,1.5vw,25px);
+  line-height:1.62;color:#d8d8d8;max-width:56ch;
+}
+.doc p b,.doc li b{color:var(--white);font-weight:600}
+.doc .lede{
+  font-size:clamp(16px,1.95vw,33px);
+  line-height:1.48;color:var(--white);max-width:44ch;font-weight:400;
+}
+.doc .art{display:flex;align-items:center;justify-content:center;min-height:0}
+.doc .art svg{width:100%;height:auto;max-height:52vh}
+
+/* ---------- tables ---------- */
+.tbl{overflow-x:auto;overflow-y:auto;max-height:64vh}
+table{border-collapse:collapse;width:100%;font-size:clamp(11px,1.24vw,21px)}
+th{
+  text-align:left;padding:.5em .8em .5em 0;
+  font-family:var(--mono);font-weight:400;
+  font-size:.76em;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dim);border-bottom:2px solid #2a2a2a;white-space:nowrap;
+}
+td{
+  padding:.62em .8em .62em 0;
+  border-bottom:1px solid #1c1c1c;
+  line-height:1.34;vertical-align:top;color:#e2e2e2;
+}
+td.k{font-family:var(--mono);color:var(--blue);font-weight:700;white-space:nowrap}
+td.dim{color:var(--dim)}
+tr.mark td{color:var(--white);font-weight:600}
+
+/* ---------- rule list ---------- */
+.rules{display:flex;flex-direction:column;gap:1.4vh;max-width:56ch;margin:0;padding:0}
+.rules li{
+  list-style:none;
+  font-size:clamp(13px,1.5vw,25px);line-height:1.46;color:#e2e2e2;
+  display:grid;grid-template-columns:1.9em 1fr;gap:.5em;
+}
+.rules li span:first-child{font-family:var(--mono);color:var(--blue);font-weight:700}
+
+/* ---------- three/four column cards ---------- */
+.cards{display:grid;gap:1.6vw;width:100%}
+.cards.c3{grid-template-columns:repeat(3,1fr)}
+.cards.c4{grid-template-columns:repeat(4,1fr)}
+.card{
+  border:1px solid #232323;border-radius:10px;
+  padding:2.2vh 1.5vw;display:flex;flex-direction:column;gap:.9vh;
+  background:#0a0a0a;
+}
+.card .n{font-family:var(--mono);font-size:clamp(10px,.95vw,15px);
+  letter-spacing:.2em;color:var(--blue)}
+.card h3{margin:0;font-size:clamp(19px,2.35vw,38px);font-weight:700;
+  letter-spacing:-.018em;line-height:1.1}
+.card p{margin:0;font-size:clamp(12px,1.18vw,20px);line-height:1.5;color:#c4c4c4}
+.card .eg{font-size:clamp(11px,1.05vw,17px);color:var(--dim);line-height:1.45;
+  border-top:1px solid #1e1e1e;padding-top:.9vh;margin-top:auto}
+/* the component NAME is the concept — it must dominate its card */
+.card h3.comp{font-size:clamp(19px,2.5vw,40px);font-weight:700;letter-spacing:-.02em;
+  line-height:1.06;margin-bottom:.2vh}
+/* the question is a subtitle, not the headline */
+.card p.role{font-size:clamp(11px,1.05vw,17px);color:var(--dim);line-height:1.3;
+  margin-bottom:.6vh}
+.card.b{border-color:#123c5e} .card.b .n{color:var(--blue)} .card.b h3{color:var(--blue)}
+.card.o{border-color:#4a2a10} .card.o .n{color:var(--orange)} .card.o h3{color:var(--orange)}
+.card.g{border-color:#16401f} .card.g .n{color:var(--green)} .card.g h3{color:var(--green)}
+.card.p{border-color:#33224d} .card.p .n{color:var(--purple)} .card.p h3{color:var(--purple)}
+
+/* ---------- math ---------- */
+.math{
+  font-family:var(--mono);
+  font-size:clamp(15px,2.15vw,38px);
+  color:var(--white);line-height:1.5;text-align:center;
+  letter-spacing:-.01em;
+}
+.math .hl{color:var(--blue)}
+.math .hl2{color:var(--orange)}
+.math .an{
+  display:block;font-family:var(--sans);
+  font-size:clamp(11px,1.1vw,18px);color:var(--dim);
+  margin-top:.7em;letter-spacing:0;
+}
+.mathrow{display:flex;flex-direction:column;gap:2.2vh;align-items:center;width:100%}
+
+/* ---------- steps ---------- */
+.steps{display:flex;align-items:center;justify-content:center;gap:3.4vw;width:100%}
+.step{display:flex;flex-direction:column;align-items:center;gap:1.1vh;text-align:center}
+.step .ix{font-family:var(--mono);font-size:clamp(11px,1.02vw,16px);
+  letter-spacing:.24em;color:var(--dim)}
+.step .lb{font-size:clamp(22px,3.5vw,54px);font-weight:700;
+  letter-spacing:-.018em;line-height:1.1}
+.step .lb.b{color:var(--blue)}
+.arrow{color:var(--white);flex:none}
+
+/* ---------- info pairs ---------- */
+.pairs{display:grid;grid-template-columns:1fr 1fr;gap:2.4vh 4vw;max-width:min(1020px,94%)}
+.pair dt{font-family:var(--mono);font-size:clamp(10px,.96vw,15px);
+  letter-spacing:.2em;text-transform:uppercase;color:var(--blue);margin-bottom:.5em}
+.pair dd{margin:0;font-size:clamp(14px,1.55vw,26px);line-height:1.42;color:#e9e9e9}
+.pair dd b{color:var(--white);font-weight:600}
+
+/* ---------- chrome ---------- */
+.bar-progress{position:fixed;left:0;bottom:0;height:2px;background:var(--blue);
+  z-index:30;transition:width .3s ease}
+.hint{position:fixed;right:2vw;bottom:2.4vh;z-index:30;
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+  color:#4a4a4a;text-transform:uppercase;transition:opacity .6s ease}
+.hint.hide{opacity:0}
+.credit{position:fixed;left:2vw;bottom:2.4vh;z-index:30;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:#3a3a3a}
+
+/* entrance */
+.slide.active .split > *,
+.slide.active .center > *,
+.slide.active .doc > *{animation:fade .45s ease backwards}
+.slide.active .split > *:nth-child(2){animation-delay:.1s}
+.slide.active .center > *:nth-child(2),
+.slide.active .doc > *:nth-child(2){animation-delay:.07s}
+.slide.active .doc > *:nth-child(3){animation-delay:.13s}
+.slide.active .doc > *:nth-child(4){animation-delay:.19s}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}
+  /* freeze the SMIL fit animation on its final, fitted frame */
+  #s-fit animate{display:none}
+}
+/* print: freeze the fit diagram too */
+@media print{ #s-fit animate{display:none} }
+
+@media (max-aspect-ratio:1/1){
+  .split{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:3vh}
+  .split .art svg{max-height:52vh}
+  .pairs,.cards.c3,.cards.c4{grid-template-columns:1fr}
+}
+
+@media print{
+  @page{size:1600px 900px;margin:0}
+  .slide{
+    display:flex!important;position:relative;inset:auto;
+    width:1600px;height:900px;font-size:21px;
+    page-break-after:always;break-after:page;
+  }
+  .deck{width:auto;height:auto;overflow:visible}
+  .bar-progress,.hint,.credit{display:none}
+  html,body{overflow:visible}
+}
+</style>
+
+<div class="deck" id="deck">
+
+  <!-- 01 · TITLE -->
+  <section class="slide active">
+    <div class="center">
+      <div class="tag">CS 4085 · Deep Learning · Chapter 1</div>
+      <div class="big">Introduction to<br>Deep Learning</div>
+      <div class="sub" style="margin-top:1.4em;color:#c8c8c8">
+        Dr. Naila Marir<br>
+        <span style="color:var(--dim)">Effat University · College of Engineering</span>
+      </div>
+      <div class="sub" style="font-family:var(--mono);font-size:clamp(12px,1.15vw,18px);letter-spacing:.1em">
+        6 September 2026
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · AI IS THE NEW ELECTRICITY -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Andrew Ng</div>
+      <div class="big" style="color:var(--yellow)">AI is the<br>new Electricity</div>
+    </div>
+  </section>
+
+  <!-- 03 · THE ANALOGY -->
+  <section class="slide">
+    <div class="split">
+      <div class="word" style="font-size:clamp(26px,3.6vw,56px);line-height:1.2">
+        Electricity transformed<br>
+        <span style="color:var(--yellow)">every industry</span><br>
+        about 100 years ago
+      </div>
+      <div class="art">
+        <svg viewBox="0 0 620 420" role="img" aria-label="A light bulb whose filament forms the letters A I, with rays spreading to transport, factory, hospital and communication icons.">
+          <!-- bulb -->
+          <path d="M310 60c-62 0-112 50-112 112 0 44 25 74 45 96 14 16 21 30 21 46h92c0-16 7-30 21-46 20-22 45-52 45-96 0-62-50-112-112-112Z"
+                fill="none" stroke="var(--yellow)" stroke-width="6"/>
+          <path d="M264 314h92M270 336h80M282 358h56" stroke="var(--yellow)" stroke-width="6" stroke-linecap="round"/>
+          <!-- filament: A I -->
+          <path d="M276 210l22-56 22 56M284 192h28" stroke="var(--white)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M344 154v56" stroke="var(--white)" stroke-width="5" stroke-linecap="round"/>
+          <!-- rays -->
+          <g stroke="var(--yellow)" stroke-width="4" stroke-linecap="round" opacity=".55">
+            <path d="M150 120l-40-26M470 120l40-26M120 220H70M500 220h50M156 320l-42 28M464 320l42 28"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 · WHICH INDUSTRIES -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Then · electricity</div>
+      <h2>Transportation · Manufacturing<br>Healthcare · Communications</h2>
+      <p class="lede">Every one of these was rebuilt around a single general-purpose technology.</p>
+      <p style="color:var(--yellow);font-size:clamp(16px,2.1vw,35px);font-weight:600;max-width:44ch">
+        AI will now bring about an equally big transformation.</p>
+    </div>
+  </section>
+
+  <!-- 05 · AI / ML / DL -->
+  <section class="slide">
+    <div class="split">
+      <div class="word" style="font-size:clamp(30px,4.4vw,68px)">
+        AI <span style="color:var(--dim)">⊃</span> ML <span style="color:var(--dim)">⊃</span> DL
+      </div>
+      <div class="art">
+        <svg viewBox="0 0 620 460" role="img" aria-label="Three nested circles: artificial intelligence contains machine learning, which contains deep learning.">
+          <circle cx="310" cy="240" r="212" fill="none" stroke="var(--blue)" stroke-width="3" opacity=".55"/>
+          <circle cx="310" cy="286" r="156" fill="none" stroke="var(--green)" stroke-width="3" opacity=".7"/>
+          <circle cx="310" cy="330" r="92"  fill="none" stroke="var(--orange)" stroke-width="3"/>
+          <text x="310" y="76"  fill="var(--blue)"   font-size="26" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Artificial Intelligence</text>
+          <text x="310" y="100" fill="var(--dim)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">machines that behave intelligently</text>
+          <text x="310" y="172" fill="var(--green)"  font-size="24" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Machine Learning</text>
+          <text x="310" y="196" fill="var(--dim)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">learning from data, not rules</text>
+          <text x="310" y="326" fill="var(--orange)" font-size="23" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Deep</text>
+          <text x="310" y="354" fill="var(--orange)" font-size="23" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Learning</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 · ML DEFINITION — plain language -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Machine Learning · in plain words</div>
+      <h2 style="font-size:clamp(24px,3.4vw,54px);line-height:1.18;max-width:30ch">
+        Teaching a computer<br><span style="color:var(--blue)">without programming it</span>
+      </h2>
+      <p class="lede" style="max-width:56ch">
+        We use <b>examples</b> to train computers to do tasks that would be
+        very difficult to write rules for.</p>
+      <div class="art" style="margin-top:1vh">
+        <svg viewBox="0 0 900 250" role="img"
+             aria-label="Two tasks that are easy to demonstrate but hard to write rules for: recognising a cat in a photo, and reading handwritten digits.">
+          <!-- cat -->
+          <rect x="70" y="30" width="190" height="150" rx="10" fill="#0a1a26" stroke="var(--blue)" stroke-width="3"/>
+          <path d="M118 108 l-14 -30 24 10 M212 108 l14 -30 -24 10" stroke="var(--blue)" stroke-width="3.5" fill="none" stroke-linejoin="round"/>
+          <circle cx="165" cy="118" r="40" fill="none" stroke="var(--blue)" stroke-width="3.5"/>
+          <circle cx="151" cy="112" r="5" fill="var(--blue)"/><circle cx="179" cy="112" r="5" fill="var(--blue)"/>
+          <path d="M165 126 l-6 8 h12 z" fill="var(--blue)"/>
+          <path d="M128 132 h-22 M128 140 h-20 M202 132 h22 M202 140 h20" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round"/>
+          <text x="165" y="212" fill="var(--white)" font-size="21" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Is this a cat?</text>
+          <text x="165" y="238" fill="var(--dim)" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">every cat looks different</text>
+
+          <!-- handwriting -->
+          <rect x="640" y="30" width="190" height="150" rx="10" fill="#2a1608" stroke="var(--orange)" stroke-width="3"/>
+          <g stroke="var(--orange)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M676 132 q6 -52 20 -52 q14 0 14 26 q0 26 -14 26 q-14 0 -14 -26"/>
+            <path d="M726 92 q10 -12 16 -4 q4 8 -4 44"/>
+            <path d="M766 82 q22 -6 22 14 q0 12 -16 16 q18 2 18 18 q0 16 -24 10"/>
+          </g>
+          <text x="735" y="212" fill="var(--white)" font-size="21" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Which digits?</text>
+          <text x="735" y="238" fill="var(--dim)" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">everyone writes differently</text>
+
+          <!-- middle: examples -> model -->
+          <text x="450" y="62" fill="var(--dim)" font-size="17" text-anchor="middle" font-family="Poppins,sans-serif">show thousands of</text>
+          <text x="450" y="86" fill="var(--dim)" font-size="17" text-anchor="middle" font-family="Poppins,sans-serif">labelled examples</text>
+          <path d="M290 118 h100" stroke="var(--dim)" stroke-width="3" marker-end="url(#p1)"/>
+          <path d="M610 118 h-100" stroke="var(--dim)" stroke-width="3" marker-end="url(#p2)"/>
+          <rect x="396" y="98" width="108" height="42" rx="8" fill="#0a0a0a" stroke="var(--green)" stroke-width="2.5"/>
+          <text x="450" y="126" fill="var(--green)" font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">it learns</text>
+          <text x="450" y="176" fill="var(--dim)" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">nobody writes the rules</text>
+          <defs>
+            <marker id="p1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--dim)"/></marker>
+            <marker id="p2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--dim)"/></marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 · ML DEFINITION — Mitchell (1997) -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Machine Learning · the classic definition</div>
+      <h2 style="font-size:clamp(22px,3.15vw,50px);line-height:1.24;max-width:26ch">
+        A program <b style="font-weight:700">learns</b> from
+        <b style="color:var(--blue)">experience E</b><br>
+        at some <b style="color:var(--green)">task T</b>,
+        measured by <b style="color:var(--orange)">performance P</b>,<br>
+        if its <b style="color:var(--orange)">P</b> at
+        <b style="color:var(--green)">T</b> improves with
+        <b style="color:var(--blue)">E</b>.
+      </h2>
+      <p style="color:var(--dim);margin-top:-1vh">Tom Mitchell, 1997</p>
+      <div class="cards c3" style="margin-top:1vh">
+        <div class="card b">
+          <div class="n">E</div>
+          <h3 class="comp">Experience</h3>
+          <p class="role">what it sees</p>
+          <p>Thousands of past houses, each with its real selling price.</p>
+        </div>
+        <div class="card g">
+          <div class="n">T</div>
+          <h3 class="comp">Task</h3>
+          <p class="role">what it must do</p>
+          <p>Guess the price of a house it has never seen.</p>
+        </div>
+        <div class="card o">
+          <div class="n">P</div>
+          <h3 class="comp">Performance</h3>
+          <p class="role">how we score it</p>
+          <p>How close its guesses are to the real prices.</p>
+        </div>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:58ch">
+        Show it more houses and its guesses get better — <b>that</b> is learning.</p>
+    </div>
+  </section>
+
+  <!-- 08 · THREE TYPES -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Types of ML · what signal says you are right?</div>
+      <h2>Supervised · Unsupervised<br>Reinforcement</h2>
+      <div class="cards c3">
+        <div class="card b">
+          <div class="n">01</div>
+          <h3 style="color:var(--blue)">Supervised</h3>
+          <p>Every example carries the <b>correct answer</b>. The model predicts, compares, corrects.</p>
+          <div class="eg">Data: (x, y) pairs<br>Regression · Classification</div>
+        </div>
+        <div class="card g">
+          <div class="n">02</div>
+          <h3>Unsupervised</h3>
+          <p>No labels at all. The model must find <b>structure already present</b> in the data.</p>
+          <div class="eg">Data: x only<br>Clustering · Dimensionality reduction</div>
+        </div>
+        <div class="card o">
+          <div class="n">03</div>
+          <h3>Reinforcement</h3>
+          <p>No correct answer given — only a <b>reward, later</b>. The agent works backwards from it.</p>
+          <div class="eg">Data: states, actions, rewards<br>Control · Game playing</div>
+        </div>
+      </div>
+      <p style="color:var(--dim)">Almost everything in this course is <b style="color:var(--blue)">supervised</b> learning.</p>
+    </div>
+  </section>
+
+  <!-- 09 · THE PRINCIPLE — animated fit (supervised) -->
+  <section class="slide" id="s-fit">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Supervised learning · how it actually works</div>
+      <h2>Fit, measure, correct — repeat</h2>
+      <div class="art" style="margin-top:.6vh">
+        <svg viewBox="0 0 900 330" role="img"
+             aria-label="An animated fit: a line starts badly placed, red error bars connect it to each data point, and as the line rotates into place the error bars shrink to almost nothing.">
+          <!-- axes -->
+          <line x1="70" y1="286" x2="830" y2="286" stroke="var(--white)" stroke-width="2.5"/>
+          <line x1="70" y1="286" x2="70"  y2="26"  stroke="var(--white)" stroke-width="2.5"/>
+          <text x="450" y="322" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">x</text>
+          <text x="40"  y="156" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(-90 40 156)">y</text>
+
+          <!-- error bars: animate from the bad line up to each point -->
+          <g stroke="var(--red)" stroke-width="5" stroke-linecap="round" opacity=".95">
+            <line class="err" x1="170" y1="243" x2="170" y2="243"><animate attributeName="y1" dur="4s" repeatCount="indefinite" values="196;243;243"/></line>
+            <line class="err" x1="290" y1="212" x2="290" y2="212"><animate attributeName="y1" dur="4s" repeatCount="indefinite" values="184;208;212"/></line>
+            <line class="err" x1="410" y1="176" x2="410" y2="176"><animate attributeName="y1" dur="4s" repeatCount="indefinite" values="172;166;176"/></line>
+            <line class="err" x1="530" y1="140" x2="530" y2="140"><animate attributeName="y1" dur="4s" repeatCount="indefinite" values="160;128;140"/></line>
+            <line class="err" x1="650" y1="100" x2="650" y2="100"><animate attributeName="y1" dur="4s" repeatCount="indefinite" values="148;86;100"/></line>
+            <line class="err" x1="770" y1="66"  x2="770" y2="66"><animate attributeName="y1" dur="4s" repeatCount="indefinite" values="136;44;66"/></line>
+          </g>
+
+          <!-- the model line: rotates from a bad guess into the fit -->
+          <line x1="90" y1="204" x2="820" y2="130" stroke="var(--blue)" stroke-width="4.5" stroke-linecap="round">
+            <animate attributeName="y1" dur="4s" repeatCount="indefinite" values="204;262;258"/>
+            <animate attributeName="y2" dur="4s" repeatCount="indefinite" values="130;28;52"/>
+          </line>
+
+          <!-- data points, fixed -->
+          <g stroke="var(--white)" stroke-width="5.5" stroke-linecap="round">
+            <path d="M162 235l16 16M178 235l-16 16"/>
+            <path d="M282 204l16 16M298 204l-16 16"/>
+            <path d="M402 168l16 16M418 168l-16 16"/>
+            <path d="M522 132l16 16M538 132l-16 16"/>
+            <path d="M642 92l16 16M658 92l-16 16"/>
+            <path d="M762 58l16 16M778 58l-16 16"/>
+          </g>
+
+          <!-- caption that cycles with the animation -->
+          <text x="450" y="24" font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">
+            <tspan fill="var(--red)">
+              measure the error
+              <animate attributeName="opacity" dur="4s" repeatCount="indefinite"
+                       values="1;1;0;0;0;0;1" keyTimes="0;0.22;0.32;0.80;0.88;0.95;1"/>
+            </tspan>
+          </text>
+          <text x="450" y="24" font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">
+            <tspan fill="var(--blue)">
+              correct the model
+              <animate attributeName="opacity" dur="4s" repeatCount="indefinite"
+                       values="0;0;1;1;1;0;0" keyTimes="0;0.22;0.32;0.80;0.88;0.95;1"/>
+            </tspan>
+          </text>
+        </svg>
+      </div>
+      <p style="margin:0 auto;text-align:center;max-width:60ch">
+        The model is never told the rule. It is <b>corrected until its error is small</b> —
+        and the rule is what remains.</p>
+    </div>
+  </section>
+
+  <!-- 10 · SUPERVISED IN PRACTICE -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Supervised learning · where the money is</div>
+      <h2>Input &rarr; Output</h2>
+      <div class="tbl">
+        <table>
+          <tr><th>Input (x)</th><th>Output (y)</th><th>Application</th><th>Network</th></tr>
+          <tr><td>Home features</td><td>Price</td><td>Real estate</td><td class="k">Standard NN</td></tr>
+          <tr><td>Ad, user info</td><td>Click? (0/1)</td><td>Online advertising</td><td class="k">Standard NN</td></tr>
+          <tr><td>Image</td><td>Object (1…1000)</td><td>Photo tagging</td><td class="k">CNN</td></tr>
+          <tr><td>Audio</td><td>Text transcript</td><td>Speech recognition</td><td class="k">RNN</td></tr>
+          <tr><td>English</td><td>Arabic</td><td>Machine translation</td><td class="k">RNN</td></tr>
+          <tr class="mark"><td>Image, radar</td><td>Position of cars</td><td>Autonomous driving</td><td class="k">Hybrid</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · FOUR COMPONENTS DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Every machine learning system</div>
+      <div class="mid">Four components,<br>always the same four</div>
+    </div>
+  </section>
+
+  <!-- 12 · THE FOUR COMPONENTS -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Every ML system, without exception</div>
+      <h2>The four components</h2>
+      <div class="cards c4">
+        <div class="card b">
+          <div class="n">01</div>
+          <h3 class="comp">Dataset</h3>
+          <p class="role">what it learns from</p>
+          <p>m labelled examples.</p>
+          <div class="eg"><span style="font-family:var(--mono)">{(x⁽¹⁾,y⁽¹⁾) … (x⁽ᵐ⁾,y⁽ᵐ⁾)}</span></div>
+        </div>
+        <div class="card g">
+          <div class="n">02</div>
+          <h3 class="comp">Model and its<br>Parameters</h3>
+          <p class="role">the shape of f</p>
+          <p>The family of functions we allow, with tunable parameters w, b.</p>
+          <div class="eg"><span style="font-family:var(--mono)">ŷ = f(x) = wᵀx + b</span></div>
+        </div>
+        <div class="card o">
+          <div class="n">03</div>
+          <h3 class="comp">The Cost<br>Function</h3>
+          <p class="role">how wrong we are</p>
+          <p>One number measuring total error over the whole dataset.</p>
+          <div class="eg"><span style="font-family:var(--mono)">J(w,b)</span></div>
+        </div>
+        <div class="card p">
+          <div class="n">04</div>
+          <h3 class="comp">The Learning<br>Algorithm</h3>
+          <p class="role">how it improves</p>
+          <p>The procedure that changes w, b to reduce the cost.</p>
+          <div class="eg"><span style="font-family:var(--mono)">gradient descent</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · COMPONENT 1 — DATASET -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Component 01 · Dataset</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">What the model learns from</h2>
+      <div class="art">
+        <svg viewBox="0 0 980 400" role="img"
+             aria-label="A table of houses with living area and price. The left column is the feature x, the right column is the output y, one row is a training example, and there are m rows in total.">
+          <!-- table -->
+          <rect x="330" y="34" width="330" height="44" fill="#f2f2f2"/>
+          <text x="415" y="64" fill="#0a6b5e" font-size="21" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Living area</text>
+          <text x="590" y="64" fill="#0a6b5e" font-size="21" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Price</text>
+          <g stroke="#2a2a2a" stroke-width="1.5" fill="none">
+            <rect x="330" y="78"  width="330" height="42"/>
+            <rect x="330" y="120" width="330" height="42"/>
+            <rect x="330" y="162" width="330" height="42"/>
+            <rect x="330" y="204" width="330" height="42"/>
+            <rect x="330" y="246" width="330" height="42"/>
+          </g>
+          <g font-family="Poppins,sans-serif" font-size="21" fill="var(--white)" text-anchor="middle">
+            <text x="415" y="107">2104</text><text x="590" y="107">400</text>
+            <text x="415" y="149">1600</text><text x="590" y="149">330</text>
+            <text x="415" y="191" font-weight="700">2400</text><text x="590" y="191" font-weight="700">369</text>
+            <text x="415" y="233">1461</text><text x="590" y="233">232</text>
+            <text x="415" y="275">3000</text><text x="590" y="275">540</text>
+          </g>
+          <text x="495" y="310" fill="var(--dim)" font-size="22" text-anchor="middle">⋮</text>
+
+          <!-- feature / output labels -->
+          <text x="150" y="52" fill="var(--blue)" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Feature</text>
+          <text x="150" y="78" fill="var(--dim)" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">x⁽ⁱ⁾</text>
+          <path d="M196 56 h118" stroke="var(--blue)" stroke-width="2.5" fill="none" marker-end="url(#dz)"/>
+
+          <text x="840" y="52" fill="var(--orange)" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Output</text>
+          <text x="840" y="78" fill="var(--dim)" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">y⁽ⁱ⁾</text>
+          <path d="M794 56 h-118" stroke="var(--orange)" stroke-width="2.5" fill="none" marker-end="url(#dz2)"/>
+
+          <!-- one training example -->
+          <rect x="322" y="160" width="346" height="46" fill="none" stroke="var(--green)" stroke-width="3" rx="4"/>
+          <text x="150" y="180" fill="var(--green)" font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">One training</text>
+          <text x="150" y="202" fill="var(--green)" font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">example</text>
+          <text x="150" y="228" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">(x⁽³⁾, y⁽³⁾)</text>
+          <path d="M214 190 h100" stroke="var(--green)" stroke-width="2.5" fill="none" marker-end="url(#dz3)"/>
+
+          <!-- m examples brace -->
+          <path d="M690 78 h16 v212 h-16" stroke="var(--dim)" stroke-width="2" fill="none"/>
+          <text x="790" y="190" fill="var(--white)" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">m training</text>
+          <text x="790" y="214" fill="var(--white)" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">examples</text>
+
+          <defs>
+            <marker id="dz"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--blue)"/></marker>
+            <marker id="dz2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--orange)"/></marker>
+            <marker id="dz3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--green)"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:62ch">
+        <b>m</b> examples. Each is a pair <span style="font-family:var(--mono);color:#fff">(x⁽ⁱ⁾, y⁽ⁱ⁾)</span> —
+        the <b style="color:var(--blue)">feature</b> we measure and the <b style="color:var(--orange)">answer</b> we want.</p>
+    </div>
+  </section>
+
+  <!-- 14 · COMPONENT 2 — MODEL AND ITS PARAMETERS -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Component 02 · Model and its Parameters</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">The shape we allow, and the knobs we turn</h2>
+      <div class="art">
+        <svg viewBox="0 0 980 330" role="img"
+             aria-label="Three straight lines with different slopes over the same data points. The model is the family of straight lines; the parameters w and b pick which one.">
+          <g stroke="var(--white)" stroke-width="2" opacity=".55">
+            <line x1="60" y1="286" x2="920" y2="286"/><line x1="60" y1="286" x2="60" y2="30"/>
+          </g>
+          <!-- candidate lines -->
+          <line x1="80" y1="250" x2="900" y2="230" stroke="var(--node)" stroke-width="3" stroke-dasharray="7 7"/>
+          <line x1="80" y1="270" x2="900" y2="90"  stroke="var(--node)" stroke-width="3" stroke-dasharray="7 7"/>
+          <line x1="80" y1="262" x2="900" y2="52"  stroke="var(--green)" stroke-width="4.5"/>
+          <!-- points -->
+          <g stroke="var(--white)" stroke-width="5" stroke-linecap="round">
+            <path d="M172 236l14 14M186 236l-14 14"/>
+            <path d="M320 200l14 14M334 200l-14 14"/>
+            <path d="M470 158l14 14M484 158l-14 14"/>
+            <path d="M620 118l14 14M634 118l-14 14"/>
+            <path d="M770 78l14 14M784 78l-14 14"/>
+          </g>
+          <text x="915" y="46"  fill="var(--green)" font-size="17" font-weight="700" font-family="Poppins,sans-serif" text-anchor="end">a good w, b</text>
+          <text x="915" y="228" fill="var(--dim)"   font-size="16" font-family="Poppins,sans-serif" text-anchor="end">other w, b</text>
+        </svg>
+      </div>
+      <div class="mathrow" style="margin-top:.4vh">
+        <div class="math" style="font-size:clamp(15px,2vw,34px)">
+          ŷ = <span class="hl">w</span>x + <span class="hl">b</span>
+          <span class="an">The model is the whole family of straight lines. The parameters w and b choose one of them.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15 · COMPONENT 3 — THE COST FUNCTION -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Component 03 · The Cost Function</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">One number for how wrong we are</h2>
+      <div class="art">
+        <svg viewBox="0 0 980 300" role="img"
+             aria-label="Each point has a red gap to the line. The cost squares every gap and averages them into a single number.">
+          <line x1="60" y1="256" x2="620" y2="256" stroke="var(--white)" stroke-width="2" opacity=".55"/>
+          <line x1="60" y1="256" x2="60"  y2="26"  stroke="var(--white)" stroke-width="2" opacity=".55"/>
+          <line x1="80" y1="238" x2="600" y2="66" stroke="var(--blue)" stroke-width="4"/>
+          <!-- gaps -->
+          <g stroke="var(--red)" stroke-width="5" stroke-linecap="round">
+            <line x1="170" y1="208" x2="170" y2="172"/>
+            <line x1="290" y1="168" x2="290" y2="204"/>
+            <line x1="410" y1="128" x2="410" y2="92"/>
+            <line x1="530" y1="88"  x2="530" y2="122"/>
+          </g>
+          <g stroke="var(--white)" stroke-width="5" stroke-linecap="round">
+            <path d="M163 165l14 14M177 165l-14 14"/>
+            <path d="M283 197l14 14M297 197l-14 14"/>
+            <path d="M403 85l14 14M417 85l-14 14"/>
+            <path d="M523 115l14 14M537 115l-14 14"/>
+          </g>
+          <text x="340" y="292" fill="var(--red)" font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">each gap = one error</text>
+          <!-- arrow to the single number -->
+          <path d="M648 150 h70" stroke="var(--white)" stroke-width="3" marker-end="url(#cz)"/>
+          <rect x="736" y="104" width="212" height="92" rx="12" fill="#2a1608" stroke="var(--orange)" stroke-width="3"/>
+          <text x="842" y="142" fill="var(--orange)" font-size="18" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">one number</text>
+          <text x="842" y="174" fill="var(--white)" font-size="21" text-anchor="middle" font-family="JetBrains Mono,monospace">J(w,b)</text>
+          <defs><marker id="cz" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--white)"/></marker></defs>
+        </svg>
+      </div>
+      <div class="mathrow">
+        <div class="math" style="font-size:clamp(14px,1.85vw,31px)">
+          J(w,b) = (1/m) Σ (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)²
+          <span class="an">Square each gap so misses in both directions count, then average. Small J means a good fit.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 · COMPONENT 4 — THE LEARNING ALGORITHM -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Component 04 · The Learning Algorithm</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Walk downhill until the cost stops falling</h2>
+      <div class="art">
+        <svg viewBox="0 0 980 300" role="img"
+             aria-label="A bowl-shaped cost curve. A ball starts high on one side and steps down the slope to the minimum at the bottom.">
+          <line x1="70" y1="262" x2="910" y2="262" stroke="var(--white)" stroke-width="2" opacity=".55"/>
+          <line x1="70" y1="262" x2="70"  y2="24"  stroke="var(--white)" stroke-width="2" opacity=".55"/>
+          <text x="490" y="294" fill="var(--dim)" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">w</text>
+          <text x="40"  y="145" fill="var(--dim)" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace" transform="rotate(-90 40 145)">J</text>
+          <!-- bowl -->
+          <path d="M130 40 Q490 330 850 40" fill="none" stroke="var(--purple)" stroke-width="4.5"/>
+          <!-- steps down -->
+          <g fill="var(--orange)">
+            <circle cx="216.4" cy="101.2" r="11" opacity=".95"/><circle cx="302.8" cy="145.8" r="11" opacity=".8"/><circle cx="389.2" cy="173.6" r="11" opacity=".65"/><circle cx="446.8" cy="182.9" r="11" opacity=".5"/>
+          </g>
+          <circle cx="490.0" cy="185.0" r="14" fill="var(--green)"/>
+          <text x="490.0" y="228.0" fill="var(--green)" font-size="18" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">smallest cost</text>
+          <g stroke="var(--orange)" stroke-width="2.5" fill="none" opacity=".75">
+            <path d="M229.7 108.1 L287.7 138.0" marker-end="url(#lz)"/><path d="M317.1 150.4 L373.0 168.4" marker-end="url(#lz)"/><path d="M404.0 176.0 L430.0 180.2" marker-end="url(#lz)"/>
+          </g>
+          <text x="240" y="58" fill="var(--dim)" font-size="16" font-family="Poppins,sans-serif">start anywhere</text>
+          <defs><marker id="lz" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--orange)"/></marker></defs>
+        </svg>
+      </div>
+      <div class="mathrow">
+        <div class="math" style="font-size:clamp(14px,1.85vw,31px)">
+          w := w − <span class="hl2">α</span> · dJ/dw
+          <span class="an">Gradient descent. The slope says which way is downhill; α says how big a step to take.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 17 · HOUSE PRICE DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Worked example</div>
+      <div class="big">Housing Price<br>Prediction</div>
+    </div>
+  </section>
+
+  <!-- 18 · THE DATA -->
+  <section class="slide">
+    <div class="split">
+      <div class="word" style="font-size:clamp(24px,3.2vw,50px);line-height:1.2">
+        One feature,<br>one price
+        <div style="font-size:clamp(13px,1.35vw,22px);font-weight:400;color:var(--dim);margin-top:1em;line-height:1.5">
+          Six houses. Size in m², price in thousands.
+        </div>
+      </div>
+      <div class="art">
+        <svg viewBox="0 0 620 440" role="img" aria-label="Scatter plot of house price against size, with six red crosses rising left to right and a fitted line.">
+          <line x1="80" y1="380" x2="580" y2="380" stroke="var(--white)" stroke-width="3"/>
+          <line x1="80" y1="380" x2="80"  y2="40"  stroke="var(--white)" stroke-width="3"/>
+          <text x="330" y="422" fill="var(--dim)" font-size="19" text-anchor="middle" font-family="Poppins,sans-serif">size of house  (x)</text>
+          <text x="34" y="210" fill="var(--dim)" font-size="19" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(-90 34 210)">price  (y)</text>
+          <!-- fitted line -->
+          <path d="M110 350 L560 110" stroke="var(--blue)" stroke-width="4" stroke-linecap="round"/>
+          <!-- crosses -->
+          <g stroke="var(--red)" stroke-width="7" stroke-linecap="round">
+            <path d="M148 344l24 24M172 344l-24 24"/>
+            <path d="M228 320l24 24M252 320l-24 24"/>
+            <path d="M300 268l24 24M324 268l-24 24"/>
+            <path d="M372 246l24 24M396 246l-24 24"/>
+            <path d="M444 190l24 24M468 190l-24 24"/>
+            <path d="M512 152l24 24M536 152l-24 24"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 19 · THE FOUR COMPONENTS, INSTANTIATED -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">House prices · the same four components</div>
+      <h2>A line, a squared error,<br>and a step downhill</h2>
+      <div class="tbl">
+        <table>
+          <tr><th>Component</th><th>For house prices</th></tr>
+          <tr><td class="k">Dataset</td><td>m = 6 pairs (size, price)</td></tr>
+          <tr><td class="k">Model</td><td><span style="font-family:var(--mono);color:#fff">ŷ = wx + b</span> &nbsp;— a straight line</td></tr>
+          <tr><td class="k">Cost function</td><td><span style="font-family:var(--mono);color:#fff">J(w,b) = (1/m) Σ (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)²</span> — mean squared error</td></tr>
+          <tr><td class="k">Learning algorithm</td><td>gradient descent on w and b</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 20 · ONE STEP WITH NUMBERS -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">One correction step</div>
+      <h2>The error tells you<br>which way to move</h2>
+      <div class="mathrow">
+        <div class="math" style="font-size:clamp(13px,1.6vw,27px);text-align:left;width:100%;max-width:60ch">
+          start &nbsp; <span class="hl">w = 2000</span>, <span class="hl">b = 50000</span><br><br>
+          example &nbsp; x = 100 m², &nbsp; y = 300,000<br><br>
+          predict &nbsp; ŷ = 2000(100) + 50000 = <span class="hl2">250,000</span><br><br>
+          error &nbsp;&nbsp;&nbsp; ŷ − y = 250,000 − 300,000 = <span class="hl2">−50,000</span>
+          <span class="an">Negative error means the prediction was too low — so w must increase.</span>
+        </div>
+      </div>
+      <p>Nudge <span style="font-family:var(--mono);color:#fff">w</span> to 2050 and the next prediction is
+        <b>255,000</b>. Still low, but closer. Repeat across thousands of houses.</p>
+    </div>
+  </section>
+
+  <!-- 21 · THE CYCLE -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">The training loop</div>
+      <div class="art">
+        <svg viewBox="0 0 900 380" role="img" aria-label="A cycle: predict, then measure error, then adjust parameters, looping back to predict.">
+          <!-- boxes -->
+          <rect x="60"  y="140" width="200" height="92" rx="12" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.5"/>
+          <text x="160" y="180" fill="var(--blue)" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">1 · Predict</text>
+          <text x="160" y="207" fill="#b9c9d7" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">ŷ = f(x)</text>
+
+          <rect x="350" y="40"  width="200" height="92" rx="12" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.5"/>
+          <text x="450" y="80"  fill="var(--blue)" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">2 · Measure</text>
+          <text x="450" y="107" fill="#b9c9d7" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">J(w,b)</text>
+
+          <rect x="640" y="140" width="200" height="92" rx="12" fill="#2a1608" stroke="var(--orange)" stroke-width="2.5"/>
+          <text x="740" y="180" fill="var(--orange)" font-size="19" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">3 · Adjust</text>
+          <text x="740" y="207" fill="#e0c4a4" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">w := w − α dJ/dw</text>
+
+          <!-- arcs -->
+          <path d="M262 165 C310 130 320 100 346 92" fill="none" stroke="var(--blue)" stroke-width="3" marker-end="url(#ah)"/>
+          <path d="M554 92 C580 100 590 130 638 165" fill="none" stroke="var(--blue)" stroke-width="3" marker-end="url(#ah)"/>
+          <path d="M700 236 C620 330 300 330 190 240" fill="none" stroke="var(--orange)" stroke-width="3" marker-end="url(#ao)"/>
+          <text x="450" y="322" fill="var(--orange)" font-size="17" text-anchor="middle" font-family="Poppins,sans-serif">a slightly better f — repeat for every example</text>
+
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 10 5 0 10z" fill="var(--blue)"/>
+            </marker>
+            <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 10 5 0 10z" fill="var(--orange)"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+      <p style="margin:0 auto;text-align:center;max-width:52ch">
+        Nobody wrote the pricing rule. It was <b>adjusted into existence</b>, one example at a time.</p>
+    </div>
+  </section>
+
+  <!-- 22 · FROM ONE NEURON -->
+  <section class="slide">
+    <div class="split">
+      <div class="word" style="font-size:clamp(26px,3.6vw,56px);line-height:1.18">
+        That line<br>is already<br><span style="color:var(--blue)">a neuron</span>
+      </div>
+      <div class="art">
+        <svg viewBox="0 0 620 300" role="img" aria-label="A single neuron: size flows in, a circle computes, price flows out.">
+          <text x="60"  y="158" fill="var(--white)" font-size="24" text-anchor="middle" font-family="Poppins,sans-serif">size</text>
+          <text x="60"  y="186" fill="var(--dim)"   font-size="19" text-anchor="middle" font-family="JetBrains Mono,monospace">x</text>
+          <path d="M110 150h120" stroke="var(--white)" stroke-width="3" marker-end="url(#n1)"/>
+          <circle cx="300" cy="150" r="52" fill="none" stroke="var(--blue)" stroke-width="3.5"/>
+          <text x="300" y="145" fill="var(--blue)" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">wx+b</text>
+          <text x="300" y="170" fill="var(--dim)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">ReLU</text>
+          <path d="M372 150h120" stroke="var(--white)" stroke-width="3" marker-end="url(#n1)"/>
+          <text x="552" y="158" fill="var(--white)" font-size="24" text-anchor="middle" font-family="Poppins,sans-serif">price</text>
+          <text x="552" y="186" fill="var(--dim)"   font-size="19" text-anchor="middle" font-family="JetBrains Mono,monospace">y</text>
+          <text x="300" y="252" fill="var(--dim)" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">a single neuron</text>
+          <defs>
+            <marker id="n1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 10 5 0 10z" fill="var(--white)"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 23 · STACK THEM -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Deep learning</div>
+      <h2 style="text-align:center">Stack neurons — features appear on their own</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 340" role="img" aria-label="A neural network with four inputs, three hidden units, and one output price.">
+          <!-- inputs -->
+          <g font-family="Poppins,sans-serif" font-size="17" fill="var(--white)" text-anchor="end">
+            <text x="150" y="66">size</text>
+            <text x="150" y="136">#bedrooms</text>
+            <text x="150" y="206">zip code</text>
+            <text x="150" y="276">wealth</text>
+          </g>
+          <g fill="var(--dim)" font-family="JetBrains Mono,monospace" font-size="14" text-anchor="start">
+            <text x="162" y="66">x₁</text><text x="162" y="136">x₂</text>
+            <text x="162" y="206">x₃</text><text x="162" y="276">x₄</text>
+          </g>
+          <!-- edges -->
+          <g stroke="var(--node)" stroke-width="1.6">
+            <path d="M196 60 L420 100M196 60 L420 170M196 60 L420 240"/>
+            <path d="M196 130L420 100M196 130L420 170M196 130L420 240"/>
+            <path d="M196 200L420 100M196 200L420 170M196 200L420 240"/>
+            <path d="M196 270L420 100M196 270L420 170M196 270L420 240"/>
+            <path d="M462 100L640 170M462 170L640 170M462 240L640 170"/>
+          </g>
+          <!-- hidden -->
+          <g fill="#0a1a26" stroke="var(--blue)" stroke-width="3">
+            <circle cx="441" cy="100" r="26"/><circle cx="441" cy="170" r="26"/><circle cx="441" cy="240" r="26"/>
+          </g>
+          <!-- output -->
+          <circle cx="666" cy="170" r="28" fill="#0a1a26" stroke="var(--green)" stroke-width="3"/>
+          <path d="M700 170h70" stroke="var(--white)" stroke-width="3" marker-end="url(#n2)"/>
+          <text x="812" y="177" fill="var(--green)" font-size="22" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">price</text>
+          <text x="441" y="316" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">the network invents these features itself</text>
+          <defs>
+            <marker id="n2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 10 5 0 10z" fill="var(--white)"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 24 · STRUCTURED VS UNSTRUCTURED -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Where deep learning wins</div>
+      <h2>Structured vs. unstructured data</h2>
+      <div class="cards c3" style="grid-template-columns:1fr 1fr">
+        <div class="card b">
+          <div class="n">STRUCTURED</div>
+          <h3 style="color:var(--blue)">Rows and columns</h3>
+          <p>Each feature already has a clear meaning: size, age, price, click.</p>
+          <div class="eg">Classical ML is strong here — gradient boosting often still wins.</div>
+        </div>
+        <div class="card o">
+          <div class="n">UNSTRUCTURED</div>
+          <h3>Pixels, audio, text</h3>
+          <p>No individual number means anything on its own.</p>
+          <div class="eg">This is where deep learning changed everything.</div>
+        </div>
+      </div>
+      <p>Humans are excellent at unstructured data. Getting <b>computers</b> to match that
+        is what made deep learning famous.</p>
+    </div>
+  </section>
+
+  <!-- 25 · WHY TAKING OFF DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Why is deep learning taking off now?</div>
+      <div class="big"><span style="color:var(--blue)">Scale</span><br>changed everything</div>
+      <div class="sub" style="margin-top:1em">The ideas are decades old. The data, the hardware and the algorithms are not.</div>
+    </div>
+  </section>
+
+  <!-- 26 · SCALE CURVE -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Scale drives deep learning progress</div>
+      <div class="art">
+        <svg viewBox="0 0 900 420" role="img" aria-label="Performance against amount of data. Traditional algorithms plateau early, while larger neural networks keep improving as data grows.">
+          <line x1="90" y1="360" x2="850" y2="360" stroke="var(--white)" stroke-width="3"/>
+          <line x1="90" y1="360" x2="90"  y2="30"  stroke="var(--white)" stroke-width="3"/>
+          <text x="470" y="402" fill="var(--dim)" font-size="18" text-anchor="middle" font-family="Poppins,sans-serif">amount of labelled data  (m)</text>
+          <text x="40" y="195" fill="var(--dim)" font-size="18" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(-90 40 195)">performance</text>
+
+          <path d="M90 360 C220 250 300 214 460 208 C600 204 720 202 850 202" fill="none" stroke="var(--red)"    stroke-width="4"/>
+          <path d="M90 360 C230 232 330 178 470 158 C610 140 730 134 850 130" fill="none" stroke="var(--yellow)" stroke-width="4"/>
+          <path d="M90 360 C240 218 350 146 500 112 C640 82  740 74  850 70"  fill="none" stroke="var(--blue)"   stroke-width="4"/>
+          <path d="M90 360 C250 206 370 118 530 74  C660 40  760 30  850 26"  fill="none" stroke="var(--green)"  stroke-width="4"/>
+
+          <g font-family="Poppins,sans-serif" font-size="16" font-weight="600">
+            <text x="862" y="206" fill="var(--red)">traditional</text>
+            <text x="862" y="134" fill="var(--yellow)">small NN</text>
+            <text x="862" y="74"  fill="var(--blue)">medium NN</text>
+            <text x="862" y="30"  fill="var(--green)">large NN</text>
+          </g>
+        </svg>
+      </div>
+      <p style="margin:0 auto;text-align:center;max-width:56ch">
+        Traditional algorithms <b>plateau</b>. Bigger networks keep improving — but only if
+        you feed them enough data.</p>
+    </div>
+  </section>
+
+  <!-- 27 · THREE DRIVERS -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Three things had to arrive together</div>
+      <h2>Data · Computation · Algorithms</h2>
+      <div class="cards c3">
+        <div class="card b">
+          <div class="n">01 · DATA</div>
+          <h3 style="color:var(--blue)">Digitisation</h3>
+          <p>Society moved online. Suddenly there were enormous labelled datasets.</p>
+        </div>
+        <div class="card g">
+          <div class="n">02 · COMPUTATION</div>
+          <h3>GPUs</h3>
+          <p>Hardware made it possible to train large networks in hours, not months.</p>
+        </div>
+        <div class="card o">
+          <div class="n">03 · ALGORITHMS</div>
+          <h3>Better ideas</h3>
+          <p>Switching sigmoid &rarr; <b>ReLU</b> made gradient descent far faster.</p>
+        </div>
+      </div>
+      <p>Remove any one and the other two do not compensate.</p>
+    </div>
+  </section>
+
+  <!-- 28 · WHY ALGORITHMS MATTER -->
+  <section class="slide">
+    <div class="split">
+      <div class="word" style="font-size:clamp(22px,3vw,46px);line-height:1.22">
+        Faster training<br>means more<br><span style="color:var(--green)">ideas tested</span>
+      </div>
+      <div class="art">
+        <svg viewBox="0 0 620 400" role="img" aria-label="A cycle of idea, code, experiment repeating.">
+          <circle cx="310" cy="200" r="132" fill="none" stroke="var(--node)" stroke-width="2.5" stroke-dasharray="6 9"/>
+          <text x="310" y="54"  fill="var(--white)" font-size="27" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Idea</text>
+          <text x="500" y="292" fill="var(--white)" font-size="27" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Code</text>
+          <text x="122" y="292" fill="var(--white)" font-size="27" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Experiment</text>
+          <g fill="none" stroke="var(--green)" stroke-width="4" stroke-linecap="round">
+            <path d="M372 96 C424 124 452 168 456 220" marker-end="url(#c1)"/>
+            <path d="M420 306 C372 332 250 332 200 306" marker-end="url(#c1)"/>
+            <path d="M164 220 C168 168 196 124 248 96"  marker-end="url(#c1)"/>
+          </g>
+          <text x="310" y="208" fill="var(--dim)" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">10 min</text>
+          <text x="310" y="232" fill="var(--dim)" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">not 1 month</text>
+          <defs>
+            <marker id="c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto">
+              <path d="M0 0 10 5 0 10z" fill="var(--green)"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 29 · RECAP -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Chapter 1 · recap</div>
+      <h2>Work moved from the engineer<br>to the data</h2>
+      <ul class="rules">
+        <li><span>01</span><span>AI is a <b>general-purpose technology</b> — the electricity of our era.</span></li>
+        <li><span>02</span><span>ML learns the rule <b>from examples</b> instead of being given it.</span></li>
+        <li><span>03</span><span>Three types, told apart by <b>what signal says you are right</b>.</span></li>
+        <li><span>04</span><span>Every system has <b>four components</b>: dataset, hypothesis, cost, algorithm.</span></li>
+        <li><span>05</span><span>Deep learning stacks neurons so <b>features are learned, not designed</b>.</span></li>
+        <li><span>06</span><span>It took off because <b>data, compute and algorithms</b> arrived together.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 30 · NEXT -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Next</div>
+      <div class="mid">Neural Network Basics</div>
+    </div>
+  </section>
+
+  <!-- 31 · CLOSING -->
+  <section class="slide">
+    <div class="center">
+      <div class="mid">Questions?</div>
+      <div class="sub" style="margin-top:1.4em">
+        Dr. Naila Marir · CoE 108<br>
+        <span style="font-family:var(--mono);font-size:.85em">namarir@effatuniversity.edu.sa</span>
+      </div>
+      <div class="sub" style="font-size:clamp(11px,1.05vw,17px);margin-top:2em;color:#4a4a4a">
+        Adapted from Andrew Ng · Deep Learning Specialization · deeplearning.ai
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="bar-progress" id="progress"></div>
+<div class="hint" id="hint">← →</div>
+<div class="credit">CS 4085 · Ch 1</div>
+
+<script>
+(function(){
+  var slides   = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var hint     = document.getElementById('hint');
+  var i = 0;
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+    if (location.hash !== '#' + (i + 1)) history.replaceState(null, '', '#' + (i + 1));
+  }
+  function next(){ show(i + 1); }
+  function prev(){ show(i - 1); }
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    switch(e.key){
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); show(0); break;
+      case 'End':  e.preventDefault(); show(slides.length - 1); break;
+      case 'f': case 'F':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+        break;
+    }
+    hint.classList.add('hide');
+  });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a')) return;
+    (e.clientX > window.innerWidth * 0.5) ? next() : prev();
+    hint.classList.add('hide');
+  });
+
+  var startX = null;
+  document.addEventListener('touchstart', function(e){ startX = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (startX === null) return;
+    var dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 48) { (dx < 0) ? next() : prev(); }
+    startX = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+  setTimeout(function(){ hint.classList.add('hide'); }, 5000);
+})();
+</script>
