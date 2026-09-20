@@ -1,0 +1,1062 @@
+<title>Deep Neural Networks — Chapter 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
+
+<style>
+/* ============================================================
+   CS4085 · Chapter 4 — Deep Neural Networks
+   Same CS50 house style as Chapters 1-3.
+   Source: Ng, Deep Learning Specialization, C1M4.
+   ============================================================ */
+:root{
+  --black:#000000; --white:#ffffff;
+  --blue:#0091ff; --orange:#e8590c; --yellow:#f5a623;
+  --green:#28a138; --red:#e01b24; --purple:#a56cf5;
+  --node:#3d3d3d; --dim:#8a8a8a;
+  --sans:"Poppins","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono","SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--black)}
+body{background:var(--black);color:var(--white);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden;background:var(--black)}
+.slide{position:absolute;inset:0;display:none;background:var(--black);
+  padding:6vh 7vw;font-size:clamp(13px,1.7vh,28px)}
+.slide.active{display:flex}
+
+.split{width:100%;height:100%;display:grid;grid-template-columns:1fr 1.15fr;
+  align-items:center;gap:4vw}
+.split .word{font-size:clamp(38px,6.6vw,104px);font-weight:700;line-height:1.06;
+  letter-spacing:-.022em;text-align:center;text-wrap:balance}
+.split .art{display:flex;align-items:center;justify-content:center}
+.split .art svg{width:100%;height:auto;max-height:74vh}
+
+.center{width:100%;height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;gap:.55em}
+.center .big{font-size:clamp(40px,7.2vw,116px);font-weight:700;line-height:1.05;
+  letter-spacing:-.024em;text-wrap:balance}
+.center .mid{font-size:clamp(26px,4.2vw,64px);font-weight:600;line-height:1.14;
+  letter-spacing:-.018em;max-width:19ch;text-wrap:balance}
+.center .sub{font-size:clamp(15px,1.85vw,30px);font-weight:400;color:var(--dim);
+  line-height:1.5;max-width:34ch;text-wrap:balance}
+.center .tag{font-family:var(--mono);font-size:clamp(10px,.92vw,15px);
+  letter-spacing:.26em;text-transform:uppercase;color:#5a7d99;font-weight:400}
+
+.doc{width:100%;height:100%;display:flex;flex-direction:column;
+  justify-content:center;gap:2.6vh}
+.doc h2{margin:0;font-size:clamp(34px,5.4vw,86px);font-weight:700;
+  letter-spacing:-.026em;line-height:1.04;text-wrap:balance}
+.doc .kicker{font-family:var(--mono);font-size:clamp(10px,.88vw,14px);
+  letter-spacing:.26em;text-transform:uppercase;color:#5a7d99;
+  margin-bottom:-1vh;font-weight:400}
+.doc p{margin:0;font-size:clamp(14px,1.5vw,25px);line-height:1.62;
+  color:#d8d8d8;max-width:56ch}
+.doc p b,.doc li b{color:var(--white);font-weight:600}
+.doc .lede{font-size:clamp(16px,1.95vw,33px);line-height:1.48;
+  color:var(--white);max-width:44ch;font-weight:400}
+.doc .art{display:flex;align-items:center;justify-content:center;min-height:0}
+.doc .art svg{width:100%;height:auto;max-height:52vh}
+.k-bowl .doc{gap:1.4vh;justify-content:center}
+.k-bowl .art svg{max-height:63vh}
+
+.tbl{overflow-x:auto;overflow-y:auto;max-height:64vh}
+table{border-collapse:collapse;width:100%;font-size:clamp(11px,1.24vw,21px)}
+th{text-align:left;padding:.5em .8em .5em 0;font-family:var(--mono);font-weight:400;
+  font-size:.76em;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+  border-bottom:2px solid #2a2a2a;white-space:nowrap}
+td{padding:.62em .8em .62em 0;border-bottom:1px solid #1c1c1c;
+  line-height:1.34;vertical-align:top;color:#e2e2e2}
+td.k{font-family:var(--mono);color:var(--blue);font-weight:700;white-space:nowrap}
+tr.mark td{color:var(--white);font-weight:600}
+
+.rules{display:flex;flex-direction:column;gap:1.4vh;max-width:56ch;margin:0;padding:0}
+.rules li{list-style:none;font-size:clamp(13px,1.5vw,25px);line-height:1.46;
+  color:#e2e2e2;display:grid;grid-template-columns:1.9em 1fr;gap:.5em}
+.rules li span:first-child{font-family:var(--mono);color:var(--blue);font-weight:700}
+
+.cards{display:grid;gap:1.6vw;width:100%}
+.cards.c2{grid-template-columns:repeat(2,1fr)}
+.cards.c3{grid-template-columns:repeat(3,1fr)}
+.card{border:1px solid #232323;border-radius:10px;padding:2.2vh 1.5vw;
+  display:flex;flex-direction:column;gap:.9vh;background:#0a0a0a}
+.card .n{font-family:var(--mono);font-size:clamp(10px,.95vw,15px);
+  letter-spacing:.2em;color:var(--blue)}
+.card h3.comp{margin:0;font-size:clamp(19px,2.5vw,40px);font-weight:700;
+  letter-spacing:-.02em;line-height:1.06;margin-bottom:.2vh}
+.card p.role{font-size:clamp(11px,1.05vw,17px);color:var(--dim);
+  line-height:1.3;margin:0 0 .6vh}
+.card p{margin:0;font-size:clamp(12px,1.18vw,20px);line-height:1.5;color:#c4c4c4}
+.card .eg{font-size:clamp(11px,1.05vw,17px);color:var(--dim);line-height:1.45;
+  border-top:1px solid #1e1e1e;padding-top:.9vh;margin-top:auto}
+.card.b{border-color:#123c5e} .card.b .n{color:var(--blue)} .card.b h3{color:var(--blue)}
+.card.o{border-color:#4a2a10} .card.o .n{color:var(--orange)} .card.o h3{color:var(--orange)}
+.card.g{border-color:#16401f} .card.g .n{color:var(--green)} .card.g h3{color:var(--green)}
+.card.p{border-color:#33224d} .card.p .n{color:var(--purple)} .card.p h3{color:var(--purple)}
+.card.r{border-color:#4d1418} .card.r .n{color:var(--red)} .card.r h3{color:var(--red)}
+
+.math{font-family:var(--mono);font-size:clamp(15px,2.15vw,38px);color:var(--white);
+  line-height:1.5;text-align:center;letter-spacing:-.01em}
+.math .hl{color:var(--blue)} .math .hl2{color:var(--orange)}
+.math .hl3{color:var(--green)} .math .bad{color:var(--red)}
+.math .an{display:block;font-family:var(--sans);font-size:clamp(11px,1.1vw,18px);
+  color:var(--dim);margin-top:.7em;letter-spacing:0}
+.mathrow{display:flex;flex-direction:column;gap:2.2vh;align-items:center;width:100%}
+
+.bar-progress{position:fixed;left:0;bottom:0;height:2px;background:var(--blue);
+  z-index:30;transition:width .3s ease}
+.hint{position:fixed;right:2vw;bottom:2.4vh;z-index:30;font-family:var(--mono);
+  font-size:11px;letter-spacing:.16em;color:#4a4a4a;text-transform:uppercase;
+  transition:opacity .6s ease}
+.hint.hide{opacity:0}
+.credit{position:fixed;left:2vw;bottom:2.4vh;z-index:30;font-family:var(--mono);
+  font-size:10px;letter-spacing:.1em;color:#3a3a3a}
+
+.slide.active .split > *,.slide.active .center > *,.slide.active .doc > *{
+  animation:fade .45s ease backwards}
+.slide.active .split > *:nth-child(2){animation-delay:.1s}
+.slide.active .center > *:nth-child(2),.slide.active .doc > *:nth-child(2){animation-delay:.07s}
+.slide.active .doc > *:nth-child(3){animation-delay:.13s}
+.slide.active .doc > *:nth-child(4){animation-delay:.19s}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}
+  .dgm animate{display:none}
+}
+@media (max-aspect-ratio:1/1){
+  .split{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:3vh}
+  .split .art svg{max-height:52vh}
+  .cards.c2,.cards.c3{grid-template-columns:1fr}
+}
+@media print{
+  @page{size:1600px 900px;margin:0}
+  .slide{display:flex!important;position:relative;inset:auto;width:1600px;height:900px;
+    font-size:21px;page-break-after:always;break-after:page}
+  .deck{width:auto;height:auto;overflow:visible}
+  .bar-progress,.hint,.credit{display:none}
+  html,body{overflow:visible}
+  .dgm animate{display:none}
+}
+
+/* ---------- question slide ---------- */
+.qhead{font-family:var(--mono);font-size:clamp(10px,.88vw,14px);letter-spacing:.26em;
+  text-transform:uppercase;color:var(--yellow);margin-bottom:-1vh}
+.qtext{font-size:clamp(24px,3.4vw,54px);font-weight:700;letter-spacing:-.02em;
+  line-height:1.1;text-wrap:balance;margin:0}
+.opts{display:flex;flex-direction:column;gap:1.15vh;margin:0;padding:0;max-width:74ch;
+  list-style:none}
+.opts li{list-style:none;display:grid;grid-template-columns:2.3em 1fr;gap:.7em;
+  align-items:baseline;border:1px solid #232323;border-radius:9px;
+  padding:1.5vh 1.4vw;background:#0a0a0a;
+  font-size:clamp(13px,1.5vw,25px);line-height:1.4;color:#d8d8d8;
+  transition:border-color .25s,background .25s,color .25s,opacity .25s}
+.opts li .lt{font-family:var(--mono);color:var(--dim);font-weight:700}
+.opts li .mono{font-family:var(--mono)}
+.slide.show .opts li.ans{border-color:var(--green);background:#0d1f12;color:#fff}
+.slide.show .opts li.ans .lt{color:var(--green)}
+.slide.show .opts li:not(.ans){opacity:.35}
+.qwhy{font-size:clamp(13px,1.45vw,24px);color:var(--dim);line-height:1.5;
+  max-width:70ch;opacity:0;transition:opacity .3s;margin:0}
+.slide.show .qwhy{opacity:1}
+.qwhy b{color:var(--green)}
+.qhint{font-family:var(--mono);font-size:clamp(10px,.9vw,15px);color:#4a4a4a;
+  letter-spacing:.12em;text-transform:uppercase;transition:opacity .3s;margin:0}
+.slide.show .qhint{opacity:0}
+</style>
+
+<div class="deck" id="deck">
+
+
+  <!-- 01 · TITLE -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">CS 4085 · Deep Learning · Chapter 4</div>
+      <div class="big">Deep Neural<br>Networks</div>
+      <div class="sub" style="margin-top:1.4em;color:#c8c8c8">
+        Dr. Naila Marir<br>
+        <span style="color:var(--dim)">Effat University · College of Engineering</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · WHAT THIS CHAPTER IS ABOUT -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">This chapter</div>
+      <h2>The same equations,<br>now L times</h2>
+      <p class="lede">Chapter 3 built a network with one hidden layer. Nothing new is needed to
+        go deeper — you repeat the same block.</p>
+      <p>What <b>is</b> new: keeping the dimensions straight, understanding <b>why</b> depth
+        helps, and separating the things you learn from the things you choose.</p>
+    </div>
+  </section>
+
+  <!-- 03 · SHALLOW VS DEEP -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Depth · the definition</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">How deep is deep?</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 270" role="img" aria-label="Four networks side by side: logistic regression with no hidden layer, a one hidden layer network, a two hidden layer network, and a five layer deep network.">
+          <g>
+            <text x="112" y="26" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">logistic regression</text>
+            <circle cx="70"  cy="110" r="13" fill="#0a0a0a" stroke="var(--node)" stroke-width="2"/>
+            <circle cx="70"  cy="150" r="13" fill="#0a0a0a" stroke="var(--node)" stroke-width="2"/>
+            <circle cx="154" cy="130" r="15" fill="#0f2a14" stroke="var(--green)" stroke-width="2.2"/>
+            <g stroke="var(--node)" stroke-width="1.3" opacity=".7">
+              <line x1="83" y1="110" x2="139" y2="130"/><line x1="83" y1="150" x2="139" y2="130"/></g>
+            <text x="112" y="212" fill="var(--blue)" font-size="20" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace">L = 1</text>
+            <text x="112" y="238" fill="var(--dim)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">shallow</text>
+          </g>
+          <g>
+            <text x="322" y="26" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">1 hidden layer</text>
+            <circle cx="256" cy="110" r="13" fill="#0a0a0a" stroke="var(--node)" stroke-width="2"/>
+            <circle cx="256" cy="150" r="13" fill="#0a0a0a" stroke="var(--node)" stroke-width="2"/>
+            <circle cx="322" cy="92"  r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <circle cx="322" cy="130" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <circle cx="322" cy="168" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <circle cx="388" cy="130" r="15" fill="#0f2a14" stroke="var(--green)" stroke-width="2.2"/>
+            <g stroke="var(--node)" stroke-width="1.1" opacity=".55">
+              <line x1="269" y1="110" x2="309" y2="92"/><line x1="269" y1="110" x2="309" y2="130"/><line x1="269" y1="110" x2="309" y2="168"/>
+              <line x1="269" y1="150" x2="309" y2="92"/><line x1="269" y1="150" x2="309" y2="130"/><line x1="269" y1="150" x2="309" y2="168"/>
+              <line x1="335" y1="92" x2="373" y2="130"/><line x1="335" y1="130" x2="373" y2="130"/><line x1="335" y1="168" x2="373" y2="130"/></g>
+            <text x="322" y="212" fill="var(--blue)" font-size="20" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace">L = 2</text>
+            <text x="322" y="238" fill="var(--dim)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">shallow · Chapter 3</text>
+          </g>
+          <g>
+            <text x="548" y="26" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">2 hidden layers</text>
+            <circle cx="482" cy="110" r="12" fill="#0a0a0a" stroke="var(--node)" stroke-width="2"/>
+            <circle cx="482" cy="150" r="12" fill="#0a0a0a" stroke="var(--node)" stroke-width="2"/>
+            <circle cx="526" cy="92"  r="12" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <circle cx="526" cy="130" r="12" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <circle cx="526" cy="168" r="12" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <circle cx="570" cy="92"  r="12" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <circle cx="570" cy="130" r="12" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <circle cx="570" cy="168" r="12" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <circle cx="616" cy="130" r="14" fill="#0f2a14" stroke="var(--green)" stroke-width="2.2"/>
+            <g stroke="var(--node)" stroke-width=".9" opacity=".4">
+              <line x1="494" y1="110" x2="514" y2="92"/><line x1="494" y1="110" x2="514" y2="130"/><line x1="494" y1="110" x2="514" y2="168"/>
+              <line x1="494" y1="150" x2="514" y2="92"/><line x1="494" y1="150" x2="514" y2="130"/><line x1="494" y1="150" x2="514" y2="168"/>
+              <line x1="538" y1="92" x2="558" y2="92"/><line x1="538" y1="92" x2="558" y2="130"/><line x1="538" y1="92" x2="558" y2="168"/>
+              <line x1="538" y1="130" x2="558" y2="92"/><line x1="538" y1="130" x2="558" y2="130"/><line x1="538" y1="130" x2="558" y2="168"/>
+              <line x1="538" y1="168" x2="558" y2="92"/><line x1="538" y1="168" x2="558" y2="130"/><line x1="538" y1="168" x2="558" y2="168"/>
+              <line x1="582" y1="92" x2="602" y2="130"/><line x1="582" y1="130" x2="602" y2="130"/><line x1="582" y1="168" x2="602" y2="130"/></g>
+            <text x="548" y="212" fill="var(--yellow)" font-size="20" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace">L = 3</text>
+            <text x="548" y="238" fill="var(--yellow)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">deep</text>
+          </g>
+          <g>
+            <text x="782" y="26" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">5 hidden layers</text>
+            <g>
+              <circle cx="690" cy="130" r="10" fill="#0a0a0a" stroke="var(--node)" stroke-width="1.8"/>
+              <circle cx="714" cy="100" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="714" cy="130" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="714" cy="160" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="740" cy="100" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="740" cy="130" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="740" cy="160" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="766" cy="100" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="766" cy="130" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="766" cy="160" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="792" cy="100" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="792" cy="130" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="792" cy="160" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="818" cy="100" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="818" cy="130" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="818" cy="160" r="10" fill="#33224d" stroke="var(--purple)" stroke-width="1.8"/>
+              <circle cx="852" cy="130" r="12" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+            </g>
+            <text x="782" y="212" fill="var(--purple)" font-size="20" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace">L = 6</text>
+            <text x="782" y="238" fill="var(--purple)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">deeper</text>
+          </g>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:62ch">
+        <b>Shallow</b> is one or two layers. <b>Deep</b> is three or more. It is a spectrum, not
+        a category — "deep" just means <b>many</b> hidden layers.</p>
+    </div>
+  </section>
+
+  <!-- 04 · NOTATION DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 1</div>
+      <div class="big">L-Layer<br>Notation</div>
+    </div>
+  </section>
+
+  <!-- 05 · THE NOTATION TABLE -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Notation · the symbols for the rest of the course</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Everything you need to name</h2>
+      <div class="tbl">
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="k">L</td><td>the number of layers in the network</td><td>the input layer is still not counted</td></tr>
+            <tr><td class="k">n⁽ˡ⁾</td><td>the number of neurons in layer l</td><td>a vector of shape (1, L+1)</td></tr>
+            <tr><td class="k">n⁽⁰⁾</td><td>the number of input features</td><td>same as n<sub>x</sub> from Chapter 2</td></tr>
+            <tr><td class="k">n⁽ᴸ⁾</td><td>the number of output neurons</td><td>1 for binary classification</td></tr>
+            <tr><td class="k">g⁽ˡ⁾</td><td>the activation function of layer l</td><td>a vector of shape (1, L)</td></tr>
+            <tr><td class="k">W⁽ˡ⁾</td><td>the weights used to compute z⁽ˡ⁾</td><td>a different shape for each layer</td></tr>
+            <tr><td class="k">b⁽ˡ⁾</td><td>the bias used to compute z⁽ˡ⁾</td><td>a different shape for each layer</td></tr>
+            <tr><td class="k">a⁽ˡ⁾</td><td>the activation of layer l</td><td>a⁽ˡ⁾ = g⁽ˡ⁾(z⁽ˡ⁾)</td></tr>
+            <tr class="mark"><td class="k">a⁽⁰⁾ = x</td><td>the input is layer 0's activation</td><td>and a⁽ᴸ⁾ = ŷ, the prediction</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 · A WORKED EXAMPLE -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Notation · read it off a picture</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Counting on a real network</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 300" role="img" aria-label="A four layer network with three inputs, hidden layers of five, five and three neurons, and one output neuron, labelled with n superscript 0 through n superscript 4.">
+          <g stroke="var(--node)" stroke-width=".9" opacity=".38">
+            <line x1="120" y1="110" x2="270" y2="60"/><line x1="120" y1="110" x2="270" y2="105"/><line x1="120" y1="110" x2="270" y2="150"/><line x1="120" y1="110" x2="270" y2="195"/><line x1="120" y1="110" x2="270" y2="240"/>
+            <line x1="120" y1="150" x2="270" y2="60"/><line x1="120" y1="150" x2="270" y2="105"/><line x1="120" y1="150" x2="270" y2="150"/><line x1="120" y1="150" x2="270" y2="195"/><line x1="120" y1="150" x2="270" y2="240"/>
+            <line x1="120" y1="190" x2="270" y2="60"/><line x1="120" y1="190" x2="270" y2="105"/><line x1="120" y1="190" x2="270" y2="150"/><line x1="120" y1="190" x2="270" y2="195"/><line x1="120" y1="190" x2="270" y2="240"/>
+            <line x1="290" y1="60"  x2="440" y2="60"/><line x1="290" y1="60"  x2="440" y2="105"/><line x1="290" y1="60"  x2="440" y2="150"/><line x1="290" y1="60"  x2="440" y2="195"/><line x1="290" y1="60"  x2="440" y2="240"/>
+            <line x1="290" y1="150" x2="440" y2="60"/><line x1="290" y1="150" x2="440" y2="105"/><line x1="290" y1="150" x2="440" y2="150"/><line x1="290" y1="150" x2="440" y2="195"/><line x1="290" y1="150" x2="440" y2="240"/>
+            <line x1="290" y1="240" x2="440" y2="60"/><line x1="290" y1="240" x2="440" y2="150"/><line x1="290" y1="240" x2="440" y2="240"/>
+            <line x1="460" y1="60"  x2="610" y2="105"/><line x1="460" y1="60"  x2="610" y2="150"/><line x1="460" y1="60"  x2="610" y2="195"/>
+            <line x1="460" y1="150" x2="610" y2="105"/><line x1="460" y1="150" x2="610" y2="150"/><line x1="460" y1="150" x2="610" y2="195"/>
+            <line x1="460" y1="240" x2="610" y2="105"/><line x1="460" y1="240" x2="610" y2="150"/><line x1="460" y1="240" x2="610" y2="195"/>
+            <line x1="630" y1="105" x2="770" y2="150"/><line x1="630" y1="150" x2="770" y2="150"/><line x1="630" y1="195" x2="770" y2="150"/>
+          </g>
+          <g fill="#0a1a26" stroke="var(--blue)" stroke-width="2.2">
+            <circle cx="110" cy="110" r="15"/><circle cx="110" cy="150" r="15"/><circle cx="110" cy="190" r="15"/></g>
+          <g fill="#2a1608" stroke="var(--orange)" stroke-width="2.2">
+            <circle cx="280" cy="60" r="15"/><circle cx="280" cy="105" r="15"/><circle cx="280" cy="150" r="15"/><circle cx="280" cy="195" r="15"/><circle cx="280" cy="240" r="15"/>
+            <circle cx="450" cy="60" r="15"/><circle cx="450" cy="105" r="15"/><circle cx="450" cy="150" r="15"/><circle cx="450" cy="195" r="15"/><circle cx="450" cy="240" r="15"/>
+            <circle cx="620" cy="105" r="15"/><circle cx="620" cy="150" r="15"/><circle cx="620" cy="195" r="15"/></g>
+          <circle cx="782" cy="150" r="17" fill="#0f2a14" stroke="var(--green)" stroke-width="2.4"/>
+          <g font-size="19" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace">
+            <text x="110" y="278" fill="var(--blue)">n⁽⁰⁾ = 3</text>
+            <text x="280" y="278" fill="var(--orange)">n⁽¹⁾ = 5</text>
+            <text x="450" y="278" fill="var(--orange)">n⁽²⁾ = 5</text>
+            <text x="620" y="278" fill="var(--orange)">n⁽³⁾ = 3</text>
+            <text x="782" y="278" fill="var(--green)">n⁽⁴⁾ = 1</text>
+          </g>
+          <text x="440" y="26" fill="var(--yellow)" font-size="21" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace">L = 4</text>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:62ch">
+        Four layers, because the input layer does not count. The vector n is
+        <span style="font-family:var(--mono);color:#fff">[3, 5, 5, 3, 1]</span> — length L+1.</p>
+    </div>
+  </section>
+
+  <!-- 07 · WHAT YOU STORE -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Notation · what lives in memory</div>
+      <h2>Four things to keep</h2>
+      <ul class="rules">
+        <li><span>n</span><span>a vector of shape <b>(1, L+1)</b> — the neuron count of every layer,
+          including the input.</span></li>
+        <li><span>g</span><span>a vector of shape <b>(1, L)</b> — the activation function of each
+          layer. The input layer has none.</span></li>
+        <li><span>W</span><span>a <b>list</b> of matrices, each a different shape, set by the neuron
+          counts of the current and previous layer.</span></li>
+        <li><span>b</span><span>a <b>list</b> of vectors, each shaped by the current layer alone.</span></li>
+      </ul>
+      <p style="color:var(--dim)">W and b cannot be one array, because every layer has a different
+        shape. In code they are usually a dictionary keyed by layer number.</p>
+    </div>
+  </section>
+
+  <!-- 08 · FORWARD PROP DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 2</div>
+      <div class="big">Forward<br>Propagation</div>
+    </div>
+  </section>
+
+  <!-- 09 · THE GENERAL RULE -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Forward propagation · the general rule</div>
+      <h2>Two lines, any layer</h2>
+      <div class="cards c2">
+        <div class="card b">
+          <div class="n">ONE INPUT</div>
+          <h3 class="comp">a single example</h3>
+          <p style="font-family:var(--mono);color:#fff;font-size:clamp(13px,1.5vw,25px);line-height:1.8">
+            z⁽ˡ⁾ = W⁽ˡ⁾a⁽ˡ⁻¹⁾ + b⁽ˡ⁾<br>a⁽ˡ⁾ = g⁽ˡ⁾(z⁽ˡ⁾)</p>
+          <p class="eg">lower case — one column at a time</p>
+        </div>
+        <div class="card g">
+          <div class="n">m INPUTS</div>
+          <h3 class="comp">the whole batch</h3>
+          <p style="font-family:var(--mono);color:#fff;font-size:clamp(13px,1.5vw,25px);line-height:1.8">
+            Z⁽ˡ⁾ = W⁽ˡ⁾A⁽ˡ⁻¹⁾ + b⁽ˡ⁾<br>A⁽ˡ⁾ = g⁽ˡ⁾(Z⁽ˡ⁾)</p>
+          <p class="eg">upper case — all m examples at once</p>
+        </div>
+      </div>
+      <p>This is <b>identical</b> to Chapter 3, with the specific layer numbers replaced by l.
+        Writing it this way is what lets one piece of code serve every layer.</p>
+    </div>
+  </section>
+
+  <!-- 10 · THE ONE ALLOWED LOOP -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Forward propagation · the exception to the rule</div>
+      <h2>This for-loop is fine</h2>
+      <div class="math" style="text-align:left;font-size:clamp(12px,1.6vw,27px);line-height:1.85;
+           border-left:3px solid var(--green);padding-left:1.4em">
+        A⁽⁰⁾ = X<br>
+        <span class="hl3">for l = 1 to L:</span><br>
+        &nbsp;&nbsp;Z⁽ˡ⁾ = W⁽ˡ⁾A⁽ˡ⁻¹⁾ + b⁽ˡ⁾<br>
+        &nbsp;&nbsp;A⁽ˡ⁾ = g⁽ˡ⁾(Z⁽ˡ⁾)
+      </div>
+      <p class="lede">We have spent two chapters removing loops. This one <b>stays</b>.</p>
+      <p>You cannot compute layer 3 before layer 2 is finished — the layers are genuinely
+        <b>sequential</b>. There is no way to vectorise across layers, and no need to: the loop
+        runs L times, not m times.</p>
+      <p style="color:var(--yellow);font-size:clamp(15px,1.85vw,30px);font-weight:600;max-width:52ch">
+        Loop over <b>layers</b>: fine. Loop over <b>examples</b>: never.</p>
+    </div>
+  </section>
+
+  <!-- 11 · DIMENSIONS DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 3</div>
+      <div class="big">Matrix<br>Dimensions</div>
+      <div class="sub" style="margin-top:1em">Where most bugs live.</div>
+    </div>
+  </section>
+
+  <!-- 12 · PENCIL AND PAPER -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Dimensions · the debugging method</div>
+      <h2>Use a pencil<br>and paper</h2>
+      <p class="lede">When your code throws a shape error — and it will — the fastest fix is to
+        write the dimensions out by hand, layer by layer.</p>
+      <p>Most deep learning bugs are <b>not</b> subtle mathematical errors. They are a matrix
+        that is the wrong way round.</p>
+      <p style="color:var(--dim)">Get into the habit now, while the networks are small enough to
+        check in a few lines.</p>
+    </div>
+  </section>
+
+  <!-- 13 · THE DIMENSION TABLE -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Dimensions · the complete reference</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Every shape in the network</h2>
+      <div class="tbl">
+        <table>
+          <thead>
+            <tr><th>Quantity</th><th>Shape</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="k">W⁽ˡ⁾</td><td class="k">(n⁽ˡ⁾, n⁽ˡ⁻¹⁾)</td><td>maps n⁽ˡ⁻¹⁾ numbers in to n⁽ˡ⁾ numbers out — read it right to left</td></tr>
+            <tr><td class="k">b⁽ˡ⁾</td><td class="k">(n⁽ˡ⁾, 1)</td><td>one bias per neuron in this layer</td></tr>
+            <tr><td class="k">dW⁽ˡ⁾</td><td class="k">(n⁽ˡ⁾, n⁽ˡ⁻¹⁾)</td><td>a gradient has the <b>same shape</b> as the thing it updates</td></tr>
+            <tr><td class="k">db⁽ˡ⁾</td><td class="k">(n⁽ˡ⁾, 1)</td><td>same shape as b⁽ˡ⁾</td></tr>
+            <tr class="mark"><td class="k">Z⁽ˡ⁾, A⁽ˡ⁾</td><td class="k">(n⁽ˡ⁾, m)</td><td>one row per neuron, one column per training example</td></tr>
+            <tr class="mark"><td class="k">dZ⁽ˡ⁾, dA⁽ˡ⁾</td><td class="k">(n⁽ˡ⁾, m)</td><td>same shape as Z⁽ˡ⁾ and A⁽ˡ⁾</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="color:var(--yellow);font-size:clamp(15px,1.8vw,29px);font-weight:600;max-width:52ch">
+        The rule behind half this table: <b>a derivative has the same shape as its variable.</b></p>
+    </div>
+  </section>
+
+  <!-- 14 · WHY THE W SHAPE WORKS -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Dimensions · checking a multiply</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">The inner dimensions cancel</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 250" role="img" aria-label="The matrix multiplication Z equals W times A plus b, with each matrix drawn as a labelled rectangle showing how the inner dimensions match and cancel.">
+          <rect x="60"  y="70" width="104" height="120" rx="6" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.6"/>
+          <text x="112" y="126" fill="#fff" font-size="22" text-anchor="middle" font-family="JetBrains Mono,monospace">Z⁽ˡ⁾</text>
+          <text x="112" y="150" fill="var(--blue)" font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace">(n⁽ˡ⁾, m)</text>
+          <text x="196" y="138" fill="var(--white)" font-size="28" text-anchor="middle" font-family="JetBrains Mono,monospace">=</text>
+          <rect x="230" y="70" width="128" height="120" rx="6" fill="#2a1608" stroke="var(--orange)" stroke-width="2.6"/>
+          <text x="294" y="126" fill="#fff" font-size="22" text-anchor="middle" font-family="JetBrains Mono,monospace">W⁽ˡ⁾</text>
+          <text x="294" y="150" fill="var(--orange)" font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace">(n⁽ˡ⁾, n⁽ˡ⁻¹⁾)</text>
+          <rect x="390" y="70" width="128" height="120" rx="6" fill="#0f2a14" stroke="var(--green)" stroke-width="2.6"/>
+          <text x="454" y="126" fill="#fff" font-size="22" text-anchor="middle" font-family="JetBrains Mono,monospace">A⁽ˡ⁻¹⁾</text>
+          <text x="454" y="150" fill="var(--green)" font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace">(n⁽ˡ⁻¹⁾, m)</text>
+          <text x="550" y="138" fill="var(--white)" font-size="28" text-anchor="middle" font-family="JetBrains Mono,monospace">+</text>
+          <rect x="586" y="70" width="80" height="120" rx="6" fill="#33224d" stroke="var(--purple)" stroke-width="2.6"/>
+          <text x="626" y="126" fill="#fff" font-size="21" text-anchor="middle" font-family="JetBrains Mono,monospace">b⁽ˡ⁾</text>
+          <text x="626" y="150" fill="var(--purple)" font-size="13" text-anchor="middle" font-family="JetBrains Mono,monospace">(n⁽ˡ⁾,1)</text>
+          <path d="M330 210 C346 234 402 234 418 210" fill="none" stroke="var(--yellow)" stroke-width="2.4"/>
+          <text x="374" y="240" fill="var(--yellow)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">these must match</text>
+          <text x="760" y="104" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">b is broadcast</text>
+          <text x="760" y="128" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">across all m columns</text>
+          <text x="760" y="160" fill="var(--purple)" font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace">(n⁽ˡ⁾,1) → (n⁽ˡ⁾,m)</text>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:64ch">
+        <span style="font-family:var(--mono);color:#fff">(n⁽ˡ⁾, n⁽ˡ⁻¹⁾) × (n⁽ˡ⁻¹⁾, m) = (n⁽ˡ⁾, m)</span>
+        — the inner n⁽ˡ⁻¹⁾ cancels. If it does not cancel, your shapes are wrong.</p>
+    </div>
+  </section>
+
+  <!-- 15 · QUESTION — dimensions -->
+  <section class="slide k-q">
+    <div class="doc">
+      <div class="qhead">Question</div>
+      <h2 class="qtext" style="font-size:clamp(21px,2.9vw,46px)">n⁽²⁾ = 5, n⁽³⁾ = 4, and m = 1000.<br>What is the shape of dW⁽³⁾?</h2>
+      <ul class="opts">
+        <li><span class="lt">A</span><span><span class="mono">(4, 1000)</span> — same as Z⁽³⁾.</span></li>
+        <li class="ans"><span class="lt">B</span><span><span class="mono">(4, 5)</span> — same as W⁽³⁾.</span></li>
+        <li><span class="lt">C</span><span><span class="mono">(5, 4)</span> — the transpose.</span></li>
+        <li><span class="lt">D</span><span><span class="mono">(4, 1)</span> — same as b⁽³⁾.</span></li>
+      </ul>
+      <p class="qwhy"><b>B.</b> A gradient always has the <b>same shape as its variable</b>, and
+        <span class="mono">W⁽³⁾ : (n⁽³⁾, n⁽²⁾) = (4, 5)</span>. Note that m never appears in a
+        W or b shape — only in Z, A and their gradients.</p>
+      <p class="qhint">press A to reveal</p>
+    </div>
+  </section>
+
+  <!-- 16 · WHY DEEP DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 4</div>
+      <div class="big">Why Deep<br>Representations?</div>
+    </div>
+  </section>
+
+  <!-- 17 · SIMPLE TO COMPLEX -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Why deep · the intuition</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Simple features first,<br>complex ones later</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 250" role="img" aria-label="Two pipelines. Face recognition goes from image to edges to face parts to faces to the desired face. Audio recognition goes from audio to low level sound features to phonemes to words to sentences.">
+          <text x="30" y="34" fill="var(--blue)" font-size="15" font-family="JetBrains Mono,monospace">FACE RECOGNITION</text>
+          <g>
+            <rect x="30"  y="50" width="132" height="46" rx="7" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+            <text x="96"  y="79" fill="#fff" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">Image</text>
+            <rect x="196" y="50" width="132" height="46" rx="7" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+            <text x="262" y="79" fill="#fff" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">Edges</text>
+            <rect x="362" y="50" width="146" height="46" rx="7" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+            <text x="435" y="79" fill="#fff" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">Face parts</text>
+            <rect x="542" y="50" width="132" height="46" rx="7" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+            <text x="608" y="79" fill="#fff" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">Faces</text>
+            <rect x="708" y="50" width="162" height="46" rx="7" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+            <text x="789" y="79" fill="#fff" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">Desired face</text>
+          </g>
+          <g stroke="var(--blue)" stroke-width="2.2" fill="none">
+            <path d="M168 73 h20" marker-end="url(#d1)"/><path d="M334 73 h20" marker-end="url(#d1)"/>
+            <path d="M514 73 h20" marker-end="url(#d1)"/><path d="M680 73 h20" marker-end="url(#d1)"/>
+          </g>
+          <text x="30" y="160" fill="var(--orange)" font-size="15" font-family="JetBrains Mono,monospace">AUDIO RECOGNITION</text>
+          <g>
+            <rect x="30"  y="176" width="132" height="46" rx="7" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <text x="96"  y="205" fill="#fff" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">Audio</text>
+            <rect x="196" y="176" width="132" height="46" rx="7" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <text x="262" y="199" fill="#fff" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">Low-level</text>
+            <text x="262" y="215" fill="var(--dim)" font-size="12" text-anchor="middle" font-family="Poppins,sans-serif">(sss, bb)</text>
+            <rect x="362" y="176" width="146" height="46" rx="7" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <text x="435" y="205" fill="#fff" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">Phonemes</text>
+            <rect x="542" y="176" width="132" height="46" rx="7" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <text x="608" y="205" fill="#fff" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">Words</text>
+            <rect x="708" y="176" width="162" height="46" rx="7" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+            <text x="789" y="205" fill="#fff" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">Sentences</text>
+          </g>
+          <g stroke="var(--orange)" stroke-width="2.2" fill="none">
+            <path d="M168 199 h20" marker-end="url(#d2)"/><path d="M334 199 h20" marker-end="url(#d2)"/>
+            <path d="M514 199 h20" marker-end="url(#d2)"/><path d="M680 199 h20" marker-end="url(#d2)"/>
+          </g>
+          <defs>
+            <marker id="d1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--blue)"/></marker>
+            <marker id="d2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--orange)"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:64ch">
+        Each layer builds a relationship with the layer before it — from <b>simple</b> to
+        <b>complex</b>. Researchers think this resembles how brains process information.</p>
+    </div>
+  </section>
+
+  <!-- 18 · CIRCUIT THEORY -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Why deep · the formal argument</div>
+      <h2>Circuit theory:<br>depth buys you size</h2>
+      <p class="lede">There are functions a <b>small L-layer</b> network computes easily, that a
+        network with <b>one</b> hidden layer needs <b>exponentially many</b> neurons to compute.</p>
+      <div class="cards c2" style="margin-top:.6vh">
+        <div class="card g">
+          <div class="n">DEEP</div>
+          <h3 class="comp">O(log n)</h3>
+          <p>Layers of pairwise XOR, combined like a tournament bracket. Depth grows with
+            <b>log n</b>, and the total neuron count stays small.</p>
+        </div>
+        <div class="card r">
+          <div class="n">SHALLOW</div>
+          <h3 class="comp">O(2ⁿ)</h3>
+          <p>With one hidden layer you must enumerate every possible configuration of the n inputs
+            — <b>exponentially</b> many hidden units.</p>
+        </div>
+      </div>
+      <p style="color:var(--dim)">The classic example is computing the XOR of n input bits: a tree
+        of depth log n, versus a single layer that must cover all 2ⁿ cases.</p>
+    </div>
+  </section>
+
+  <!-- 19 · BUT START SHALLOW -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Why deep · the practical warning</div>
+      <h2>Do not start<br>with 20 layers</h2>
+      <p class="lede">When you begin a new application, the right move is almost always the
+        <b>simplest</b> thing that could work.</p>
+      <ul class="rules">
+        <li><span>01</span><span>Try <b>logistic regression</b> first. It is fast, and it gives you a
+          baseline number.</span></li>
+        <li><span>02</span><span>Then a <b>shallow</b> network — one or two hidden layers.</span></li>
+        <li><span>03</span><span>Then add depth, and <b>measure</b> whether it actually helps.</span></li>
+      </ul>
+      <p style="color:var(--yellow);font-size:clamp(15px,1.85vw,30px);font-weight:600;max-width:52ch">
+        The number of layers is a hyperparameter like any other — something you tune, not
+        something you guess once.</p>
+    </div>
+  </section>
+
+  <!-- 20 · BUILDING BLOCKS DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 5</div>
+      <div class="big">Building<br>Blocks</div>
+    </div>
+  </section>
+
+  <!-- 21 · ONE LAYER'S BLOCK -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Building blocks · one layer</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">One layer, two boxes</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 270" role="img" aria-label="A forward box takes A of layer l minus 1 and outputs A of layer l while storing a cache of Z. A backward box takes dA of layer l and the cache and outputs dA of layer l minus 1 along with dW and db.">
+          <rect x="250" y="34" width="250" height="78" rx="10" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.8"/>
+          <text x="375" y="66" fill="#fff" font-size="18" text-anchor="middle" font-family="Poppins,sans-serif" font-weight="600">Forward</text>
+          <text x="375" y="92" fill="var(--blue)" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">W⁽ˡ⁾, b⁽ˡ⁾</text>
+          <path d="M120 73 h122" stroke="var(--blue)" stroke-width="2.6" marker-end="url(#b1)"/>
+          <text x="70" y="79" fill="var(--white)" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">A⁽ˡ⁻¹⁾</text>
+          <path d="M508 73 h122" stroke="var(--blue)" stroke-width="2.6" marker-end="url(#b1)"/>
+          <text x="678" y="79" fill="var(--white)" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">A⁽ˡ⁾</text>
+
+          <rect x="250" y="164" width="250" height="78" rx="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2.8"/>
+          <text x="375" y="196" fill="#fff" font-size="18" text-anchor="middle" font-family="Poppins,sans-serif" font-weight="600">Backward</text>
+          <text x="375" y="222" fill="var(--orange)" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">dW⁽ˡ⁾, db⁽ˡ⁾</text>
+          <path d="M630 203 h-122" stroke="var(--orange)" stroke-width="2.6" marker-end="url(#b2)"/>
+          <text x="678" y="209" fill="var(--white)" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">dA⁽ˡ⁾</text>
+          <path d="M242 203 h-122" stroke="var(--orange)" stroke-width="2.6" marker-end="url(#b2)"/>
+          <text x="70" y="209" fill="var(--white)" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">dA⁽ˡ⁻¹⁾</text>
+
+          <path d="M375 116 V160" stroke="var(--yellow)" stroke-width="2.6" stroke-dasharray="6 5" marker-end="url(#b3)"/>
+          <rect x="556" y="118" width="128" height="40" rx="7" fill="#0a0a0a" stroke="var(--yellow)" stroke-width="2"/>
+          <text x="620" y="144" fill="var(--yellow)" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">cache Z⁽ˡ⁾</text>
+          <path d="M548 138 h-152" stroke="var(--yellow)" stroke-width="2" stroke-dasharray="5 4"/>
+          <text x="196" y="144" fill="var(--yellow)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">saved on the way down,</text>
+          <text x="196" y="162" fill="var(--yellow)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">reused on the way back</text>
+          <defs>
+            <marker id="b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--blue)"/></marker>
+            <marker id="b2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--orange)"/></marker>
+            <marker id="b3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--yellow)"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:64ch">
+        The <b>cache</b> is the trick. Backward propagation needs Z⁽ˡ⁾ to evaluate g′, so forward
+        propagation stores it instead of throwing it away.</p>
+    </div>
+  </section>
+
+  <!-- 22 · THE WHOLE CHAIN -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Building blocks · the whole network</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Stack the blocks</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 270" role="img" aria-label="Three forward blocks in a row from layer 1 to layer L producing the prediction and the loss, with three backward blocks underneath running in the opposite direction and producing dW and db for each layer.">
+          <g>
+            <rect x="120" y="40" width="130" height="58" rx="9" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.4"/>
+            <text x="185" y="66" fill="#fff" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">Forward</text>
+            <text x="185" y="86" fill="var(--blue)" font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace">W⁽¹⁾,b⁽¹⁾</text>
+            <rect x="330" y="40" width="130" height="58" rx="9" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.4"/>
+            <text x="395" y="66" fill="#fff" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">Forward</text>
+            <text x="395" y="86" fill="var(--blue)" font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace">W⁽²⁾,b⁽²⁾</text>
+            <text x="520" y="76" fill="var(--dim)" font-size="22" text-anchor="middle" font-family="JetBrains Mono,monospace">⋯</text>
+            <rect x="570" y="40" width="130" height="58" rx="9" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.4"/>
+            <text x="635" y="66" fill="#fff" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">Forward</text>
+            <text x="635" y="86" fill="var(--blue)" font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace">W⁽ᴸ⁾,b⁽ᴸ⁾</text>
+          </g>
+          <g stroke="var(--blue)" stroke-width="2.4" fill="none">
+            <path d="M58 69 h54" marker-end="url(#s1)"/><path d="M256 69 h66" marker-end="url(#s1)"/>
+            <path d="M466 69 h38" marker-end="url(#s1)"/><path d="M706 69 h56" marker-end="url(#s1)"/>
+          </g>
+          <text x="38"  y="75" fill="var(--white)" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">X</text>
+          <text x="800" y="60" fill="var(--green)" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">ŷ = A⁽ᴸ⁾</text>
+          <text x="800" y="86" fill="var(--orange)" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">ℒ(ŷ, y)</text>
+
+          <g>
+            <rect x="120" y="170" width="130" height="58" rx="9" fill="#2a1608" stroke="var(--orange)" stroke-width="2.4"/>
+            <text x="185" y="196" fill="#fff" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">Backward</text>
+            <text x="185" y="216" fill="var(--orange)" font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace">dW⁽¹⁾,db⁽¹⁾</text>
+            <rect x="330" y="170" width="130" height="58" rx="9" fill="#2a1608" stroke="var(--orange)" stroke-width="2.4"/>
+            <text x="395" y="196" fill="#fff" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">Backward</text>
+            <text x="395" y="216" fill="var(--orange)" font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace">dW⁽²⁾,db⁽²⁾</text>
+            <text x="520" y="206" fill="var(--dim)" font-size="22" text-anchor="middle" font-family="JetBrains Mono,monospace">⋯</text>
+            <rect x="570" y="170" width="130" height="58" rx="9" fill="#2a1608" stroke="var(--orange)" stroke-width="2.4"/>
+            <text x="635" y="196" fill="#fff" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">Backward</text>
+            <text x="635" y="216" fill="var(--orange)" font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace">dW⁽ᴸ⁾,db⁽ᴸ⁾</text>
+          </g>
+          <g stroke="var(--orange)" stroke-width="2.4" fill="none">
+            <path d="M762 199 h-56" marker-end="url(#s2)"/><path d="M566 199 h-38" marker-end="url(#s2)"/>
+            <path d="M322 199 h-66" marker-end="url(#s2)"/><path d="M116 199 h-54" marker-end="url(#s2)"/>
+          </g>
+          <text x="800" y="205" fill="var(--white)" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">dA⁽ᴸ⁾</text>
+          <g stroke="var(--yellow)" stroke-width="1.8" stroke-dasharray="5 4" opacity=".8">
+            <path d="M185 104 V164"/><path d="M395 104 V164"/><path d="M635 104 V164"/>
+          </g>
+          <text x="450" y="256" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">dashed lines are the caches · one gradient descent iteration is one lap of this loop</text>
+          <defs>
+            <marker id="s1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--blue)"/></marker>
+            <marker id="s2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--orange)"/></marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 23 · FORWARD PSEUDOCODE -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Building blocks · forward, for layer l</div>
+      <h2>The forward block</h2>
+      <div class="math" style="text-align:left;font-size:clamp(12px,1.6vw,27px);line-height:1.9;
+           border-left:3px solid var(--blue);padding-left:1.4em">
+        <span style="color:var(--dim)">Input</span> &nbsp;A⁽ˡ⁻¹⁾<br>
+        &nbsp;&nbsp;<span class="hl">Z⁽ˡ⁾</span> = W⁽ˡ⁾A⁽ˡ⁻¹⁾ + b⁽ˡ⁾<br>
+        &nbsp;&nbsp;<span class="hl">A⁽ˡ⁾</span> = g⁽ˡ⁾(Z⁽ˡ⁾)<br>
+        <span style="color:var(--dim)">Output</span> A⁽ˡ⁾, <span style="color:var(--yellow)">cache(Z⁽ˡ⁾)</span>
+      </div>
+      <p>Two lines of arithmetic, plus one line that <b>saves Z⁽ˡ⁾</b> for later. In practice you
+        cache W⁽ˡ⁾ and A⁽ˡ⁻¹⁾ too, since the backward block needs them as well.</p>
+    </div>
+  </section>
+
+  <!-- 24 · BACKWARD PSEUDOCODE -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Building blocks · backward, for layer l</div>
+      <h2>The backward block</h2>
+      <div class="math" style="text-align:left;font-size:clamp(11px,1.5vw,25px);line-height:1.9;
+           border-left:3px solid var(--orange);padding-left:1.4em">
+        <span style="color:var(--dim)">Input</span> &nbsp;dA⁽ˡ⁾, <span style="color:var(--yellow)">caches</span><br>
+        &nbsp;&nbsp;<span class="hl2">dZ⁽ˡ⁾</span> = dA⁽ˡ⁾ <span style="color:var(--yellow)">∗</span> g′⁽ˡ⁾(Z⁽ˡ⁾)<br>
+        &nbsp;&nbsp;<span class="hl2">dW⁽ˡ⁾</span> = (dZ⁽ˡ⁾ A⁽ˡ⁻¹⁾ᵀ) / m<br>
+        &nbsp;&nbsp;<span class="hl2">db⁽ˡ⁾</span> = sum(dZ⁽ˡ⁾) / m &nbsp;<span style="color:var(--red);font-size:.74em"># axis=1, keepdims=True</span><br>
+        &nbsp;&nbsp;<span class="hl2">dA⁽ˡ⁻¹⁾</span> = W⁽ˡ⁾ᵀ dZ⁽ˡ⁾<br>
+        <span style="color:var(--dim)">Output</span> dA⁽ˡ⁻¹⁾, dW⁽ˡ⁾, db⁽ˡ⁾
+      </div>
+      <p>Same six-equation shape as Chapter 3, written once for a general layer. The output
+        <span style="font-family:var(--mono);color:#fff">dA⁽ˡ⁻¹⁾</span> is the input to the
+        <b>next</b> backward block — that is what chains them together.</p>
+      <p style="color:var(--red);font-size:clamp(14px,1.65vw,27px);font-weight:600;max-width:54ch">
+        Do not forget <span style="font-family:var(--mono)">keepdims=True</span> — without it NumPy
+        collapses db into a rank-1 array and the shapes silently break.</p>
+    </div>
+  </section>
+
+  <!-- 25 · WHERE THE CHAIN STARTS -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Building blocks · the first domino</div>
+      <h2>Starting the<br>backward pass</h2>
+      <p class="lede">The backward chain needs a value to begin with:
+        <span style="font-family:var(--mono);color:#fff">dA⁽ᴸ⁾</span>, the derivative of the loss
+        with respect to the final activation.</p>
+      <div class="mathrow" style="align-items:flex-start">
+        <div class="math" style="text-align:left;font-size:clamp(14px,1.95vw,34px)">
+          dA⁽ᴸ⁾ = −(y/a) + (1−y)/(1−a)
+          <span class="an">the derivative of the logistic loss from Chapter 2</span>
+        </div>
+      </div>
+      <p>Feed that into the layer-L backward block, and every other gradient follows from the
+        chain of <span style="font-family:var(--mono);color:#fff">dA⁽ˡ⁻¹⁾</span> outputs.</p>
+      <p style="color:var(--dim)">In practice layer L usually combines this with the sigmoid
+        derivative straight into <span style="font-family:var(--mono);color:#fff">dZ⁽ᴸ⁾ = A⁽ᴸ⁾ − Y</span>
+        — the same shortcut as Chapter 3.</p>
+    </div>
+  </section>
+
+  <!-- 26 · PARAMS VS HYPERPARAMS DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 6</div>
+      <div class="big">Parameters vs<br>Hyperparameters</div>
+    </div>
+  </section>
+
+  <!-- 27 · THE TWO KINDS -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Parameters · the distinction</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">What is learned,<br>what is chosen</h2>
+      <div class="cards c2">
+        <div class="card b">
+          <div class="n">PARAMETERS</div>
+          <h3 class="comp">W and b</h3>
+          <p class="role">learned by gradient descent</p>
+          <p>The network finds these itself. You never set them by hand — you only initialise
+            them and let the gradients do the rest.</p>
+          <p class="eg">W⁽¹⁾, b⁽¹⁾, W⁽²⁾, b⁽²⁾, … W⁽ᴸ⁾, b⁽ᴸ⁾</p>
+        </div>
+        <div class="card o">
+          <div class="n">HYPERPARAMETERS</div>
+          <h3 class="comp">everything else</h3>
+          <p class="role">chosen by you</p>
+          <p>These <b>control</b> the algorithm that learns W and b — so they ultimately control
+            what W and b end up being.</p>
+          <p class="eg">α, iterations, L, n⁽ˡ⁾, choice of g⁽ˡ⁾</p>
+        </div>
+      </div>
+      <p style="color:var(--dim)">In the early days of the field the learning rate was often called
+        a parameter. It is a <b>hyper</b>parameter — and now everyone calls it that.</p>
+    </div>
+  </section>
+
+  <!-- 28 · THE HYPERPARAMETER LIST -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Parameters · the ones you will tune</div>
+      <h2>The list, so far</h2>
+      <ul class="rules">
+        <li><span>α</span><span>the <b>learning rate</b> — how big a step gradient descent takes.</span></li>
+        <li><span>N</span><span>the <b>number of iterations</b> of gradient descent.</span></li>
+        <li><span>L</span><span>the <b>number of hidden layers</b>.</span></li>
+        <li><span>n</span><span>the <b>number of hidden units</b> in each layer.</span></li>
+        <li><span>g</span><span>the <b>choice of activation function</b> per layer.</span></li>
+      </ul>
+      <p>There is no formula for any of these. You try values, measure, and try again — applied
+        deep learning is an <b>empirical</b> process.</p>
+      <p style="color:var(--dim)">The next course adds more: momentum, mini-batch size,
+        regularisation terms — and a systematic way to search over them.</p>
+    </div>
+  </section>
+
+  <!-- 29 · QUESTION — hyperparameters -->
+  <section class="slide k-q">
+    <div class="doc">
+      <div class="qhead">Question</div>
+      <h2 class="qtext">Which of these is a <span style="color:var(--yellow)">parameter</span>,<br>not a hyperparameter?</h2>
+      <ul class="opts">
+        <li><span class="lt">A</span><span>The learning rate <span class="mono">α</span>.</span></li>
+        <li><span class="lt">B</span><span>The number of hidden layers <span class="mono">L</span>.</span></li>
+        <li class="ans"><span class="lt">C</span><span>The weight matrix <span class="mono">W⁽²⁾</span>.</span></li>
+        <li><span class="lt">D</span><span>The choice of activation function <span class="mono">g⁽¹⁾</span>.</span></li>
+      </ul>
+      <p class="qwhy"><b>C.</b> <span class="mono">W</span> and <span class="mono">b</span> are the
+        only parameters — they are <b>learned</b> by gradient descent. Everything else on this list
+        you <b>choose</b>, and your choices control how W and b are learned.</p>
+      <p class="qhint">press A to reveal</p>
+    </div>
+  </section>
+
+  <!-- 30 · BRAIN DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 7</div>
+      <div class="big">What About<br>the Brain?</div>
+    </div>
+  </section>
+
+  <!-- 31 · THE ANALOGY -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">The brain · where the analogy comes from</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">One unit, one neuron</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 240" role="img" aria-label="On the left a logistic unit taking three inputs and producing one output. On the right a biological neuron with dendrites, a cell body and an axon. A label notes the resemblance is very simplistic.">
+          <text x="190" y="30" fill="var(--blue)" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">LOGISTIC UNIT</text>
+          <g stroke="var(--node)" stroke-width="1.6">
+            <line x1="84" y1="82"  x2="160" y2="122"/><line x1="84" y1="122" x2="160" y2="122"/><line x1="84" y1="162" x2="160" y2="122"/>
+          </g>
+          <g fill="var(--dim)" font-size="15" font-family="JetBrains Mono,monospace" text-anchor="middle">
+            <text x="66" y="88">x₁</text><text x="66" y="128">x₂</text><text x="66" y="168">x₃</text>
+          </g>
+          <circle cx="188" cy="122" r="30" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.6"/>
+          <text x="188" y="128" fill="#fff" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">σ</text>
+          <path d="M220 122 h72" stroke="var(--blue)" stroke-width="2.4" marker-end="url(#br)"/>
+          <text x="316" y="128" fill="var(--white)" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">a</text>
+          <line x1="410" y1="40" x2="410" y2="200" stroke="#222" stroke-width="2"/>
+          <text x="660" y="30" fill="var(--purple)" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">BIOLOGICAL NEURON</text>
+          <g stroke="var(--purple)" stroke-width="2" fill="none">
+            <path d="M478 84  C510 96 528 108 548 118"/><path d="M470 122 C506 122 528 122 548 124"/>
+            <path d="M478 160 C510 148 528 136 548 130"/>
+            <path d="M466 74 l-14 -10 M466 74 l-16 6"/><path d="M458 122 l-16 -8 M458 122 l-16 8"/>
+            <path d="M466 170 l-14 10 M466 170 l-16 -6"/>
+          </g>
+          <ellipse cx="588" cy="124" rx="40" ry="32" fill="#33224d" stroke="var(--purple)" stroke-width="2.6"/>
+          <circle cx="588" cy="124" r="11" fill="none" stroke="var(--purple)" stroke-width="1.8"/>
+          <path d="M628 124 h116" stroke="var(--purple)" stroke-width="3"/>
+          <path d="M744 124 l16 -12 M744 124 l16 12 M744 124 h22" stroke="var(--purple)" stroke-width="2.4" fill="none"/>
+          <text x="478" y="200" fill="var(--dim)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">dendrites</text>
+          <text x="588" y="182" fill="var(--dim)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">cell body</text>
+          <text x="710" y="106" fill="var(--dim)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">axon</text>
+          <defs><marker id="br" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--blue)"/></marker></defs>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:64ch">
+        Both take several inputs, combine them, and produce one output. That resemblance is
+        <b>real</b> — and it is also where the similarity runs out.</p>
+    </div>
+  </section>
+
+  <!-- 32 · THE HONEST VERSION -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">The brain · the honest version</div>
+      <h2>An oversimplified<br>explanation</h2>
+      <p class="lede">"It is like the brain" is an easy thing to say and a hard thing to defend.</p>
+      <ul class="rules">
+        <li><span>01</span><span>No one today understands <b>how a single biological neuron works</b>.</span></li>
+        <li><span>02</span><span>No one knows <b>exactly how many</b> neurons a human brain has.</span></li>
+        <li><span>03</span><span>A logistic unit is a <b>very</b> simplistic stand-in for something far
+          more complicated.</span></li>
+      </ul>
+      <p style="color:var(--yellow);font-size:clamp(15px,1.85vw,30px);font-weight:600;max-width:54ch">
+        What deep learning is actually good at: learning flexible, complex functions that map
+        X to Y — supervised learning.</p>
+      <p style="color:var(--dim)">Computer vision has drawn more genuine inspiration from the brain
+        than the other subfields. The convolutional networks of Chapter 6 are the closest thing we
+        have — and even that is a loose analogy.</p>
+    </div>
+  </section>
+
+  <!-- 33 · RECAP -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Chapter 4 · recap</div>
+      <h2>What to carry forward</h2>
+      <ul class="rules">
+        <li><span>01</span><span><b>Shallow</b> is 1–2 layers; <b>deep</b> is 3 or more. L counts layers,
+          input excluded.</span></li>
+        <li><span>02</span><span>Forward propagation is <b>one rule</b>:
+          <span style="font-family:var(--mono)">Z⁽ˡ⁾ = W⁽ˡ⁾A⁽ˡ⁻¹⁾ + b⁽ˡ⁾</span>, applied in a loop over
+          layers.</span></li>
+        <li><span>03</span><span>A <b>loop over layers is fine</b>; a loop over examples is not.</span></li>
+        <li><span>04</span><span><span style="font-family:var(--mono)">W⁽ˡ⁾</span> is <b>(n⁽ˡ⁾, n⁽ˡ⁻¹⁾)</b>,
+          <span style="font-family:var(--mono)">b⁽ˡ⁾</span> is <b>(n⁽ˡ⁾, 1)</b>,
+          <span style="font-family:var(--mono)">Z⁽ˡ⁾</span> and
+          <span style="font-family:var(--mono)">A⁽ˡ⁾</span> are <b>(n⁽ˡ⁾, m)</b>.</span></li>
+        <li><span>05</span><span>A <b>gradient has the same shape</b> as the thing it differentiates.</span></li>
+        <li><span>06</span><span>Depth builds <b>simple features into complex ones</b> — and buys an
+          exponential saving in width.</span></li>
+        <li><span>07</span><span>Each layer is a <b>forward block and a backward block</b>, joined by a
+          <b>cache</b>.</span></li>
+        <li><span>08</span><span><b>W and b are parameters.</b> Everything else you pick is a
+          <b>hyperparameter</b>.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 34 · NEXT -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Next</div>
+      <div class="mid">Training Deep<br>Neural Networks</div>
+      <div class="sub" style="margin-top:1em">Initialisation, vanishing gradients, and gradient checking.</div>
+    </div>
+  </section>
+
+  <!-- 35 · CLOSING -->
+  <section class="slide">
+    <div class="center">
+      <div class="mid">Questions?</div>
+      <div class="sub" style="margin-top:1.4em">
+        Dr. Naila Marir · CoE 108<br>
+        <span style="font-family:var(--mono);font-size:.85em">namarir@effatuniversity.edu.sa</span>
+      </div>
+      <div class="sub" style="font-size:clamp(11px,1.05vw,17px);margin-top:2em;color:#4a4a4a">
+        Adapted from Andrew Ng · Deep Learning Specialization · deeplearning.ai
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="bar-progress" id="progress"></div>
+<div class="hint" id="hint">← →</div>
+<div class="credit">CS 4085 · Ch 4</div>
+
+<script>
+(function(){
+  var slides   = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var hint     = document.getElementById('hint');
+  var i = 0;
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); if (k !== i) s.classList.remove('show'); });
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+    if (location.hash !== '#' + (i + 1)) history.replaceState(null, '', '#' + (i + 1));
+  }
+  function next(){ show(i + 1); }
+  function prev(){ show(i - 1); }
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    switch(e.key){
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); show(0); break;
+      case 'End':  e.preventDefault(); show(slides.length - 1); break;
+      case 'a': case 'A': {
+        var cur = slides[i];
+        if (cur && cur.classList.contains('k-q')) { e.preventDefault(); cur.classList.toggle('show'); }
+        break;
+      }
+      case 'f': case 'F':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+        break;
+    }
+    hint.classList.add('hide');
+  });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a')) return;
+    (e.clientX > window.innerWidth * 0.5) ? next() : prev();
+    hint.classList.add('hide');
+  });
+
+  var startX = null;
+  document.addEventListener('touchstart', function(e){ startX = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (startX === null) return;
+    var dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 48) { (dx < 0) ? next() : prev(); }
+    startX = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+  setTimeout(function(){ hint.classList.add('hide'); }, 5000);
+})();
+</script>

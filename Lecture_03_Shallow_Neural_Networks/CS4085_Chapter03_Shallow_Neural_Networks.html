@@ -1,0 +1,1204 @@
+<title>Shallow Neural Networks — Chapter 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
+
+<style>
+/* ============================================================
+   CS4085 · Chapter 3 — Shallow Neural Networks
+   Same CS50 house style as Chapters 1 and 2.
+   Source: Ng, Deep Learning Specialization, C1M3.
+   ============================================================ */
+:root{
+  --black:#000000; --white:#ffffff;
+  --blue:#0091ff; --orange:#e8590c; --yellow:#f5a623;
+  --green:#28a138; --red:#e01b24; --purple:#a56cf5;
+  --node:#3d3d3d; --dim:#8a8a8a;
+  --sans:"Poppins","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono","SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--black)}
+body{background:var(--black);color:var(--white);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden;background:var(--black)}
+.slide{position:absolute;inset:0;display:none;background:var(--black);
+  padding:6vh 7vw;font-size:clamp(13px,1.7vh,28px)}
+.slide.active{display:flex}
+
+.split{width:100%;height:100%;display:grid;grid-template-columns:1fr 1.15fr;
+  align-items:center;gap:4vw}
+.split .word{font-size:clamp(38px,6.6vw,104px);font-weight:700;line-height:1.06;
+  letter-spacing:-.022em;text-align:center;text-wrap:balance}
+.split .art{display:flex;align-items:center;justify-content:center}
+.split .art svg{width:100%;height:auto;max-height:74vh}
+
+.center{width:100%;height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;gap:.55em}
+.center .big{font-size:clamp(40px,7.2vw,116px);font-weight:700;line-height:1.05;
+  letter-spacing:-.024em;text-wrap:balance}
+.center .mid{font-size:clamp(26px,4.2vw,64px);font-weight:600;line-height:1.14;
+  letter-spacing:-.018em;max-width:19ch;text-wrap:balance}
+.center .sub{font-size:clamp(15px,1.85vw,30px);font-weight:400;color:var(--dim);
+  line-height:1.5;max-width:34ch;text-wrap:balance}
+.center .tag{font-family:var(--mono);font-size:clamp(10px,.92vw,15px);
+  letter-spacing:.26em;text-transform:uppercase;color:#5a7d99;font-weight:400}
+
+.doc{width:100%;height:100%;display:flex;flex-direction:column;
+  justify-content:center;gap:2.6vh}
+.doc h2{margin:0;font-size:clamp(34px,5.4vw,86px);font-weight:700;
+  letter-spacing:-.026em;line-height:1.04;text-wrap:balance}
+.doc .kicker{font-family:var(--mono);font-size:clamp(10px,.88vw,14px);
+  letter-spacing:.26em;text-transform:uppercase;color:#5a7d99;
+  margin-bottom:-1vh;font-weight:400}
+.doc p{margin:0;font-size:clamp(14px,1.5vw,25px);line-height:1.62;
+  color:#d8d8d8;max-width:56ch}
+.doc p b,.doc li b{color:var(--white);font-weight:600}
+.doc .lede{font-size:clamp(16px,1.95vw,33px);line-height:1.48;
+  color:var(--white);max-width:44ch;font-weight:400}
+.doc .art{display:flex;align-items:center;justify-content:center;min-height:0}
+.doc .art svg{width:100%;height:auto;max-height:52vh}
+.k-bowl .doc{gap:1.4vh;justify-content:center}
+.k-bowl .art svg{max-height:63vh}
+
+.tbl{overflow-x:auto;overflow-y:auto;max-height:64vh}
+table{border-collapse:collapse;width:100%;font-size:clamp(11px,1.24vw,21px)}
+th{text-align:left;padding:.5em .8em .5em 0;font-family:var(--mono);font-weight:400;
+  font-size:.76em;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+  border-bottom:2px solid #2a2a2a;white-space:nowrap}
+td{padding:.62em .8em .62em 0;border-bottom:1px solid #1c1c1c;
+  line-height:1.34;vertical-align:top;color:#e2e2e2}
+td.k{font-family:var(--mono);color:var(--blue);font-weight:700;white-space:nowrap}
+tr.mark td{color:var(--white);font-weight:600}
+
+.rules{display:flex;flex-direction:column;gap:1.4vh;max-width:56ch;margin:0;padding:0}
+.rules li{list-style:none;font-size:clamp(13px,1.5vw,25px);line-height:1.46;
+  color:#e2e2e2;display:grid;grid-template-columns:1.9em 1fr;gap:.5em}
+.rules li span:first-child{font-family:var(--mono);color:var(--blue);font-weight:700}
+
+.cards{display:grid;gap:1.6vw;width:100%}
+.cards.c2{grid-template-columns:repeat(2,1fr)}
+.cards.c3{grid-template-columns:repeat(3,1fr)}
+.card{border:1px solid #232323;border-radius:10px;padding:2.2vh 1.5vw;
+  display:flex;flex-direction:column;gap:.9vh;background:#0a0a0a}
+.card .n{font-family:var(--mono);font-size:clamp(10px,.95vw,15px);
+  letter-spacing:.2em;color:var(--blue)}
+.card h3.comp{margin:0;font-size:clamp(19px,2.5vw,40px);font-weight:700;
+  letter-spacing:-.02em;line-height:1.06;margin-bottom:.2vh}
+.card p.role{font-size:clamp(11px,1.05vw,17px);color:var(--dim);
+  line-height:1.3;margin:0 0 .6vh}
+.card p{margin:0;font-size:clamp(12px,1.18vw,20px);line-height:1.5;color:#c4c4c4}
+.card .eg{font-size:clamp(11px,1.05vw,17px);color:var(--dim);line-height:1.45;
+  border-top:1px solid #1e1e1e;padding-top:.9vh;margin-top:auto}
+.card.b{border-color:#123c5e} .card.b .n{color:var(--blue)} .card.b h3{color:var(--blue)}
+.card.o{border-color:#4a2a10} .card.o .n{color:var(--orange)} .card.o h3{color:var(--orange)}
+.card.g{border-color:#16401f} .card.g .n{color:var(--green)} .card.g h3{color:var(--green)}
+.card.p{border-color:#33224d} .card.p .n{color:var(--purple)} .card.p h3{color:var(--purple)}
+.card.r{border-color:#4d1418} .card.r .n{color:var(--red)} .card.r h3{color:var(--red)}
+
+.math{font-family:var(--mono);font-size:clamp(15px,2.15vw,38px);color:var(--white);
+  line-height:1.5;text-align:center;letter-spacing:-.01em}
+.math .hl{color:var(--blue)} .math .hl2{color:var(--orange)}
+.math .hl3{color:var(--green)} .math .bad{color:var(--red)}
+.math .an{display:block;font-family:var(--sans);font-size:clamp(11px,1.1vw,18px);
+  color:var(--dim);margin-top:.7em;letter-spacing:0}
+.mathrow{display:flex;flex-direction:column;gap:2.2vh;align-items:center;width:100%}
+
+.bar-progress{position:fixed;left:0;bottom:0;height:2px;background:var(--blue);
+  z-index:30;transition:width .3s ease}
+.hint{position:fixed;right:2vw;bottom:2.4vh;z-index:30;font-family:var(--mono);
+  font-size:11px;letter-spacing:.16em;color:#4a4a4a;text-transform:uppercase;
+  transition:opacity .6s ease}
+.hint.hide{opacity:0}
+.credit{position:fixed;left:2vw;bottom:2.4vh;z-index:30;font-family:var(--mono);
+  font-size:10px;letter-spacing:.1em;color:#3a3a3a}
+
+.slide.active .split > *,.slide.active .center > *,.slide.active .doc > *{
+  animation:fade .45s ease backwards}
+.slide.active .split > *:nth-child(2){animation-delay:.1s}
+.slide.active .center > *:nth-child(2),.slide.active .doc > *:nth-child(2){animation-delay:.07s}
+.slide.active .doc > *:nth-child(3){animation-delay:.13s}
+.slide.active .doc > *:nth-child(4){animation-delay:.19s}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}
+  .dgm animate{display:none}
+}
+@media (max-aspect-ratio:1/1){
+  .split{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:3vh}
+  .split .art svg{max-height:52vh}
+  .cards.c2,.cards.c3{grid-template-columns:1fr}
+}
+@media print{
+  @page{size:1600px 900px;margin:0}
+  .slide{display:flex!important;position:relative;inset:auto;width:1600px;height:900px;
+    font-size:21px;page-break-after:always;break-after:page}
+  .deck{width:auto;height:auto;overflow:visible}
+  .bar-progress,.hint,.credit{display:none}
+  html,body{overflow:visible}
+  .dgm animate{display:none}
+}
+
+/* ---------- question slide ---------- */
+.qhead{font-family:var(--mono);font-size:clamp(10px,.88vw,14px);letter-spacing:.26em;
+  text-transform:uppercase;color:var(--yellow);margin-bottom:-1vh}
+.qtext{font-size:clamp(24px,3.4vw,54px);font-weight:700;letter-spacing:-.02em;
+  line-height:1.1;text-wrap:balance;margin:0}
+.opts{display:flex;flex-direction:column;gap:1.15vh;margin:0;padding:0;max-width:74ch;
+  list-style:none}
+.opts li{list-style:none;display:grid;grid-template-columns:2.3em 1fr;gap:.7em;
+  align-items:baseline;border:1px solid #232323;border-radius:9px;
+  padding:1.5vh 1.4vw;background:#0a0a0a;
+  font-size:clamp(13px,1.5vw,25px);line-height:1.4;color:#d8d8d8;
+  transition:border-color .25s,background .25s,color .25s,opacity .25s}
+.opts li .lt{font-family:var(--mono);color:var(--dim);font-weight:700}
+.opts li .mono{font-family:var(--mono)}
+.slide.show .opts li.ans{border-color:var(--green);background:#0d1f12;color:#fff}
+.slide.show .opts li.ans .lt{color:var(--green)}
+.slide.show .opts li:not(.ans){opacity:.35}
+.qwhy{font-size:clamp(13px,1.45vw,24px);color:var(--dim);line-height:1.5;
+  max-width:70ch;opacity:0;transition:opacity .3s;margin:0}
+.slide.show .qwhy{opacity:1}
+.qwhy b{color:var(--green)}
+.qhint{font-family:var(--mono);font-size:clamp(10px,.9vw,15px);color:#4a4a4a;
+  letter-spacing:.12em;text-transform:uppercase;transition:opacity .3s;margin:0}
+.slide.show .qhint{opacity:0}
+</style>
+
+<div class="deck" id="deck">
+
+
+  <!-- 01 · TITLE -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">CS 4085 · Deep Learning · Chapter 3</div>
+      <div class="big">Shallow Neural<br>Networks</div>
+      <div class="sub" style="margin-top:1.4em;color:#c8c8c8">
+        Dr. Naila Marir<br>
+        <span style="color:var(--dim)">Effat University · College of Engineering</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · WHAT THIS CHAPTER IS ABOUT -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">This chapter</div>
+      <h2>Build a network with<br>one hidden layer</h2>
+      <p class="lede">Chapter 2 built one logistic regression unit. This chapter stacks a
+        row of them — and that row is a neural network.</p>
+      <p>By the end you will implement <b>forward propagation</b> and <b>backpropagation</b>
+        for a 2-layer network, vectorised across all m examples, with no explicit loop.</p>
+    </div>
+  </section>
+
+  <!-- 03 · ONE UNIT VS A LAYER OF THEM -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Overview · where we came from</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Logistic regression, twice over</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 340" role="img" aria-label="Top row shows logistic regression: inputs feed one unit computing z then a then the loss. Bottom row shows a neural network: inputs feed a first layer computing z1 and a1, whose output feeds a second layer computing z2 and a2 and then the loss.">
+          <!-- logistic regression row -->
+          <text x="30" y="40" fill="var(--dim)" font-size="16" font-family="JetBrains Mono,monospace">LOGISTIC REGRESSION</text>
+          <g fill="var(--dim)" font-size="17" font-family="JetBrains Mono,monospace" text-anchor="middle">
+            <text x="48" y="72">x₁</text><text x="48" y="98">x₂</text><text x="48" y="124">x₃</text>
+          </g>
+          <path d="M70 98 h58" stroke="var(--node)" stroke-width="2.2" marker-end="url(#c1)"/>
+          <rect x="136" y="70" width="188" height="58" rx="8" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.5"/>
+          <text x="230" y="105" fill="var(--white)" font-size="19" text-anchor="middle" font-family="JetBrains Mono,monospace">z = wᵀx + b</text>
+          <path d="M330 98 h36" stroke="var(--node)" stroke-width="2.2" marker-end="url(#c1)"/>
+          <rect x="372" y="70" width="168" height="58" rx="8" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.5"/>
+          <text x="456" y="105" fill="var(--white)" font-size="19" text-anchor="middle" font-family="JetBrains Mono,monospace">a = σ(z)</text>
+          <path d="M546 98 h36" stroke="var(--node)" stroke-width="2.2" marker-end="url(#c1)"/>
+          <rect x="588" y="70" width="152" height="58" rx="8" fill="#2a1608" stroke="var(--orange)" stroke-width="2.5"/>
+          <text x="664" y="105" fill="var(--white)" font-size="19" text-anchor="middle" font-family="JetBrains Mono,monospace">ℒ(a, y)</text>
+
+          <line x1="30" y1="166" x2="870" y2="166" stroke="#222" stroke-width="2"/>
+
+          <!-- neural network row -->
+          <text x="30" y="200" fill="var(--green)" font-size="16" font-family="JetBrains Mono,monospace">NEURAL NETWORK · ONE HIDDEN LAYER</text>
+          <g fill="var(--dim)" font-size="17" font-family="JetBrains Mono,monospace" text-anchor="middle">
+            <text x="48" y="238">x₁</text><text x="48" y="264">x₂</text><text x="48" y="290">x₃</text>
+          </g>
+          <path d="M70 264 h44" stroke="var(--node)" stroke-width="2.2" marker-end="url(#c1)"/>
+          <rect x="122" y="236" width="172" height="58" rx="8" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.5"/>
+          <text x="208" y="262" fill="var(--white)" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">z⁽¹⁾ = W⁽¹⁾x + b⁽¹⁾</text>
+          <text x="208" y="284" fill="var(--blue)" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">a⁽¹⁾ = σ(z⁽¹⁾)</text>
+          <path d="M300 264 h34" stroke="var(--green)" stroke-width="2.6" marker-end="url(#c2)"/>
+          <rect x="340" y="236" width="196" height="58" rx="8" fill="#0f2a14" stroke="var(--green)" stroke-width="2.5"/>
+          <text x="438" y="262" fill="var(--white)" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">z⁽²⁾ = W⁽²⁾a⁽¹⁾ + b⁽²⁾</text>
+          <text x="438" y="284" fill="var(--green)" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">a⁽²⁾ = σ(z⁽²⁾)</text>
+          <path d="M542 264 h36" stroke="var(--node)" stroke-width="2.2" marker-end="url(#c1)"/>
+          <rect x="584" y="236" width="160" height="58" rx="8" fill="#2a1608" stroke="var(--orange)" stroke-width="2.5"/>
+          <text x="664" y="271" fill="var(--white)" font-size="19" text-anchor="middle" font-family="JetBrains Mono,monospace">ℒ(a⁽²⁾, y)</text>
+          <defs>
+            <marker id="c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--node)"/></marker>
+            <marker id="c2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--green)"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:62ch">
+        A neural network is a <b>stack of logistic regression objects</b>. The second layer
+        takes the first layer's output as its input — and that is the whole idea.</p>
+    </div>
+  </section>
+
+  <!-- 04 · REPRESENTATION DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 1</div>
+      <div class="big">Network<br>Representation</div>
+    </div>
+  </section>
+
+  <!-- 05 · THE THREE LAYERS -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Representation · anatomy</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Input, hidden, output</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 400" role="img" aria-label="A two layer neural network. Three input nodes on the left fully connected to four hidden nodes in the middle, which connect to one output node on the right producing y hat.">
+          <!-- edges input -> hidden -->
+          <g stroke="var(--node)" stroke-width="1.5" opacity=".75">
+            <line x1="182" y1="120" x2="404" y2="80"/><line x1="182" y1="120" x2="404" y2="160"/>
+            <line x1="182" y1="120" x2="404" y2="240"/><line x1="182" y1="120" x2="404" y2="320"/>
+            <line x1="182" y1="200" x2="404" y2="80"/><line x1="182" y1="200" x2="404" y2="160"/>
+            <line x1="182" y1="200" x2="404" y2="240"/><line x1="182" y1="200" x2="404" y2="320"/>
+            <line x1="182" y1="280" x2="404" y2="80"/><line x1="182" y1="280" x2="404" y2="160"/>
+            <line x1="182" y1="280" x2="404" y2="240"/><line x1="182" y1="280" x2="404" y2="320"/>
+          </g>
+          <!-- edges hidden -> output -->
+          <g stroke="var(--green)" stroke-width="1.8" opacity=".8">
+            <line x1="436" y1="80"  x2="654" y2="200"/><line x1="436" y1="160" x2="654" y2="200"/>
+            <line x1="436" y1="240" x2="654" y2="200"/><line x1="436" y1="320" x2="654" y2="200"/>
+          </g>
+          <!-- input nodes -->
+          <g>
+            <circle cx="166" cy="120" r="24" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.5"/>
+            <circle cx="166" cy="200" r="24" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.5"/>
+            <circle cx="166" cy="280" r="24" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.5"/>
+            <g fill="var(--white)" font-size="16" font-family="JetBrains Mono,monospace" text-anchor="middle">
+              <text x="166" y="126">x₁</text><text x="166" y="206">x₂</text><text x="166" y="286">x₃</text>
+            </g>
+          </g>
+          <!-- hidden nodes -->
+          <g>
+            <circle cx="420" cy="80"  r="24" fill="#2a1608" stroke="var(--orange)" stroke-width="2.5"/>
+            <circle cx="420" cy="160" r="24" fill="#2a1608" stroke="var(--orange)" stroke-width="2.5"/>
+            <circle cx="420" cy="240" r="24" fill="#2a1608" stroke="var(--orange)" stroke-width="2.5"/>
+            <circle cx="420" cy="320" r="24" fill="#2a1608" stroke="var(--orange)" stroke-width="2.5"/>
+            <g fill="var(--white)" font-size="13" font-family="JetBrains Mono,monospace" text-anchor="middle">
+              <text x="420" y="85">a₁⁽¹⁾</text><text x="420" y="165">a₂⁽¹⁾</text>
+              <text x="420" y="245">a₃⁽¹⁾</text><text x="420" y="325">a₄⁽¹⁾</text>
+            </g>
+          </g>
+          <!-- output node -->
+          <circle cx="670" cy="200" r="26" fill="#0f2a14" stroke="var(--green)" stroke-width="2.5"/>
+          <text x="670" y="206" fill="var(--white)" font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace">a⁽²⁾</text>
+          <path d="M702 200 h56" stroke="var(--white)" stroke-width="2.6" marker-end="url(#r1)"/>
+          <text x="800" y="207" fill="var(--white)" font-size="24" text-anchor="middle" font-family="JetBrains Mono,monospace">ŷ</text>
+          <!-- layer labels -->
+          <text x="166" y="352" fill="var(--blue)"   font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Input layer</text>
+          <text x="166" y="376" fill="var(--dim)"    font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">a⁽⁰⁾ = x</text>
+          <text x="420" y="375" fill="var(--orange)" font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Hidden layer</text>
+          <text x="670" y="352" fill="var(--green)"  font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">Output layer</text>
+          <text x="670" y="376" fill="var(--dim)"    font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">a⁽²⁾ = ŷ</text>
+          <defs><marker id="r1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--white)"/></marker></defs>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:64ch">
+        <b>Hidden</b> means you never see these values in the training set. The data gives you
+        x and y — everything in the middle is the network's own business.</p>
+    </div>
+  </section>
+
+  <!-- 06 · COUNTING LAYERS -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Representation · the counting rule</div>
+      <h2>This is a <span style="color:var(--blue)">2-layer</span><br>neural network</h2>
+      <p class="lede">The input layer is <b>not counted</b>. Three inputs, one hidden layer,
+        one output layer — we call that two layers.</p>
+      <div class="cards c3" style="margin-top:1vh">
+        <div class="card b">
+          <div class="n">LAYER 0</div>
+          <h3 class="comp">a⁽⁰⁾ = x</h3>
+          <p class="role">input layer</p>
+          <p>Another name for the input features. Not counted in the layer total.</p>
+        </div>
+        <div class="card o">
+          <div class="n">LAYER 1</div>
+          <h3 class="comp">a⁽¹⁾</h3>
+          <p class="role">hidden layer</p>
+          <p>The activations of the hidden neurons. A column of 4 numbers here.</p>
+        </div>
+        <div class="card g">
+          <div class="n">LAYER 2</div>
+          <h3 class="comp">a⁽²⁾ = ŷ</h3>
+          <p class="role">output layer</p>
+          <p>A single number — the prediction. Same role as ŷ in Chapter 2.</p>
+        </div>
+      </div>
+      <p style="color:var(--dim)">The letter <span style="font-family:var(--mono);color:#fff">a</span>
+        stands for <b>activation</b> — the values a layer passes on to the next layer.</p>
+    </div>
+  </section>
+
+  <!-- 07 · NOTATION: BRACKETS VS PARENTHESES -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Representation · reading the superscripts</div>
+      <h2>Two kinds of superscript</h2>
+      <div class="cards c2">
+        <div class="card b">
+          <div class="n">SQUARE BRACKETS</div>
+          <h3 class="comp">a<sup>[1]</sup></h3>
+          <p class="role">which layer</p>
+          <p>Written <span style="font-family:var(--mono);color:#fff">a⁽¹⁾</span> in these slides.
+            Counts <b>layers</b>: layer 1, layer 2.</p>
+          <p class="eg">W<sup>[2]</sup> — the weights of the output layer</p>
+        </div>
+        <div class="card o">
+          <div class="n">ROUND BRACKETS</div>
+          <h3 class="comp">x<sup>(i)</sup></h3>
+          <p class="role">which example</p>
+          <p>From Chapter 2. Counts <b>training examples</b>: example 1 up to example m.</p>
+          <p class="eg">x⁽³⁾ — the third training example</p>
+        </div>
+      </div>
+      <p style="color:var(--yellow);font-size:clamp(15px,1.8vw,29px);font-weight:600;max-width:52ch">
+        You will see both at once: a<sub>2</sub><sup>[1](3)</sup> — hidden unit 2, layer 1,
+        training example 3.</p>
+    </div>
+  </section>
+
+  <!-- 08 · COMPUTING OUTPUT DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 2</div>
+      <div class="big">Computing<br>the Output</div>
+    </div>
+  </section>
+
+  <!-- 09 · ONE NEURON = TWO STEPS -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Computing the output · one neuron</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Each circle is two steps</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 250" role="img" aria-label="A single hidden neuron split into two halves: the left half computes z equals w transpose x plus b, and the right half applies sigmoid to get a.">
+          <g stroke="var(--node)" stroke-width="1.6">
+            <line x1="120" y1="70"  x2="250" y2="125"/>
+            <line x1="120" y1="125" x2="250" y2="125"/>
+            <line x1="120" y1="180" x2="250" y2="125"/>
+          </g>
+          <g fill="var(--dim)" font-size="17" font-family="JetBrains Mono,monospace" text-anchor="middle">
+            <text x="96" y="76">x₁</text><text x="96" y="131">x₂</text><text x="96" y="186">x₃</text>
+          </g>
+          <ellipse cx="386" cy="125" rx="136" ry="66" fill="#0a0a0a" stroke="var(--orange)" stroke-width="3"/>
+          <line x1="386" y1="59" x2="386" y2="191" stroke="var(--orange)" stroke-width="2" stroke-dasharray="5 5"/>
+          <text x="318" y="118" fill="var(--white)" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">z = wᵀx+b</text>
+          <text x="318" y="148" fill="var(--dim)"   font-size="13" text-anchor="middle" font-family="Poppins,sans-serif">step 1</text>
+          <text x="456" y="118" fill="var(--white)" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">a = σ(z)</text>
+          <text x="456" y="148" fill="var(--dim)"   font-size="13" text-anchor="middle" font-family="Poppins,sans-serif">step 2</text>
+          <path d="M528 125 h52" stroke="var(--white)" stroke-width="2.6" marker-end="url(#n1)"/>
+          <text x="620" y="132" fill="var(--orange)" font-size="22" text-anchor="middle" font-family="JetBrains Mono,monospace">a₁⁽¹⁾</text>
+          <text x="740" y="104" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">z₁⁽¹⁾ = w₁⁽¹⁾ᵀx + b₁⁽¹⁾</text>
+          <text x="740" y="150" fill="var(--dim)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">a₁⁽¹⁾ = σ(z₁⁽¹⁾)</text>
+          <defs><marker id="n1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--white)"/></marker></defs>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:62ch">
+        Exactly what a logistic regression unit does. The subscript says <b>which neuron</b>
+        in the layer; the superscript says <b>which layer</b>.</p>
+    </div>
+  </section>
+
+  <!-- 10 · FOUR NEURONS, FOUR ROWS -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Computing the output · the whole layer</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Four neurons, four rows</h2>
+      <div class="mathrow" style="align-items:flex-start;gap:1.4vh">
+        <div class="math" style="text-align:left;font-size:clamp(12px,1.5vw,25px)">
+          z₁⁽¹⁾ = w₁⁽¹⁾ᵀx + b₁⁽¹⁾ &nbsp;&nbsp; a₁⁽¹⁾ = σ(z₁⁽¹⁾)<br>
+          z₂⁽¹⁾ = w₂⁽¹⁾ᵀx + b₂⁽¹⁾ &nbsp;&nbsp; a₂⁽¹⁾ = σ(z₂⁽¹⁾)<br>
+          z₃⁽¹⁾ = w₃⁽¹⁾ᵀx + b₃⁽¹⁾ &nbsp;&nbsp; a₃⁽¹⁾ = σ(z₃⁽¹⁾)<br>
+          z₄⁽¹⁾ = w₄⁽¹⁾ᵀx + b₄⁽¹⁾ &nbsp;&nbsp; a₄⁽¹⁾ = σ(z₄⁽¹⁾)
+          <span class="an">four neurons written out one by one — this is what we refuse to loop over</span>
+        </div>
+      </div>
+      <p style="color:var(--yellow);font-size:clamp(16px,1.9vw,31px);font-weight:600;max-width:48ch">
+        Stack the four w vectors as rows of one matrix W⁽¹⁾.</p>
+      <div class="mathrow" style="align-items:flex-start">
+        <div class="math" style="text-align:left;font-size:clamp(16px,2.2vw,38px)">
+          <span class="hl">z⁽¹⁾ = W⁽¹⁾x + b⁽¹⁾</span> &nbsp;&nbsp;
+          <span class="hl">a⁽¹⁾ = σ(z⁽¹⁾)</span>
+          <span class="an">two lines replace eight — one matrix multiply for the whole layer</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · SHAPES FOR THE 2-LAYER NET -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Computing the output · shapes</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Every shape, one example</h2>
+      <div class="tbl">
+        <table>
+          <thead>
+            <tr><th>Variable</th><th>Shape</th><th>Here (n<sub>x</sub>=3, 4 hidden)</th><th>What it is</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="k">W⁽¹⁾</td><td class="k">(n⁽¹⁾, n<sub>x</sub>)</td><td>(4, 3)</td><td>weights of the hidden layer — one row per hidden neuron</td></tr>
+            <tr><td class="k">b⁽¹⁾</td><td class="k">(n⁽¹⁾, 1)</td><td>(4, 1)</td><td>one bias per hidden neuron</td></tr>
+            <tr><td class="k">z⁽¹⁾</td><td class="k">(n⁽¹⁾, 1)</td><td>(4, 1)</td><td>result of W⁽¹⁾x + b⁽¹⁾</td></tr>
+            <tr><td class="k">a⁽¹⁾</td><td class="k">(n⁽¹⁾, 1)</td><td>(4, 1)</td><td>result of σ(z⁽¹⁾)</td></tr>
+            <tr><td class="k">W⁽²⁾</td><td class="k">(n⁽²⁾, n⁽¹⁾)</td><td>(1, 4)</td><td>weights of the output layer</td></tr>
+            <tr><td class="k">b⁽²⁾</td><td class="k">(n⁽²⁾, 1)</td><td>(1, 1)</td><td>the output bias — a single number</td></tr>
+            <tr><td class="k">z⁽²⁾</td><td class="k">(n⁽²⁾, 1)</td><td>(1, 1)</td><td>result of W⁽²⁾a⁽¹⁾ + b⁽²⁾</td></tr>
+            <tr class="mark"><td class="k">a⁽²⁾</td><td class="k">(n⁽²⁾, 1)</td><td>(1, 1)</td><td>the prediction ŷ</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · THE GENERAL SHAPE RULE -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Computing the output · the rule to memorise</div>
+      <h2>One rule covers<br>every layer</h2>
+      <div class="mathrow" style="align-items:flex-start">
+        <div class="math" style="text-align:left;font-size:clamp(16px,2.3vw,40px)">
+          <span class="hl">W⁽ˡ⁾ : ( n⁽ˡ⁾ , n⁽ˡ⁻¹⁾ )</span>
+          <span class="an">rows = neurons in this layer · columns = neurons in the previous layer</span>
+        </div>
+        <div class="math" style="text-align:left;font-size:clamp(16px,2.3vw,40px)">
+          <span class="hl2">b⁽ˡ⁾ : ( n⁽ˡ⁾ , 1 )</span>
+          <span class="an">one bias per neuron in this layer</span>
+        </div>
+      </div>
+      <p>Where <span style="font-family:var(--mono);color:#fff">n⁽ˡ⁾</span> is the number of
+        neurons in layer l, and <span style="font-family:var(--mono);color:#fff">n⁽ˡ⁻¹⁾</span>
+        is the number in the layer before it.</p>
+      <p style="color:var(--dim)">Read it <b>right to left</b>: W⁽ˡ⁾ takes something of size
+        n⁽ˡ⁻¹⁾ in, and gives something of size n⁽ˡ⁾ out. We reuse this rule in Chapter 4 for
+        networks of any depth.</p>
+    </div>
+  </section>
+
+  <!-- 13 · QUESTION — shape of W1 -->
+  <section class="slide k-q">
+    <div class="doc">
+      <div class="qhead">Question</div>
+      <h2 class="qtext">A hidden layer has 5 neurons and the<br>input has 2 features. What is W⁽¹⁾?</h2>
+      <ul class="opts">
+        <li><span class="lt">A</span><span><span class="mono">(2, 5)</span> — inputs first, then neurons.</span></li>
+        <li class="ans"><span class="lt">B</span><span><span class="mono">(5, 2)</span> — neurons first, then inputs.</span></li>
+        <li><span class="lt">C</span><span><span class="mono">(5, 1)</span> — one column per neuron.</span></li>
+        <li><span class="lt">D</span><span><span class="mono">(1, 5)</span> — a single row of weights.</span></li>
+      </ul>
+      <p class="qwhy"><b>B.</b> <span class="mono">W⁽ˡ⁾ : (n⁽ˡ⁾, n⁽ˡ⁻¹⁾)</span> = (5, 2). One
+        <b>row per neuron</b> in this layer, one <b>column per input</b> it reads. C is the shape
+        of b⁽¹⁾, not W⁽¹⁾.</p>
+      <p class="qhint">press A to reveal</p>
+    </div>
+  </section>
+
+  <!-- 14 · VECTORIZING DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 3</div>
+      <div class="big">Across m<br>Examples</div>
+    </div>
+  </section>
+
+  <!-- 15 · THE LOOP WE WANT TO KILL -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Vectorising · the naive version</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">The obvious way uses a loop</h2>
+      <div class="math" style="text-align:left;font-size:clamp(11px,1.35vw,22px);line-height:1.75;
+           border-left:3px solid var(--red);padding-left:1.4em">
+        <span style="color:var(--red)">for i = 1 to m:</span><br>
+        &nbsp;&nbsp;z⁽¹⁾⁽ⁱ⁾ = W⁽¹⁾x⁽ⁱ⁾ + b⁽¹⁾ &nbsp;&nbsp;<span style="color:var(--dim)"># (n⁽¹⁾, 1)</span><br>
+        &nbsp;&nbsp;a⁽¹⁾⁽ⁱ⁾ = σ(z⁽¹⁾⁽ⁱ⁾) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--dim)"># (n⁽¹⁾, 1)</span><br>
+        &nbsp;&nbsp;z⁽²⁾⁽ⁱ⁾ = W⁽²⁾a⁽¹⁾⁽ⁱ⁾ + b⁽²⁾ <span style="color:var(--dim)"># (1, 1)</span><br>
+        &nbsp;&nbsp;a⁽²⁾⁽ⁱ⁾ = σ(z⁽²⁾⁽ⁱ⁾) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--dim)"># (1, 1)</span>
+      </div>
+      <p>This is correct — and it is <b>slow</b>. One pass through the whole training set costs
+        m trips around a Python loop.</p>
+      <p style="color:var(--yellow);font-size:clamp(16px,1.9vw,31px);font-weight:600;max-width:46ch">
+        Stack the examples in columns and the loop disappears.</p>
+    </div>
+  </section>
+
+  <!-- 16 · THE VECTORISED FORM -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Vectorising · the version you implement</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Four lines, no loop</h2>
+      <div class="math" style="text-align:left;font-size:clamp(13px,1.7vw,29px);line-height:1.85;
+           border-left:3px solid var(--green);padding-left:1.4em">
+        <span class="hl">Z⁽¹⁾</span> = W⁽¹⁾<span class="hl3">A⁽⁰⁾</span> + b⁽¹⁾ &nbsp;<span style="color:var(--dim);font-size:.72em"># (n⁽¹⁾, m)</span><br>
+        <span class="hl">A⁽¹⁾</span> = g⁽¹⁾(Z⁽¹⁾) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--dim);font-size:.72em"># (n⁽¹⁾, m)</span><br>
+        <span class="hl2">Z⁽²⁾</span> = W⁽²⁾A⁽¹⁾ + b⁽²⁾ &nbsp;<span style="color:var(--dim);font-size:.72em"># (1, m)</span><br>
+        <span class="hl2">A⁽²⁾</span> = σ(Z⁽²⁾) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--dim);font-size:.72em"># (1, m)</span>
+      </div>
+      <p>We write <span style="font-family:var(--mono);color:var(--green)">A⁽⁰⁾</span> instead of
+        X, because the input <b>is</b> the activation of layer 0. Now every line has the same form
+        — which is exactly what makes Chapter 4's deep version a one-line loop.</p>
+      <p style="color:var(--yellow);font-size:clamp(15px,1.8vw,29px);font-weight:600;max-width:44ch">
+        Notice: <b>m is always the number of columns.</b></p>
+    </div>
+  </section>
+
+  <!-- 17 · WHAT THE CAPITALS MEAN -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Vectorising · reading the matrices</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Columns are examples,<br>rows are neurons</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 290" role="img" aria-label="The matrix A superscript 1 has one column per training example and one row per hidden neuron, giving shape n1 by m.">
+          <rect x="190" y="46" width="420" height="180" rx="6" fill="#2a1608" stroke="var(--orange)" stroke-width="3"/>
+          <g stroke="var(--orange)" stroke-width="1.5" opacity=".45">
+            <line x1="274" y1="46" x2="274" y2="226"/><line x1="358" y1="46" x2="358" y2="226"/>
+            <line x1="442" y1="46" x2="442" y2="226"/><line x1="526" y1="46" x2="526" y2="226"/>
+            <line x1="190" y1="91"  x2="610" y2="91"/><line x1="190" y1="136" x2="610" y2="136"/>
+            <line x1="190" y1="181" x2="610" y2="181"/>
+          </g>
+          <g fill="var(--white)" font-size="14" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity=".9">
+            <text x="232" y="74">a₁⁽¹⁾⁽¹⁾</text><text x="316" y="74">a₁⁽¹⁾⁽²⁾</text><text x="400" y="74">⋯</text><text x="568" y="74">a₁⁽¹⁾⁽ᵐ⁾</text>
+            <text x="232" y="119">a₂⁽¹⁾⁽¹⁾</text><text x="316" y="119">a₂⁽¹⁾⁽²⁾</text><text x="400" y="119">⋯</text><text x="568" y="119">a₂⁽¹⁾⁽ᵐ⁾</text>
+            <text x="232" y="164">a₃⁽¹⁾⁽¹⁾</text><text x="316" y="164">a₃⁽¹⁾⁽²⁾</text><text x="400" y="164">⋯</text><text x="568" y="164">a₃⁽¹⁾⁽ᵐ⁾</text>
+            <text x="232" y="209">a₄⁽¹⁾⁽¹⁾</text><text x="316" y="209">a₄⁽¹⁾⁽²⁾</text><text x="400" y="209">⋯</text><text x="568" y="209">a₄⁽¹⁾⁽ᵐ⁾</text>
+          </g>
+          <path d="M190 252 H610" stroke="var(--blue)" stroke-width="2.4"/>
+          <text x="400" y="278" fill="var(--blue)" font-size="18" text-anchor="middle" font-family="Poppins,sans-serif">m columns — one per training example</text>
+          <path d="M162 46 V226" stroke="var(--orange)" stroke-width="2.4"/>
+          <text x="140" y="136" fill="var(--orange)" font-size="18" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(-90 140 136)">n⁽¹⁾ rows</text>
+          <text x="740" y="122" fill="var(--white)"  font-size="26" text-anchor="middle" font-family="JetBrains Mono,monospace">A⁽¹⁾</text>
+          <text x="740" y="160" fill="var(--orange)" font-size="19" text-anchor="middle" font-family="JetBrains Mono,monospace">(n⁽¹⁾, m)</text>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:64ch">
+        Move <b>across</b> a row and you change training example. Move <b>down</b> a column and
+        you change hidden neuron. Same convention as X in Chapter 2.</p>
+    </div>
+  </section>
+
+  <!-- 18 · ACTIVATION FUNCTIONS DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 4</div>
+      <div class="big">Activation<br>Functions</div>
+    </div>
+  </section>
+
+  <!-- 19 · THE FOUR CURVES -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Activations · the menu</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Four choices for g(z)</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 250" role="img" aria-label="Four activation curves side by side: sigmoid rising from 0 to 1, tanh rising from minus 1 to 1, ReLU flat at zero then linear, and leaky ReLU with a small negative slope then linear.">
+          <g stroke="var(--node)" stroke-width="1.6">
+            <line x1="28"  y1="150" x2="208" y2="150"/><line x1="118" y1="56" x2="118" y2="200"/>
+            <line x1="250" y1="130" x2="430" y2="130"/><line x1="340" y1="56" x2="340" y2="200"/>
+            <line x1="472" y1="176" x2="652" y2="176"/><line x1="562" y1="56" x2="562" y2="200"/>
+            <line x1="694" y1="176" x2="874" y2="176"/><line x1="784" y1="56" x2="784" y2="200"/>
+          </g>
+          <path d="M32 194 C80 194 96 190 118 150 C140 110 156 106 204 106" fill="none" stroke="var(--blue)"   stroke-width="3.6"/>
+          <path d="M254 196 C302 196 318 190 340 130 C362 70 378 64 426 64"  fill="none" stroke="var(--purple)" stroke-width="3.6"/>
+          <path d="M476 176 H562 L648 68"                                     fill="none" stroke="var(--green)"  stroke-width="3.6"/>
+          <path d="M698 186 L784 176 L870 68"                                 fill="none" stroke="var(--orange)" stroke-width="3.6"/>
+          <g font-size="17" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">
+            <text x="118" y="230" fill="var(--blue)">sigmoid</text>
+            <text x="340" y="230" fill="var(--purple)">tanh</text>
+            <text x="562" y="230" fill="var(--green)">ReLU</text>
+            <text x="784" y="230" fill="var(--orange)">leaky ReLU</text>
+          </g>
+          <g font-size="14" text-anchor="middle" font-family="JetBrains Mono,monospace" fill="var(--dim)">
+            <text x="118" y="46">[0, 1]</text><text x="340" y="46">[−1, 1]</text>
+            <text x="562" y="46">max(0, z)</text><text x="784" y="46">max(0.01z, z)</text>
+          </g>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:62ch">
+        So far we have only used <b>sigmoid</b>. In the hidden layers, the other three are
+        almost always better.</p>
+    </div>
+  </section>
+
+  <!-- 20 · TANH BEATS SIGMOID -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Activations · sigmoid vs tanh</div>
+      <h2>tanh is a shifted sigmoid<br>— and it is better</h2>
+      <div class="cards c2">
+        <div class="card b">
+          <div class="n">SIGMOID</div>
+          <h3 class="comp">range [0, 1]</h3>
+          <p class="role">A = 1 / (1 + np.exp(−z))</p>
+          <p>Output is always positive, so the mean of a layer's output sits around <b>0.5</b> —
+            it does not centre the data for the next layer.</p>
+        </div>
+        <div class="card p">
+          <div class="n">TANH</div>
+          <h3 class="comp">range [−1, 1]</h3>
+          <p class="role">A = np.tanh(z)</p>
+          <p>Mean of the output is closer to <b>zero</b>, which <b>centres the data</b> for the
+            next layer. Usually works better in hidden units.</p>
+        </div>
+      </div>
+      <p style="color:var(--dim)">You can also write tanh by hand:
+        <span style="font-family:var(--mono);color:#fff">(np.exp(z) − np.exp(−z)) / (np.exp(z) + np.exp(−z))</span>.</p>
+    </div>
+  </section>
+
+  <!-- 21 · THE SATURATION PROBLEM -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Activations · the shared weakness</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Both go flat at the ends</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 230" role="img" aria-label="A sigmoid curve with its flat tails shaded red and labelled slope near zero, and its steep middle labelled slope is useful.">
+          <line x1="90" y1="150" x2="810" y2="150" stroke="var(--node)" stroke-width="2"/>
+          <line x1="450" y1="40" x2="450" y2="200" stroke="var(--node)" stroke-width="2"/>
+          <rect x="90"  y="34" width="210" height="176" fill="var(--red)" opacity=".10"/>
+          <rect x="600" y="34" width="210" height="176" fill="var(--red)" opacity=".10"/>
+          <path d="M96 192 C250 192 320 186 450 120 C580 54 650 48 804 48" fill="none" stroke="var(--blue)" stroke-width="4"/>
+          <text x="195" y="70" fill="var(--red)" font-size="16" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">slope ≈ 0</text>
+          <text x="705" y="70" fill="var(--red)" font-size="16" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">slope ≈ 0</text>
+          <text x="450" y="222" fill="var(--green)" font-size="16" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">slope is useful here</text>
+          <text x="195" y="92" fill="var(--dim)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">learning stalls</text>
+          <text x="705" y="92" fill="var(--dim)" font-size="14" text-anchor="middle" font-family="Poppins,sans-serif">learning stalls</text>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:64ch">
+        If z is very large or very negative, the slope is near zero. Gradient descent multiplies
+        by that slope — so the updates become <b>tiny</b> and learning slows to a crawl.</p>
+    </div>
+  </section>
+
+  <!-- 22 · RELU -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Activations · the fix</div>
+      <h2>ReLU keeps the slope</h2>
+      <div class="mathrow" style="align-items:flex-start">
+        <div class="math" style="text-align:left;font-size:clamp(17px,2.4vw,42px)">
+          <span class="hl3">ReLU = max(0, z)</span>
+          <span class="an">if z is negative the slope is 0 — if z is positive the slope stays 1</span>
+        </div>
+      </div>
+      <div class="cards c2" style="margin-top:.6vh">
+        <div class="card g">
+          <div class="n">RELU</div>
+          <h3 class="comp">max(0, z)</h3>
+          <p>The default choice for hidden layers. No saturation on the positive side, so
+            learning stays fast.</p>
+        </div>
+        <div class="card o">
+          <div class="n">LEAKY RELU</div>
+          <h3 class="comp">max(0.01z, z)</h3>
+          <p>Gives a <b>small</b> slope for negative z instead of zero. Works at least as well —
+            but most people still use plain ReLU.</p>
+          <p class="eg">the 0.01 can itself be a parameter of your algorithm</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 23 · THE CHOOSING RULE -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Activations · the practical rule</div>
+      <h2>What to actually use</h2>
+      <ul class="rules">
+        <li><span>→</span><span><b>Hidden layers:</b> use <b>ReLU</b>. If you want to experiment,
+          try tanh or leaky ReLU.</span></li>
+        <li><span>→</span><span><b>Output layer, binary classification:</b> use <b>sigmoid</b> —
+          you need an answer between 0 and 1.</span></li>
+        <li><span>→</span><span><b>Output layer, regression:</b> a <b>linear</b> activation is fine.
+          If the output cannot be negative, use ReLU instead.</span></li>
+      </ul>
+      <p style="color:var(--yellow);font-size:clamp(15px,1.85vw,30px);font-weight:600;max-width:52ch">
+        There are no guidelines beyond this. Try them on your own problem and measure.</p>
+    </div>
+  </section>
+
+  <!-- 24 · THE CHOICES YOU OWN -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Activations · and everything else you pick</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Decisions the data<br>will not make for you</h2>
+      <div class="cards c2">
+        <div class="card r">
+          <div class="n">MOST IMPORTANT</div>
+          <h3 class="comp">Learning rate</h3>
+          <p>The single choice that most often decides whether training works at all.</p>
+        </div>
+        <div class="card b">
+          <div class="n">STRUCTURE</div>
+          <h3 class="comp">Layers &amp; neurons</h3>
+          <p>How many hidden layers, and how many neurons in each one.</p>
+        </div>
+      </div>
+      <p>Plus the <b>activation function</b> for each layer, the number of iterations, and more.
+        Chapter 4 gives these a name: <b>hyperparameters</b>.</p>
+    </div>
+  </section>
+
+  <!-- 25 · WHY NON-LINEAR -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Activations · why they are not optional</div>
+      <h2>Drop g, and the whole<br>network collapses</h2>
+      <p class="lede">Suppose you remove the activation — that is, use a <b>linear</b> activation
+        g(z) = z. Then the layers compose like this:</p>
+      <div class="math" style="text-align:left;font-size:clamp(12px,1.55vw,26px);line-height:1.8;
+           border-left:3px solid var(--red);padding-left:1.4em">
+        a⁽¹⁾ = W⁽¹⁾x + b⁽¹⁾<br>
+        a⁽²⁾ = W⁽²⁾a⁽¹⁾ + b⁽²⁾<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;= W⁽²⁾(W⁽¹⁾x + b⁽¹⁾) + b⁽²⁾<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;= <span style="color:var(--red)">(W⁽²⁾W⁽¹⁾)</span>x +
+        <span style="color:var(--red)">(W⁽²⁾b⁽¹⁾ + b⁽²⁾)</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;= W′x + b′ &nbsp;&nbsp;<span style="color:var(--dim)"># just one linear function</span>
+      </div>
+      <p style="color:var(--yellow);font-size:clamp(16px,1.9vw,31px);font-weight:600;max-width:52ch">
+        However many hidden layers you add, the output is still linear — no better than
+        logistic regression.</p>
+    </div>
+  </section>
+
+  <!-- 26 · WHERE LINEAR IS OK -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Activations · the one exception</div>
+      <h2>One place linear<br>is allowed</h2>
+      <p class="lede">The <b>output layer</b> of a regression problem — where y is a real number,
+        not a 0/1 label.</p>
+      <p>Predicting a house price, for example: the answer can be any positive number, so squashing
+        it into [0, 1] would be wrong.</p>
+      <p style="color:var(--dim)">Even then, if the output <b>cannot be negative</b> — a price, a
+        length, a count — <b>ReLU</b> in the output layer is a better fit than a plain linear unit.</p>
+      <p style="color:var(--yellow);font-size:clamp(15px,1.85vw,30px);font-weight:600;max-width:46ch">
+        Hidden layers: never linear.</p>
+    </div>
+  </section>
+
+  <!-- 27 · QUESTION — why non-linear -->
+  <section class="slide k-q">
+    <div class="doc">
+      <div class="qhead">Question</div>
+      <h2 class="qtext" style="font-size:clamp(21px,2.9vw,46px)">Why must hidden layers use a<br>non-linear activation function?</h2>
+      <ul class="opts">
+        <li><span class="lt">A</span><span>Because non-linear functions are faster to compute.</span></li>
+        <li class="ans"><span class="lt">B</span><span>Because composing linear functions gives another linear function, so extra
+          layers would add nothing.</span></li>
+        <li><span class="lt">C</span><span>Because gradient descent only works on non-linear functions.</span></li>
+        <li><span class="lt">D</span><span>Because the output must lie between 0 and 1.</span></li>
+      </ul>
+      <p class="qwhy"><b>B.</b> A stack of linear layers collapses into a single
+        <span class="mono">W′x + b′</span>. D describes the <b>output</b> layer of a binary
+        classifier — a different concern, and it does not explain the hidden layers.</p>
+      <p class="qhint">press A to reveal</p>
+    </div>
+  </section>
+
+  <!-- 28 · DERIVATIVES TABLE -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Activations · derivatives for backprop</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Every g, and its g′</h2>
+      <div class="tbl">
+        <table>
+          <thead>
+            <tr><th>Activation</th><th>g(z)</th><th>g′(z)</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="k">Sigmoid</td><td class="k">1 / (1 + e<sup>−z</sup>)</td>
+                <td class="k">g(z)(1 − g(z))</td><td>reuse the value you already computed in the forward pass</td></tr>
+            <tr><td class="k">tanh</td><td class="k">(e<sup>z</sup> − e<sup>−z</sup>) / (e<sup>z</sup> + e<sup>−z</sup>)</td>
+                <td class="k">1 − g(z)²</td><td>also written 1 − tanh(z)²</td></tr>
+            <tr><td class="k">ReLU</td><td class="k">max(0, z)</td>
+                <td class="k">0 if z &lt; 0 · 1 if z ≥ 0</td><td>undefined exactly at z = 0; in code we just pick 1</td></tr>
+            <tr><td class="k">Leaky ReLU</td><td class="k">max(0.01z, z)</td>
+                <td class="k">0.01 if z &lt; 0 · 1 if z ≥ 0</td><td>same shape, with a floor instead of zero</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="color:var(--dim)">The sigmoid and tanh derivatives are written in terms of
+        <b>g(z) itself</b> — so backprop can reuse the activation it already has, instead of
+        recomputing the exponentials.</p>
+    </div>
+  </section>
+
+  <!-- 29 · GRADIENT DESCENT DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 5</div>
+      <div class="big">Gradient Descent<br>for Networks</div>
+    </div>
+  </section>
+
+  <!-- 30 · THE PARAMETERS AND THE COST -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Gradient descent · what we are optimising</div>
+      <h2>Four things to learn</h2>
+      <div class="math" style="text-align:left;font-size:clamp(13px,1.6vw,27px);line-height:1.8">
+        n⁽⁰⁾ = n<sub>x</sub> &nbsp;&nbsp; n⁽¹⁾ = hidden neurons &nbsp;&nbsp; n⁽²⁾ = 1<br>
+        <span class="hl">W⁽¹⁾</span> (n⁽¹⁾, n⁽⁰⁾) &nbsp;
+        <span class="hl">b⁽¹⁾</span> (n⁽¹⁾, 1) &nbsp;
+        <span class="hl2">W⁽²⁾</span> (n⁽²⁾, n⁽¹⁾) &nbsp;
+        <span class="hl2">b⁽²⁾</span> (n⁽²⁾, 1)
+      </div>
+      <div class="mathrow" style="align-items:flex-start">
+        <div class="math" style="text-align:left;font-size:clamp(15px,2vw,34px)">
+          J(W⁽¹⁾, b⁽¹⁾, W⁽²⁾, b⁽²⁾) = (1/m) Σ ℒ(A⁽²⁾, Y)
+          <span class="an">same cost function as Chapter 2 — now with four parameters instead of two</span>
+        </div>
+      </div>
+      <p>Gradient descent does not change. It still steps downhill on J — there are simply
+        <b>four</b> things to update instead of two.</p>
+    </div>
+  </section>
+
+  <!-- 31 · THE LOOP -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Gradient descent · the training loop</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Repeat until it stops improving</h2>
+      <div class="math" style="text-align:left;font-size:clamp(12px,1.5vw,25px);line-height:1.8;
+           border-left:3px solid var(--blue);padding-left:1.4em">
+        <span class="hl">Repeat:</span><br>
+        &nbsp;&nbsp;compute the predictions ŷ⁽ⁱ⁾, i = 1…m &nbsp;<span style="color:var(--dim)"># forward</span><br>
+        &nbsp;&nbsp;get the derivatives dW⁽¹⁾, db⁽¹⁾, dW⁽²⁾, db⁽²⁾ &nbsp;<span style="color:var(--dim)"># backward</span><br>
+        &nbsp;&nbsp;W⁽¹⁾ = W⁽¹⁾ − α · dW⁽¹⁾<br>
+        &nbsp;&nbsp;b⁽¹⁾ = b⁽¹⁾ − α · db⁽¹⁾<br>
+        &nbsp;&nbsp;W⁽²⁾ = W⁽²⁾ − α · dW⁽²⁾<br>
+        &nbsp;&nbsp;b⁽²⁾ = b⁽²⁾ − α · db⁽²⁾
+      </div>
+      <p>Exactly the Chapter 2 update rule — <span style="font-family:var(--mono);color:#fff">param
+        = param − α · dparam</span> — applied four times.</p>
+    </div>
+  </section>
+
+  <!-- 32 · FORWARD PASS -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Gradient descent · forward</div>
+      <h2>Forward propagation</h2>
+      <div class="math" style="text-align:left;font-size:clamp(14px,1.85vw,32px);line-height:1.9;
+           border-left:3px solid var(--blue);padding-left:1.4em">
+        Z⁽¹⁾ = W⁽¹⁾A⁽⁰⁾ + b⁽¹⁾ &nbsp;<span style="color:var(--dim);font-size:.7em"># A⁽⁰⁾ is X</span><br>
+        A⁽¹⁾ = g⁽¹⁾(Z⁽¹⁾)<br>
+        Z⁽²⁾ = W⁽²⁾A⁽¹⁾ + b⁽²⁾<br>
+        A⁽²⁾ = σ(Z⁽²⁾)
+      </div>
+      <p>The last layer uses <b>sigmoid</b> because the output is a probability between 0 and 1.
+        The hidden layer uses whatever g⁽¹⁾ you chose — usually <b>ReLU</b>.</p>
+    </div>
+  </section>
+
+  <!-- 33 · BACKWARD PASS — THE SIX EQUATIONS -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Gradient descent · backward</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">The six equations</h2>
+      <div class="math" style="text-align:left;font-size:clamp(12px,1.55vw,26px);line-height:1.9;
+           border-left:3px solid var(--orange);padding-left:1.4em">
+        <span class="hl2">dZ⁽²⁾</span> = A⁽²⁾ − Y<br>
+        <span class="hl2">dW⁽²⁾</span> = (dZ⁽²⁾ A⁽¹⁾ᵀ) / m<br>
+        <span class="hl2">db⁽²⁾</span> = sum(dZ⁽²⁾) / m<br>
+        <span class="hl">dZ⁽¹⁾</span> = (W⁽²⁾ᵀ dZ⁽²⁾) <span style="color:var(--yellow)">∗</span> g′⁽¹⁾(Z⁽¹⁾)<br>
+        <span class="hl">dW⁽¹⁾</span> = (dZ⁽¹⁾ A⁽⁰⁾ᵀ) / m &nbsp;<span style="color:var(--dim);font-size:.72em"># A⁽⁰⁾ = X</span><br>
+        <span class="hl">db⁽¹⁾</span> = sum(dZ⁽¹⁾) / m
+      </div>
+      <ul class="rules" style="gap:.8vh">
+        <li><span>∗</span><span>is an <b>element-wise</b> product, not a matrix multiply.</span></li>
+        <li><span>ᵀ</span><span>the transposes are there to keep the <b>dimensions</b> right.</span></li>
+        <li><span>/m</span><span>because J is an <b>average</b> over the m examples.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 34 · WHERE dZ2 = A2 - Y COMES FROM -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Gradient descent · how the equations arise</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">Backward is the chain rule</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 250" role="img" aria-label="A forward chain from W1 and b1 through Z1, A1, Z2, A2 to the loss, with a backward chain of derivatives running right to left underneath it.">
+          <g>
+            <rect x="46"  y="40" width="118" height="46" rx="7" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+            <text x="105" y="69" fill="#fff" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">W⁽¹⁾, b⁽¹⁾</text>
+            <rect x="204" y="40" width="96"  height="46" rx="7" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+            <text x="252" y="69" fill="#fff" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">Z⁽¹⁾</text>
+            <rect x="340" y="40" width="96"  height="46" rx="7" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+            <text x="388" y="69" fill="#fff" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">A⁽¹⁾</text>
+            <rect x="476" y="40" width="96"  height="46" rx="7" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+            <text x="524" y="69" fill="#fff" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">Z⁽²⁾</text>
+            <rect x="612" y="40" width="96"  height="46" rx="7" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+            <text x="660" y="69" fill="#fff" font-size="17" text-anchor="middle" font-family="JetBrains Mono,monospace">A⁽²⁾</text>
+            <rect x="748" y="40" width="106" height="46" rx="7" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+            <text x="801" y="69" fill="#fff" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">ℒ(A⁽²⁾,Y)</text>
+          </g>
+          <g stroke="var(--blue)" stroke-width="2.4" fill="none">
+            <path d="M170 63 h28" marker-end="url(#fw)"/><path d="M306 63 h28" marker-end="url(#fw)"/>
+            <path d="M442 63 h28" marker-end="url(#fw)"/><path d="M578 63 h28" marker-end="url(#fw)"/>
+            <path d="M714 63 h28" marker-end="url(#fw)"/>
+          </g>
+          <text x="450" y="24" fill="var(--blue)" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">FORWARD</text>
+
+          <g stroke="var(--orange)" stroke-width="2.4" fill="none">
+            <path d="M742 150 h-28" marker-end="url(#bw)"/><path d="M606 150 h-28" marker-end="url(#bw)"/>
+            <path d="M470 150 h-28" marker-end="url(#bw)"/><path d="M334 150 h-28" marker-end="url(#bw)"/>
+            <path d="M198 150 h-28" marker-end="url(#bw)"/>
+          </g>
+          <g fill="var(--orange)" font-size="16" text-anchor="middle" font-family="JetBrains Mono,monospace">
+            <text x="801" y="156">dA⁽²⁾</text><text x="660" y="156">dZ⁽²⁾</text>
+            <text x="524" y="156">dA⁽¹⁾</text><text x="388" y="156">dZ⁽¹⁾</text>
+            <text x="252" y="156">dW⁽¹⁾</text><text x="105" y="156">db⁽¹⁾</text>
+          </g>
+          <text x="450" y="188" fill="var(--orange)" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">BACKWARD</text>
+          <text x="450" y="222" fill="var(--dim)" font-size="16" text-anchor="middle" font-family="Poppins,sans-serif">each step multiplies by one more local derivative</text>
+          <defs>
+            <marker id="fw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--blue)"/></marker>
+            <marker id="bw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--orange)"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:64ch">
+        <span style="font-family:var(--mono);color:#fff">dZ⁽²⁾ = A⁽²⁾ − Y</span> is the derivative
+        of the logistic cost times the derivative of the sigmoid — the two collapse into that one
+        clean expression.</p>
+    </div>
+  </section>
+
+  <!-- 35 · RANDOM INIT DIVIDER -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 6</div>
+      <div class="big">Random<br>Initialization</div>
+    </div>
+  </section>
+
+  <!-- 36 · THE SYMMETRY PROBLEM -->
+  <section class="slide">
+    <div class="doc" style="justify-content:center">
+      <div class="kicker">Initialization · why zeros fail</div>
+      <h2 style="font-size:clamp(26px,3.6vw,56px)">All-zero weights make<br>identical neurons</h2>
+      <div class="art">
+        <svg viewBox="0 0 900 250" role="img" aria-label="Left: with zero initialisation both hidden units compute the same function and stay identical. Right: with random initialisation the two hidden units compute different functions.">
+          <text x="220" y="30" fill="var(--red)" font-size="16" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">W = 0</text>
+          <g stroke="var(--red)" stroke-width="1.6" opacity=".7">
+            <line x1="112" y1="100" x2="216" y2="86"/><line x1="112" y1="100" x2="216" y2="166"/>
+            <line x1="112" y1="160" x2="216" y2="86"/><line x1="112" y1="160" x2="216" y2="166"/>
+          </g>
+          <circle cx="100" cy="100" r="18" fill="#0a0a0a" stroke="var(--node)" stroke-width="2"/>
+          <circle cx="100" cy="160" r="18" fill="#0a0a0a" stroke="var(--node)" stroke-width="2"/>
+          <circle cx="232" cy="86"  r="22" fill="#3a0f12" stroke="var(--red)" stroke-width="2.5"/>
+          <circle cx="232" cy="166" r="22" fill="#3a0f12" stroke="var(--red)" stroke-width="2.5"/>
+          <text x="232" y="92"  fill="#fff" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">a</text>
+          <text x="232" y="172" fill="#fff" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">a</text>
+          <text x="232" y="214" fill="var(--red)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">identical — forever</text>
+          <line x1="420" y1="40" x2="420" y2="210" stroke="#222" stroke-width="2"/>
+          <text x="660" y="30" fill="var(--green)" font-size="16" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif">W = randn × 0.01</text>
+          <g stroke="var(--green)" stroke-width="1.6" opacity=".7">
+            <line x1="552" y1="100" x2="656" y2="86"/><line x1="552" y1="100" x2="656" y2="166"/>
+            <line x1="552" y1="160" x2="656" y2="86"/><line x1="552" y1="160" x2="656" y2="166"/>
+          </g>
+          <circle cx="540" cy="100" r="18" fill="#0a0a0a" stroke="var(--node)" stroke-width="2"/>
+          <circle cx="540" cy="160" r="18" fill="#0a0a0a" stroke="var(--node)" stroke-width="2"/>
+          <circle cx="672" cy="86"  r="22" fill="#0f2a14" stroke="var(--green)" stroke-width="2.5"/>
+          <circle cx="672" cy="166" r="22" fill="#0a1a26" stroke="var(--blue)"  stroke-width="2.5"/>
+          <text x="672" y="92"  fill="#fff" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">a₁</text>
+          <text x="672" y="172" fill="#fff" font-size="15" text-anchor="middle" font-family="JetBrains Mono,monospace">a₂</text>
+          <text x="672" y="214" fill="var(--green)" font-size="15" text-anchor="middle" font-family="Poppins,sans-serif">different features</text>
+        </svg>
+      </div>
+      <p style="text-align:center;margin:0 auto;max-width:64ch">
+        With W = 0 every hidden unit computes <b>the same function</b>, and every gradient descent
+        step updates them <b>the same way</b>. Four neurons, but only one distinct feature —
+        forever.</p>
+    </div>
+  </section>
+
+  <!-- 37 · THE FIX -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Initialization · what to write</div>
+      <h2>Small random numbers</h2>
+      <div class="math" style="text-align:left;font-size:clamp(12px,1.55vw,26px);line-height:1.9;
+           border-left:3px solid var(--green);padding-left:1.4em">
+        W1 = np.random.randn((2,2)) <span class="hl3">* 0.01</span> &nbsp;<span style="color:var(--dim);font-size:.75em"># small enough</span><br>
+        b1 = np.zeros((2,1)) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--dim);font-size:.75em"># zero is fine here</span>
+      </div>
+      <div class="cards c2" style="margin-top:.6vh">
+        <div class="card g">
+          <div class="n">W — RANDOM</div>
+          <h3 class="comp">breaks symmetry</h3>
+          <p>Different starting weights means the hidden units learn <b>different</b> features.</p>
+        </div>
+        <div class="card b">
+          <div class="n">b — ZERO</div>
+          <h3 class="comp">safe at zero</h3>
+          <p>The bias does not cause the symmetry problem — as long as W is random, the units
+            already differ.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 38 · WHY 0.01 -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Initialization · why the numbers must be small</div>
+      <h2>Big weights land you<br>in the flat zone</h2>
+      <p class="lede">If W starts large, then Z = Wx + b is large on the very first step — and
+        tanh or sigmoid is already <b>saturated</b> before training begins.</p>
+      <p>Saturated means slope near zero, which means <b>slow learning</b> — the exact problem
+        from the activation slides, now self-inflicted at initialisation.</p>
+      <p style="color:var(--dim)">If your network has <b>no</b> sigmoid or tanh anywhere, this
+        matters less. But the habit is worth keeping.</p>
+      <p style="color:var(--yellow);font-size:clamp(15px,1.85vw,30px);font-weight:600;max-width:52ch">
+        0.01 is fine for a one-hidden-layer network. For deep networks the constant changes —
+        but it stays small.</p>
+    </div>
+  </section>
+
+  <!-- 39 · QUESTION — zero init -->
+  <section class="slide k-q">
+    <div class="doc">
+      <div class="qhead">Question</div>
+      <h2 class="qtext" style="font-size:clamp(21px,2.9vw,46px)">You initialise W⁽¹⁾ and b⁽¹⁾ both to zero.<br>What happens?</h2>
+      <ul class="opts">
+        <li><span class="lt">A</span><span>Training works normally — the weights move apart on the first iteration.</span></li>
+        <li class="ans"><span class="lt">B</span><span>Every hidden unit computes the same function, and they stay identical on every
+          iteration.</span></li>
+        <li><span class="lt">C</span><span>The cost function becomes non-convex.</span></li>
+        <li><span class="lt">D</span><span>Nothing — only <span class="mono">b</span> needs to be random.</span></li>
+      </ul>
+      <p class="qwhy"><b>B.</b> This is the <b>symmetry breaking</b> problem. It is
+        <span class="mono">W</span> that must be random — D has it exactly backwards, since
+        <span class="mono">b = 0</span> is perfectly safe.</p>
+      <p class="qhint">press A to reveal</p>
+    </div>
+  </section>
+
+  <!-- 40 · RECAP -->
+  <section class="slide">
+    <div class="doc">
+      <div class="kicker">Chapter 3 · recap</div>
+      <h2>What to carry forward</h2>
+      <ul class="rules">
+        <li><span>01</span><span>A neural network is a <b>stack of logistic regression units</b>.</span></li>
+        <li><span>02</span><span>The input layer is <b>not counted</b> — one hidden layer plus an output layer is a
+          <b>2-layer</b> network.</span></li>
+        <li><span>03</span><span><span style="font-family:var(--mono)">W⁽ˡ⁾</span> is
+          <b>(n⁽ˡ⁾, n⁽ˡ⁻¹⁾)</b> and <span style="font-family:var(--mono)">b⁽ˡ⁾</span> is
+          <b>(n⁽ˡ⁾, 1)</b>.</span></li>
+        <li><span>04</span><span>Stack examples in <b>columns</b>: Z⁽ˡ⁾ and A⁽ˡ⁾ are
+          <b>(n⁽ˡ⁾, m)</b> — m is always the column count.</span></li>
+        <li><span>05</span><span>Use <b>ReLU</b> in hidden layers, <b>sigmoid</b> in a binary output layer.</span></li>
+        <li><span>06</span><span>Hidden layers <b>must</b> be non-linear, or the network collapses into one
+          linear function.</span></li>
+        <li><span>07</span><span>Backprop is <b>six equations</b>, with one element-wise product at
+          <span style="font-family:var(--mono)">dZ⁽¹⁾</span>.</span></li>
+        <li><span>08</span><span>Initialise <b>W randomly and small</b>; b may be zero.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 41 · NEXT -->
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Next</div>
+      <div class="mid">Deep Neural Networks</div>
+      <div class="sub" style="margin-top:1em">Same equations — now for L layers.</div>
+    </div>
+  </section>
+
+  <!-- 42 · CLOSING -->
+  <section class="slide">
+    <div class="center">
+      <div class="mid">Questions?</div>
+      <div class="sub" style="margin-top:1.4em">
+        Dr. Naila Marir · CoE 108<br>
+        <span style="font-family:var(--mono);font-size:.85em">namarir@effatuniversity.edu.sa</span>
+      </div>
+      <div class="sub" style="font-size:clamp(11px,1.05vw,17px);margin-top:2em;color:#4a4a4a">
+        Adapted from Andrew Ng · Deep Learning Specialization · deeplearning.ai
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="bar-progress" id="progress"></div>
+<div class="hint" id="hint">← →</div>
+<div class="credit">CS 4085 · Ch 3</div>
+
+<script>
+(function(){
+  var slides   = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var hint     = document.getElementById('hint');
+  var i = 0;
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); if (k !== i) s.classList.remove('show'); });
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+    if (location.hash !== '#' + (i + 1)) history.replaceState(null, '', '#' + (i + 1));
+  }
+  function next(){ show(i + 1); }
+  function prev(){ show(i - 1); }
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    switch(e.key){
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); show(0); break;
+      case 'End':  e.preventDefault(); show(slides.length - 1); break;
+      case 'a': case 'A': {
+        var cur = slides[i];
+        if (cur && cur.classList.contains('k-q')) { e.preventDefault(); cur.classList.toggle('show'); }
+        break;
+      }
+      case 'f': case 'F':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+        break;
+    }
+    hint.classList.add('hide');
+  });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a')) return;
+    (e.clientX > window.innerWidth * 0.5) ? next() : prev();
+    hint.classList.add('hide');
+  });
+
+  var startX = null;
+  document.addEventListener('touchstart', function(e){ startX = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (startX === null) return;
+    var dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 48) { (dx < 0) ? next() : prev(); }
+    startX = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+  setTimeout(function(){ hint.classList.add('hide'); }, 5000);
+})();
+</script>

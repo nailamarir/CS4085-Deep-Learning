@@ -35,6 +35,27 @@ Covers: binary classification · how an image becomes a feature vector · notati
 (stacking examples in columns) · logistic regression · the sigmoid · the logistic loss
 and why not squared error · cost vs loss · gradient descent · forward and backward passes.
 
+### Lecture 3 — Shallow Neural Networks
+| File | What it is |
+|---|---|
+| `CS4085_Chapter03_Shallow_Neural_Networks.html` | Slide deck (42 slides) |
+
+Covers: a network as a stack of logistic regression units · network representation and the
+layer-counting rule · computing a layer's output · the shape rule `W[l] : (n[l], n[l-1])` ·
+vectorising across m examples · activation functions (sigmoid, tanh, ReLU, leaky ReLU) ·
+why hidden layers must be non-linear · derivatives of each activation · gradient descent
+and the six backpropagation equations · random initialization and symmetry breaking.
+
+### Lecture 4 — Deep Neural Networks
+| File | What it is |
+|---|---|
+| `CS4085_Chapter04_Deep_Neural_Networks.html` | Slide deck (35 slides) |
+
+Covers: shallow vs deep · L-layer notation · forward propagation in a deep network and the
+one for-loop worth keeping · getting matrix dimensions right · why deep representations work
+(feature hierarchies and the circuit-theory argument) · the forward and backward building
+blocks joined by a cache · parameters vs hyperparameters · what this has to do with the brain.
+
 ---
 
 ## Using the slide decks
@@ -56,7 +77,7 @@ Decks print to PDF at 1600×900 (⌘P / Ctrl-P).
 ## Attribution
 
 Lecture content is adapted from **Andrew Ng's Deep Learning Specialization**
-([deeplearning.ai](https://www.deeplearning.ai/)), Course 1 Modules 1–2, and uses the
+([deeplearning.ai](https://www.deeplearning.ai/)), Course 1 Modules 1–4, and uses the
 definition of machine learning from Tom Mitchell, *Machine Learning* (McGraw-Hill, 1997).
 
 The source PDFs from those courses are **not redistributed here** — only the teaching
