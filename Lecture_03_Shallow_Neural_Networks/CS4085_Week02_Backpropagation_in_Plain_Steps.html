@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Backprop in Plain Steps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0}
+
+:root{
+  --bg:#F4F6F8; --surface:#FFFFFF; --ink:#18202C; --muted:#5A6576; --line:#D8DEE6;
+  --fwd:#17798A; --fwd-soft:#DCEFF2; --bwd:#C9701F; --bwd-soft:#F8E8D6;
+  --code-bg:#EEF1F5;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#11151C; --surface:#19202A; --ink:#E7EBF1; --muted:#9AA5B5; --line:#2C3542;
+    --fwd:#4FC3D4; --fwd-soft:#16343A; --bwd:#F0A054; --bwd-soft:#3A2A19; --code-bg:#1E2631;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#11151C; --surface:#19202A; --ink:#E7EBF1; --muted:#9AA5B5; --line:#2C3542;
+  --fwd:#4FC3D4; --fwd-soft:#16343A; --bwd:#F0A054; --bwd-soft:#3A2A19; --code-bg:#1E2631;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.55;overflow:hidden}
+.deck{height:100%;display:flex;flex-direction:column}
+.stage{flex:1;position:relative;overflow:hidden}
+.slide{position:absolute;inset:0;overflow-y:auto;padding-block:clamp(20px,5vh,56px);padding-inline:clamp(16px,6vw,96px);display:flex;flex-direction:column;justify-content:center;gap:20px;opacity:0;visibility:hidden;transform:translateX(24px);transition:opacity .35s ease,transform .35s ease,visibility .35s}
+.slide.on{opacity:1;visibility:visible;transform:none}
+.slide.prev{transform:translateX(-24px)}
+.inner{max-width:1080px;width:100%;margin-inline:auto;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.eyebrow b{font-weight:600}
+.eyebrow.f b{color:var(--fwd)} .eyebrow.b b{color:var(--bwd)}
+h1,h2{font-family:var(--display);font-weight:800;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(40px,7vw,88px);letter-spacing:-.02em}
+h2{font-size:clamp(28px,4.2vw,48px);letter-spacing:-.01em}
+h3{font-family:var(--display);font-weight:700;font-size:22px;margin:0}
+p{margin:0;max-width:65ch}
+.lead{font-size:clamp(19px,2vw,23px);color:var(--muted)}
+.fw{color:var(--fwd);font-weight:700} .bw{color:var(--bwd);font-weight:700}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px;align-items:center}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:14px;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:40px 1fr;gap:14px;align-items:start}
+.steps li::before{content:counter(s);font-family:var(--display);font-weight:800;font-size:20px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--bg)}
+.steps li.f::before{background:var(--fwd)} .steps li.b::before{background:var(--bwd)}
+.eq{font-family:var(--mono);font-size:clamp(15px,1.6vw,19px);background:var(--code-bg);border-radius:10px;padding:16px 20px;display:grid;gap:10px;overflow-x:auto}
+.eq div{display:grid;grid-template-columns:28px auto 1fr;gap:12px;align-items:baseline;white-space:nowrap}
+.eq .n{color:var(--muted);font-size:13px}
+.eq .note{color:var(--muted);font-family:var(--body);font-size:15px;white-space:normal}
+.eq.f{border-left:4px solid var(--fwd)} .eq.b{border-left:4px solid var(--bwd)}
+sup,sub{font-size:.7em}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td code,p code,li code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:1px 6px;border-radius:5px}
+.callout{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 22px;display:grid;gap:6px}
+.callout.b{background:var(--bwd-soft);border-color:transparent}
+.callout.f{background:var(--fwd-soft);border-color:transparent}
+pre{margin:0;font-family:var(--mono);font-size:clamp(13px,1.35vw,16px);line-height:1.6;background:var(--code-bg);border-radius:10px;padding:18px 20px;overflow-x:auto}
+pre .c{color:var(--muted)} pre .f{color:var(--fwd)} pre .b{color:var(--bwd)}
+.net{width:100%;max-width:520px;height:auto;display:block;margin-inline:auto}
+.net text{font-family:var(--mono);font-size:13px;fill:var(--muted)}
+.net .lbl{font-family:var(--display);font-weight:700;font-size:15px;fill:var(--ink)}
+.net circle{fill:var(--surface);stroke:var(--ink);stroke-width:2}
+.net line{stroke:var(--line);stroke-width:1.5}
+.net.fwd line{stroke:var(--fwd);stroke-dasharray:6 8;animation:flow 1.2s linear infinite}
+.net.bwd line{stroke:var(--bwd);stroke-dasharray:6 8;animation:flow 1.2s linear infinite reverse}
+.net.fwd circle{stroke:var(--fwd)} .net.bwd circle{stroke:var(--bwd)}
+@keyframes flow{to{stroke-dashoffset:-28}}
+.loop{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.pill{font-family:var(--display);font-weight:700;padding:10px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
+.pill.f{background:var(--fwd);color:var(--bg);border-color:transparent}
+.pill.b{background:var(--bwd);color:var(--bg);border-color:transparent}
+.arrow{color:var(--muted);font-size:20px}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.num{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:4px}
+.num .k{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.num .v{font-family:var(--mono);font-size:20px;font-variant-numeric:tabular-nums}
+.num.f{border-top:4px solid var(--fwd)} .num.b{border-top:4px solid var(--bwd)}
+.bar{display:flex;align-items:center;gap:14px;padding-block:10px;padding-inline:clamp(16px,4vw,40px);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface)}
+.bar button{font:inherit;font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer}
+.bar button:hover{background:var(--code-bg)}
+.bar button:focus-visible{outline:3px solid var(--fwd);outline-offset:2px}
+.bar button:disabled{opacity:.35;cursor:default}
+.prog{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--fwd),var(--bwd));transition:width .35s}
+.count{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:52px;text-align:right}
+.hint{font-size:14px;color:var(--muted)}
+@media (max-width:640px){body{font-size:16px}.hint{display:none}.slide{justify-content:flex-start}}
+@media (prefers-reduced-motion:reduce){.slide{transition:none;transform:none}.net line{animation:none!important}}
+
+.quote{font-family:var(--display);font-weight:700;font-size:clamp(22px,2.8vw,32px);line-height:1.25;text-wrap:balance;max-width:34ch;padding-left:20px;border-left:5px solid var(--ink)}
+.quote.b{border-color:var(--bwd)} .quote.f{border-color:var(--fwd)}
+.say{font-style:italic;color:var(--ink);background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:12px 16px;max-width:70ch}
+.say::before{content:"Say to the class: ";font-style:normal;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-family:var(--mono);font-size:clamp(14px,1.5vw,18px)}
+.chain span.c{padding:6px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--line)}
+.chain.f span.c{border-color:var(--fwd);color:var(--fwd)}
+.chain.b span.c{border-color:var(--bwd);color:var(--bwd)}
+.chain .ar{color:var(--muted)}
+.chain .tag{font-family:var(--display);font-weight:700;font-size:14px;min-width:90px;color:var(--muted)}
+.board{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;display:grid;gap:22px}
+.brow{display:grid;gap:8px;min-width:560px}
+.brow .t{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.brow.f .t{color:var(--fwd)} .brow.b .t{color:var(--bwd)}
+.track{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr auto;align-items:center;gap:6px}
+.node{font-family:var(--display);font-weight:700;padding:10px 14px;border-radius:10px;border:2px solid var(--ink);text-align:center;white-space:nowrap}
+.pipe{position:relative;height:2px;background:currentColor;margin-inline:4px}
+.brow.f .pipe{color:var(--fwd)} .brow.b .pipe{color:var(--bwd)}
+.brow.f .pipe::after{content:"";position:absolute;right:-2px;top:-5px;border:6px solid transparent;border-left:9px solid currentColor;border-right:0}
+.brow.b .pipe::after{content:"";position:absolute;left:-2px;top:-5px;border:6px solid transparent;border-right:9px solid currentColor;border-left:0}
+.pipe em{position:absolute;left:50%;top:8px;transform:translateX(-50%);font-style:normal;font-family:var(--mono);font-size:13px;white-space:nowrap}
+.sig{display:grid;gap:14px}
+.sigrow{display:grid;grid-template-columns:minmax(140px,190px) 1fr 70px;gap:14px;align-items:center;font-variant-numeric:tabular-nums}
+.sigrow .k{font-family:var(--mono);font-size:15px}
+.sigtrack{height:18px;background:var(--code-bg);border-radius:9px;overflow:hidden}
+.sigtrack i{display:block;height:100%;background:var(--bwd);border-radius:9px}
+.sigrow .v{font-family:var(--mono);font-weight:600;color:var(--bwd);text-align:right}
+.blame{display:grid;gap:10px;max-width:520px}
+.blame .row{display:grid;grid-template-columns:150px 1fr 44px;gap:12px;align-items:center;font-variant-numeric:tabular-nums}
+.blame .row b{font-family:var(--display)}
+.blame .row .v{font-family:var(--mono);text-align:right;color:var(--bwd);font-weight:600}
+.blame .top{font-family:var(--display);font-weight:800;font-size:22px}
+.frac{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;margin-inline:3px}
+.frac>span:last-child{border-top:1.5px solid currentColor;padding-top:2px}
+.bigeq{font-family:var(--mono);font-size:clamp(14px,1.7vw,20px);background:var(--code-bg);border-radius:10px;padding:18px 20px;overflow-x:auto;white-space:nowrap}
+.boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.box{border:2px solid var(--bwd);border-radius:12px;padding:16px 18px;display:grid;gap:8px;background:var(--surface)}
+.box .e{font-family:var(--mono);font-size:clamp(15px,1.5vw,18px);white-space:nowrap;overflow-x:auto}
+.box .m{color:var(--muted);font-size:16px}
+.qa{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.qa div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:4px}
+.qa .k{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.qa .f{border-top:4px solid var(--fwd)} .qa .b{border-top:4px solid var(--bwd)}
+.flowv{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.flowv li{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:center;padding:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.flowv li b{font-family:var(--display)}
+.flowv li .i{font-family:var(--display);font-weight:800;color:var(--muted)}
+.flowv li.f{border-left:4px solid var(--fwd)} .flowv li.b{border-left:4px solid var(--bwd)}
+@media (max-width:640px){.sigrow{grid-template-columns:1fr 60px}.sigrow .sigtrack{grid-column:1/-1;grid-row:2}.blame .row{grid-template-columns:120px 1fr 40px}}
+</style>
+
+
+</head>
+<body>
+<div class="deck">
+<main class="stage" id="stage">
+
+<!-- 1 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow">Neural networks · one hidden layer</div>
+  <h1>Backpropagation,<br>in plain steps</h1>
+  <p class="quote"><span class="fw">Forward propagation</span> makes a prediction. <span class="bw">Backpropagation</span> figures out who was responsible for the error.</p>
+  <div class="loop">
+    <span class="pill f">Predict</span><span class="arrow">→</span>
+    <span class="pill">Measure the error</span><span class="arrow">→</span>
+    <span class="pill b">Send the error backward</span><span class="arrow">→</span>
+    <span class="pill">Adjust a little</span><span class="arrow">↺</span>
+  </div>
+  <p class="hint">Use ← → keys, or the buttons below. <span class="fw">Teal</span> means forward, <span class="bw">amber</span> means backward.</p>
+</div></section>
+
+<!-- 2 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow">Our tiny network</div>
+  <h2>Input → hidden layer → output</h2>
+  <div class="chain f"><span class="c">x</span><span class="ar">→</span><span class="c">z<sup>[1]</sup></span><span class="ar">→</span><span class="c">a<sup>[1]</sup></span><span class="ar">→</span><span class="c">z<sup>[2]</sup></span><span class="ar">→</span><span class="c">ŷ</span></div>
+  <div class="cols">
+    <svg class="net" data-net viewBox="0 0 520 300" role="img" aria-label="Network with 3 inputs, 4 hidden units and 1 output"></svg>
+    <div style="display:grid;gap:14px">
+      <p>The network has four sets of parameters to learn:</p>
+      <p><b>W<sup>[1]</sup>, b<sup>[1]</sup></b> connect the input to the hidden layer.<br><b>W<sup>[2]</sup>, b<sup>[2]</sup></b> connect the hidden layer to the output.</p>
+      <p class="lead" style="font-size:17px">n<sub>0</sub> = input features, n<sub>1</sub> = hidden units, n<sub>2</sub> = output units (here n<sub>2</sub> = 1, for yes/no classification).</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- 3 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow">Shapes</div>
+  <h2>Know the size of every matrix</h2>
+  <p>Most bugs in neural network code are shape bugs. Rule of thumb: <b>W<sup>[l]</sup> has shape (units in this layer, units in previous layer)</b>.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Parameter</th><th>Shape</th><th>In our picture</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>W<sup>[1]</sup></b></td><td>n<sub>1</sub> × n<sub>0</sub></td><td>4 × 3</td><td>one row of weights per hidden unit</td></tr>
+      <tr><td><b>b<sup>[1]</sup></b></td><td>n<sub>1</sub> × 1</td><td>4 × 1</td><td>a column vector, one bias per hidden unit</td></tr>
+      <tr><td><b>W<sup>[2]</sup></b></td><td>n<sub>2</sub> × n<sub>1</sub></td><td>1 × 4</td><td>weights from hidden units to the output</td></tr>
+      <tr><td><b>b<sup>[2]</sup></b></td><td>n<sub>2</sub> × 1</td><td>1 × 1</td><td>a single number for one output</td></tr>
+    </tbody>
+  </table></div>
+  <p class="lead" style="font-size:17px">Each gradient has the same shape as its parameter: dW<sup>[1]</sup> is n<sub>1</sub> × n<sub>0</sub>, db<sup>[1]</sup> is n<sub>1</sub> × 1, and so on.</p>
+</div></section>
+
+<!-- 4 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow f"><b>Forward propagation</b> · left to right</div>
+  <h2>Four equations make the prediction</h2>
+  <div class="cols">
+    <div class="eq f">
+      <div><span class="n">1</span><span>Z<sup>[1]</sup> = W<sup>[1]</sup>X + b<sup>[1]</sup></span><span class="note">weighted sum</span></div>
+      <div><span class="n">2</span><span>A<sup>[1]</sup> = g<sup>[1]</sup>(Z<sup>[1]</sup>)</span><span class="note">hidden activation</span></div>
+      <div><span class="n">3</span><span>Z<sup>[2]</sup> = W<sup>[2]</sup>A<sup>[1]</sup> + b<sup>[2]</sup></span><span class="note">weighted sum</span></div>
+      <div><span class="n">4</span><span>Ŷ = A<sup>[2]</sup> = σ(Z<sup>[2]</sup>)</span><span class="note">sigmoid → probability</span></div>
+    </div>
+    <svg class="net fwd" data-net viewBox="0 0 520 300" role="img" aria-label="Signals flowing forward from input to output"></svg>
+  </div>
+  <p>Then compare the prediction ŷ with the true answer y using the loss <b>L(ŷ, y)</b>.</p>
+  <p class="say">The network has made its prediction. Now we know how wrong it is. The question is: which weights caused this error, and by how much?</p>
+</div></section>
+
+<!-- 5 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow">Measuring the error</div>
+  <h2>The cost: average loss over m examples</h2>
+  <div class="eq">
+    <div><span class="n">J</span><span>J(W<sup>[1]</sup>,b<sup>[1]</sup>,W<sup>[2]</sup>,b<sup>[2]</sup>) = (1/m) Σ<sub>i=1..m</sub> L(ŷ<sup>(i)</sup>, y<sup>(i)</sup>)</span><span></span></div>
+    <div><span class="n">L</span><span>L(ŷ, y) = −[ y·log ŷ + (1−y)·log(1−ŷ) ]</span><span class="note">binary cross-entropy, same as logistic regression</span></div>
+  </div>
+  <div class="cols">
+    <div class="callout f"><h3>ŷ is just A<sup>[2]</sup></h3><p>The prediction is the output of the last layer, a probability between 0 and 1.</p></div>
+    <div class="callout"><h3>Small J = good predictions</h3><p>If y = 1 and ŷ = 0.99, the loss is tiny. If ŷ = 0.01, the loss is large. Training means pushing J down.</p></div>
+  </div>
+</div></section>
+
+<!-- 6 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow b"><b>Step 1</b> · start from the error</div>
+  <h2>The answer is y = 1, but the network says ŷ = 0.3</h2>
+  <p>Something in the network needs to change. But there are many weights: W<sup>[1]</sup>, W<sup>[2]</sup>, … So for each one we ask:</p>
+  <p class="quote b">“If I change this weight a tiny bit, does the loss go up or down?”</p>
+  <div class="cols" style="align-items:start">
+    <div style="display:grid;gap:12px">
+      <p>That question is a derivative: <span class="frac" style="font-family:var(--mono)"><span>∂L</span><span>∂W</span></span></p>
+      <p><b>The gradient tells us the direction and strength of the blame.</b></p>
+    </div>
+    <div class="qa">
+      <div class="b"><span class="k">Large gradient</span><span>This parameter strongly affects the error.</span></div>
+      <div><span class="k">Small gradient</span><span>This parameter has little effect.</span></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- 7 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow b"><b>Step 2</b> · move backward</div>
+  <h2>That is why it is called back-propagation</h2>
+  <div class="board" role="img" aria-label="Forward: x to hidden layer to output to loss using W1 and W2. Backward: loss to output to hidden layer to x producing dW2 and dW1.">
+    <div class="brow f"><span class="t">Forward propagation</span>
+      <div class="track"><span class="node">x</span><span class="pipe"><em>W[1]</em></span><span class="node">Hidden layer</span><span class="pipe"><em>W[2]</em></span><span class="node">Output</span><span class="pipe"></span><span class="node">Loss</span></div>
+    </div>
+    <div class="brow b"><span class="t">Backpropagation</span>
+      <div class="track"><span class="node">x</span><span class="pipe"><em>dW[1]</em></span><span class="node">Hidden layer</span><span class="pipe"><em>dW[2]</em></span><span class="node">Output</span><span class="pipe"></span><span class="node">Loss</span></div>
+    </div>
+  </div>
+  <div class="chain f"><span class="tag">Forward</span><span class="c">x</span><span class="ar">→</span><span class="c">a<sup>[1]</sup></span><span class="ar">→</span><span class="c">a<sup>[2]</sup></span><span class="ar">→</span><span class="c">L</span></div>
+  <div class="chain b"><span class="tag">Backward</span><span class="c">L</span><span class="ar">→</span><span class="c">a<sup>[2]</sup></span><span class="ar">→</span><span class="c">a<sup>[1]</sup></span><span class="ar">→</span><span class="c">x</span></div>
+  <p class="quote">Forward propagation computes the <span class="fw">prediction</span>. Backpropagation computes the <span class="bw">gradients</span>.</p>
+</div></section>
+
+<!-- 8 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow">Notation</div>
+  <h2>What does the “d” mean?</h2>
+  <p class="lead">We write <b>dZ<sup>[l]</sup></b>, <b>dW<sup>[l]</sup></b>, <b>db<sup>[l]</sup></b>. The <b>d</b> simply means: <i>how sensitive is the loss to this quantity?</i></p>
+  <div class="cols">
+    <div class="bigeq" style="text-align:center">dW<sup>[2]</sup> &nbsp;means&nbsp; <span class="frac"><span>∂L</span><span>∂W<sup>[2]</sup></span></span></div>
+    <div class="callout"><h3>In plain words</h3><p>dW<sup>[2]</sup> tells us how much W<sup>[2]</sup> contributed to the error.</p><p class="lead" style="font-size:16px">You can introduce the words “partial derivative” later, once the meaning is clear.</p></div>
+  </div>
+</div></section>
+
+<!-- 9 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow b"><b>Backward</b> · the output layer</div>
+  <h2>Prediction minus truth</h2>
+  <p>With sigmoid + binary cross-entropy, the output error has a beautifully simple form:</p>
+  <div class="eq b">
+    <div><span class="n">1</span><span>dZ<sup>[2]</sup> = A<sup>[2]</sup> − Y = Ŷ − Y</span><span class="note">the backward signal</span></div>
+  </div>
+  <div class="sig" aria-label="Size of the error signal for two predictions when y = 1">
+    <div class="sigrow"><span class="k">ŷ = 0.9, y = 1</span><div class="sigtrack"><i style="width:10%"></i></div><span class="v">−0.1</span></div>
+    <div class="sigrow"><span class="k">ŷ = 0.1, y = 1</span><div class="sigtrack"><i style="width:90%"></i></div><span class="v">−0.9</span></div>
+  </div>
+  <p>Close to the right answer → small signal. Far from it → large signal.</p>
+  <p class="say">At the output layer, the backward signal is basically: prediction minus truth.</p>
+</div></section>
+
+<!-- 10 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow b"><b>Backward</b> · output layer parameters</div>
+  <h2>Who connected the hidden layer to the output?</h2>
+  <div class="eq b">
+    <div><span class="n">2</span><span>dW<sup>[2]</sup> = (1/m) dZ<sup>[2]</sup> A<sup>[1]T</sup></span><span class="note">blame for the hidden → output weights</span></div>
+    <div><span class="n">3</span><span>db<sup>[2]</sup> = (1/m) Σ dZ<sup>[2]</sup></span><span class="note">blame for the output bias</span></div>
+  </div>
+  <div class="cols" style="align-items:start">
+    <div class="callout"><h3>What dW<sup>[2]</sup> asks</h3><p>How much did the connection between the hidden neurons and the output contribute to the error? A weight gets more blame when the hidden neuron feeding it was strongly active.</p></div>
+    <div class="callout"><h3>No need to memorise yet</h3><p>These three lines are exactly gradient descent for <b>logistic regression</b>. The output layer is a logistic regression sitting on top of the hidden layer.</p></div>
+  </div>
+</div></section>
+
+<!-- 11 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow b"><b>Backward</b> · the hidden layer</div>
+  <h2>Propagate the blame one layer back</h2>
+  <div class="cols" style="align-items:start">
+    <div style="display:grid;gap:10px">
+      <h3><span class="bw">a.</span> Send the error back through the weights</h3>
+      <div class="eq b"><div><span class="n"></span><span>dA<sup>[1]</sup> = W<sup>[2]T</sup> dZ<sup>[2]</sup></span><span></span></div></div>
+      <p>The output layer sends the error information back to the hidden neurons. A neuron with a big weight to the output gets a bigger share.</p>
+    </div>
+    <div style="display:grid;gap:10px">
+      <h3><span class="bw">b.</span> Account for the activation</h3>
+      <div class="eq b"><div><span class="n"></span><span>dZ<sup>[1]</sup> = dA<sup>[1]</sup> ⊙ g′(Z<sup>[1]</sup>)</span><span></span></div></div>
+      <p>⊙ is element-wise. A neuron whose activation is flat (small g′) lets little error pass. For tanh, g′(z) = 1 − a².</p>
+    </div>
+  </div>
+  <div class="eq b">
+    <div><span class="n">5</span><span>dW<sup>[1]</sup> = (1/m) dZ<sup>[1]</sup> X<sup>T</sup></span><span></span></div>
+    <div><span class="n">6</span><span>db<sup>[1]</sup> = (1/m) Σ dZ<sup>[1]</sup></span><span class="note">now every parameter has a gradient</span></div>
+  </div>
+  <p class="say">First we send the error backward through the weights. Then we ask how much the activation function allowed that error to pass.</p>
+</div></section>
+
+<!-- 12 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow b"><b>Backward propagation</b> · all together</div>
+  <h2>Six equations share the blame</h2>
+  <div class="cols">
+    <div class="eq b">
+      <div><span class="n">1</span><span>dZ<sup>[2]</sup> = A<sup>[2]</sup> − Y</span><span class="note">output error</span></div>
+      <div><span class="n">2</span><span>dW<sup>[2]</sup> = (1/m) dZ<sup>[2]</sup> A<sup>[1]T</sup></span><span></span></div>
+      <div><span class="n">3</span><span>db<sup>[2]</sup> = (1/m) Σ dZ<sup>[2]</sup></span><span></span></div>
+      <div><span class="n">4</span><span>dZ<sup>[1]</sup> = W<sup>[2]T</sup>dZ<sup>[2]</sup> ⊙ g′(Z<sup>[1]</sup>)</span><span class="note">hidden error</span></div>
+      <div><span class="n">5</span><span>dW<sup>[1]</sup> = (1/m) dZ<sup>[1]</sup> X<sup>T</sup></span><span></span></div>
+      <div><span class="n">6</span><span>db<sup>[1]</sup> = (1/m) Σ dZ<sup>[1]</sup></span><span></span></div>
+    </div>
+    <svg class="net bwd" data-net viewBox="0 0 520 300" role="img" aria-label="Error flowing backward from output to input"></svg>
+  </div>
+</div></section>
+
+<!-- 13 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow">A classroom analogy</div>
+  <h2>A group project gets 60 / 100</h2>
+  <p>The professor asks: <i>why did the project lose 40 marks?</i> You investigate backward, from the final mark to the earliest step.</p>
+  <div class="cols">
+    <div class="blame" aria-label="Blame for 40 lost marks">
+      <div class="top">Final mark: 60 / 100</div>
+      <div class="row"><b>Presentation</b><div class="sigtrack"><i style="width:25%"></i></div><span class="v">10</span></div>
+      <div class="row"><b>Analysis</b><div class="sigtrack"><i style="width:50%"></i></div><span class="v">20</span></div>
+      <div class="row"><b>Data preparation</b><div class="sigtrack"><i style="width:25%"></i></div><span class="v">10</span></div>
+      <p class="lead" style="font-size:15px">Marks of error traced to each stage (total 40)</p>
+    </div>
+    <div style="display:grid;gap:14px">
+      <p>Now each person knows what needs to change, and by how much.</p>
+      <p class="quote b">Backpropagation distributes responsibility for the final error backward through the network.</p>
+      <p class="lead" style="font-size:16px">Mathematically, this “responsibility” is measured with gradients and the chain rule.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- 14 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow">The chain rule, gently</div>
+  <h2>Follow the path from W<sup>[1]</sup> to the loss</h2>
+  <p>W<sup>[1]</sup> affects Z<sup>[1]</sup>, which affects A<sup>[1]</sup>, which affects Z<sup>[2]</sup>, which affects L. To know how W<sup>[1]</sup> affects L, we follow the whole path:</p>
+  <div class="chain b"><span class="c">W<sup>[1]</sup></span><span class="ar">→</span><span class="c">Z<sup>[1]</sup></span><span class="ar">→</span><span class="c">A<sup>[1]</sup></span><span class="ar">→</span><span class="c">Z<sup>[2]</sup></span><span class="ar">→</span><span class="c">L</span></div>
+  <p>The chain rule multiplies the effect of each link:</p>
+  <div class="bigeq">
+    <span class="frac"><span>∂L</span><span>∂W<sup>[1]</sup></span></span> =
+    <span class="frac"><span>∂L</span><span>∂Z<sup>[2]</sup></span></span> ·
+    <span class="frac"><span>∂Z<sup>[2]</sup></span><span>∂A<sup>[1]</sup></span></span> ·
+    <span class="frac"><span>∂A<sup>[1]</sup></span><span>∂Z<sup>[1]</sup></span></span> ·
+    <span class="frac"><span>∂Z<sup>[1]</sup></span><span>∂W<sup>[1]</sup></span></span>
+  </div>
+  <p class="quote">Backpropagation is an efficient implementation of the chain rule.</p>
+</div></section>
+
+<!-- 15 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow b">For any layer l</div>
+  <h2>The four equations to remember</h2>
+  <div class="boxes">
+    <div class="box"><span class="e">dZ<sup>[l]</sup> = dA<sup>[l]</sup> ⊙ g′<sup>[l]</sup>(Z<sup>[l]</sup>)</span><span class="m"><b>dZ</b> → the error at this layer</span></div>
+    <div class="box"><span class="e">dW<sup>[l]</sup> = (1/m) dZ<sup>[l]</sup> A<sup>[l−1]T</sup></span><span class="m"><b>dW</b> → how the weights contributed to the error</span></div>
+    <div class="box"><span class="e">db<sup>[l]</sup> = (1/m) Σ dZ<sup>[l]</sup></span><span class="m"><b>db</b> → how the biases contributed to the error</span></div>
+    <div class="box"><span class="e">dA<sup>[l−1]</sup> = W<sup>[l]T</sup> dZ<sup>[l]</sup></span><span class="m"><b>dA</b> → send the error to the previous layer</span></div>
+  </div>
+  <p>Repeat these four lines from the last layer back to the first. The meaning is more useful than memorising the formulas.</p>
+</div></section>
+
+<!-- 16 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow">The complete story</div>
+  <h2>One training cycle</h2>
+  <div class="cols" style="align-items:start">
+    <ol class="flowv">
+      <li class="f"><span class="i">1</span><span><b>Forward propagation</b> → make prediction ŷ</span></li>
+      <li><span class="i">2</span><span><b>Compute loss</b> → how wrong are we?</span></li>
+      <li class="b"><span class="i">3</span><span><b>Backpropagation</b> → compute dW and db</span></li>
+      <li><span class="i">4</span><span><b>Gradient descent</b> → update W and b</span></li>
+      <li><span class="i">5</span><span><b>Repeat</b> until the cost stops falling</span></li>
+    </ol>
+    <div style="display:grid;gap:14px">
+      <div class="eq">
+        <div><span class="n"></span><span>W := W − α · dW</span><span></span></div>
+        <div><span class="n"></span><span>b := b − α · db</span><span class="note">α = learning rate, the step size</span></div>
+      </div>
+      <div class="callout b"><h3>Common confusion</h3><p>Backpropagation does <b>not</b> update the weights. It computes the gradients. Gradient descent uses those gradients to update the weights.</p></div>
+      <p class="lead" style="font-size:16px">Initialise weights randomly, not with zeros. If all weights start equal, every hidden unit learns the same thing.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- 17 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow">Try it with real numbers</div>
+  <h2>One neuron, one example, one step</h2>
+  <p>Take x = 2, true label y = 1, starting weight w = 0.5, bias b = 0, learning rate α = 0.1.</p>
+  <div class="nums">
+    <div class="num f"><span class="k">forward · z = w·x + b</span><span class="v">1.000</span></div>
+    <div class="num f"><span class="k">forward · ŷ = σ(z)</span><span class="v">0.731</span></div>
+    <div class="num b"><span class="k">backward · dz = ŷ − y</span><span class="v">−0.269</span></div>
+    <div class="num b"><span class="k">backward · dw = dz·x</span><span class="v">−0.538</span></div>
+    <div class="num b"><span class="k">backward · db = dz</span><span class="v">−0.269</span></div>
+    <div class="num"><span class="k">update · w − α·dw</span><span class="v">0.554</span></div>
+    <div class="num"><span class="k">update · b − α·db</span><span class="v">0.027</span></div>
+    <div class="num f"><span class="k">new prediction ŷ</span><span class="v">0.757</span></div>
+  </div>
+  <p>The prediction moved from <b>0.731 to 0.757</b>, closer to the true answer 1. Repeat this thousands of times and the network learns.</p>
+</div></section>
+
+<!-- 18 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow">In NumPy</div>
+  <h2>The whole thing in a few lines</h2>
+<pre><span class="c"># forward</span>
+<span class="f">Z1 = W1 @ X + b1</span>
+<span class="f">A1 = np.tanh(Z1)</span>
+<span class="f">Z2 = W2 @ A1 + b2</span>
+<span class="f">A2 = 1 / (1 + np.exp(-Z2))</span>
+
+<span class="c"># backward</span>
+<span class="b">dZ2 = A2 - Y</span>
+<span class="b">dW2 = (1/m) * dZ2 @ A1.T</span>
+<span class="b">db2 = (1/m) * np.sum(dZ2, axis=1, keepdims=True)</span>
+<span class="b">dA1 = W2.T @ dZ2</span>
+<span class="b">dZ1 = dA1 * (1 - A1**2)</span>          <span class="c"># tanh derivative</span>
+<span class="b">dW1 = (1/m) * dZ1 @ X.T</span>
+<span class="b">db1 = (1/m) * np.sum(dZ1, axis=1, keepdims=True)</span>
+
+<span class="c"># update (gradient descent)</span>
+W1 -= alpha * dW1;  b1 -= alpha * db1
+W2 -= alpha * dW2;  b2 -= alpha * db2</pre>
+</div></section>
+
+<!-- 20 -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow">Backpropagation on one slide</div>
+  <h2>Predict, blame, adjust, repeat</h2>
+  <div class="chain f"><span class="tag">Forward</span><span class="c">X</span><span class="ar">→</span><span class="c">Z<sup>[1]</sup></span><span class="ar">→</span><span class="c">A<sup>[1]</sup></span><span class="ar">→</span><span class="c">Z<sup>[2]</sup></span><span class="ar">→</span><span class="c">A<sup>[2]</sup> = Ŷ</span><span class="ar">→</span><span class="c">L</span></div>
+  <div class="chain b"><span class="tag">Backward</span><span class="c">L</span><span class="ar">→</span><span class="c">dZ<sup>[2]</sup></span><span class="ar">→</span><span class="c">dW<sup>[2]</sup>, db<sup>[2]</sup></span><span class="ar">→</span><span class="c">dZ<sup>[1]</sup></span><span class="ar">→</span><span class="c">dW<sup>[1]</sup>, db<sup>[1]</sup></span></div>
+  <div class="qa">
+    <div class="f"><span class="k">Forward propagation</span><span>What does the network predict?</span></div>
+    <div><span class="k">Loss</span><span>How wrong is the prediction?</span></div>
+    <div class="b"><span class="k">Backpropagation</span><span>Which parameters caused the error?</span></div>
+    <div><span class="k">Gradient descent</span><span>How should we change them?</span></div>
+  </div>
+  <p class="quote">A neural network learns through a repeated cycle: predict → measure the error → propagate the error backward → slightly adjust the parameters → predict again.</p>
+</div></section>
+
+</main>
+<nav class="bar" aria-label="Slide controls">
+  <button id="prev" type="button" aria-label="Previous slide">← Prev</button>
+  <div class="prog" aria-hidden="true"><i id="progfill"></i></div>
+  <span class="count" id="count">1 / 19</span>
+  <button id="next" type="button" aria-label="Next slide">Next →</button>
+</nav>
+</div>
+
+<script>
+(function(){
+  // draw networks
+  const NS="http://www.w3.org/2000/svg";
+  const layers=[{x:70,n:3,lab:"x"},{x:260,n:4,lab:"a"},{x:450,n:1,lab:"ŷ"}];
+  const pos=l=>{const g=260/(l.n);return Array.from({length:l.n},(_,i)=>30+g*(i+.5));};
+  function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+  document.querySelectorAll("[data-net]").forEach(svg=>{
+    const P=layers.map(pos);
+    for(let L=0;L<2;L++)P[L].forEach(y1=>P[L+1].forEach(y2=>svg.appendChild(el("line",{x1:layers[L].x+18,y1,x2:layers[L+1].x-18,y2}))));
+    layers.forEach((l,L)=>{
+      P[L].forEach((y,i)=>{svg.appendChild(el("circle",{cx:l.x,cy:y,r:18}));
+        const t=el("text",{x:l.x,y:y+4,"text-anchor":"middle"});t.textContent=L===2?"ŷ":l.lab+(i+1);svg.appendChild(t);});
+    });
+    [["Input  X",70],["Hidden  A[1]",260],["Output  A[2]",450]].forEach(([s,x])=>{const t=el("text",{x,y:296,"text-anchor":"middle",class:"lbl"});t.textContent=s;svg.appendChild(t);});
+    const w1=el("text",{x:165,y:22,"text-anchor":"middle"});w1.textContent="W[1], b[1]";svg.appendChild(w1);
+    const w2=el("text",{x:355,y:22,"text-anchor":"middle"});w2.textContent="W[2], b[2]";svg.appendChild(w2);
+  });
+
+  const slides=[...document.querySelectorAll(".slide")];
+  const N=slides.length, prev=document.getElementById("prev"), next=document.getElementById("next");
+  const fill=document.getElementById("progfill"), count=document.getElementById("count");
+  let cur=0;
+  function go(i){
+    cur=Math.max(0,Math.min(N-1,i));
+    slides.forEach((s,k)=>{s.classList.toggle("on",k===cur);s.classList.toggle("prev",k<cur);s.setAttribute("aria-hidden",k!==cur);});
+    fill.style.width=((cur+1)/N*100)+"%";
+    count.textContent=(cur+1)+" / "+N;
+    prev.disabled=cur===0; next.disabled=cur===N-1;
+    try{history.replaceState(null,"","#s"+(cur+1));}catch(e){}
+  }
+  prev.onclick=()=>go(cur-1); next.onclick=()=>go(cur+1);
+  document.addEventListener("keydown",e=>{
+    if(["ArrowRight","PageDown"," "].includes(e.key)){e.preventDefault();go(cur+1);}
+    else if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();go(cur-1);}
+    else if(e.key==="Home")go(0); else if(e.key==="End")go(N-1);
+  });
+  let sx=null;
+  const st=document.getElementById("stage");
+  st.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;},{passive:true});
+  st.addEventListener("touchend",e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>60)go(cur+(dx<0?1:-1));sx=null;});
+  const m=/^#s(\d+)$/.exec(location.hash);
+  go(m?parseInt(m[1],10)-1:0);
+})();
+</script>
+
+</body>
+</html>

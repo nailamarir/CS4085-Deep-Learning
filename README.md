@@ -39,12 +39,19 @@ and why not squared error · cost vs loss · gradient descent · forward and bac
 | File | What it is |
 |---|---|
 | `CS4085_Chapter03_Shallow_Neural_Networks.html` | Slide deck (42 slides) |
+| `CS4085_Week02_Backpropagation_in_Plain_Steps.html` | Companion deck: backpropagation in plain steps (19 slides) |
 
 Covers: a network as a stack of logistic regression units · network representation and the
 layer-counting rule · computing a layer's output · the shape rule `W[l] : (n[l], n[l-1])` ·
 vectorising across m examples · activation functions (sigmoid, tanh, ReLU, leaky ReLU) ·
 why hidden layers must be non-linear · derivatives of each activation · gradient descent
 and the six backpropagation equations · random initialization and symmetry breaking.
+
+The companion deck walks through backpropagation for the one-hidden-layer network slowly:
+the error as prediction minus truth · the `d` notation · sharing the blame layer by layer ·
+the chain rule · the four equations for any layer · one training cycle · a worked
+one-neuron example with real numbers · the whole thing in NumPy. It has its own light/dark
+theme and on-screen Prev/Next buttons.
 
 ### Lecture 4 — Deep Neural Networks
 | File | What it is |
