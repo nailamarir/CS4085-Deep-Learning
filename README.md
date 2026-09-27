@@ -56,6 +56,17 @@ one for-loop worth keeping · getting matrix dimensions right · why deep repres
 (feature hierarchies and the circuit-theory argument) · the forward and backward building
 blocks joined by a cache · parameters vs hyperparameters · what this has to do with the brain.
 
+### Lecture 5 — Deep L-Layer Neural Networks · *in progress*
+| File | What it is |
+|---|---|
+| `CS4085_Week03_Deep_L-Layer_Neural_Networks.html` | Slide deck (12 slides so far) |
+
+Covers: what makes a network deep and how layers are counted · deep-network notation
+(`L`, `n[l]`, `a[l]`, `W[l]`, `b[l]`) · forward propagation for one example, vectorised
+across m examples, and as one loop over layers · intuition for deep representations
+(edges → face parts → faces; audio → phonemes → words → sentences) · circuit theory and
+the XOR example · forward and backward functions for one layer, joined by a cache.
+
 ---
 
 ## Using the slide decks
