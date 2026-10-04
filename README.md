@@ -74,6 +74,19 @@ across m examples, and as one loop over layers · intuition for deep representat
 (edges → face parts → faces; audio → phonemes → words → sentences) · circuit theory and
 the XOR example · forward and backward functions for one layer, joined by a cache.
 
+### Chapter 2 · Lecture 1 — Practical Aspects of Deep Learning
+*Improving Deep Neural Networks: Hyperparameter Tuning, Regularization and Optimization*
+
+| File | What it is |
+|---|---|
+| `CS4085_Chapter2_Lecture1_Practical_Aspects_of_Deep_Learning.html` | Slide deck (57 slides) |
+
+Covers: train / dev / test sets and how to size them · mismatched distributions · bias and
+variance, and the basic recipe · L2 regularisation, the Frobenius norm and weight decay ·
+why regularisation reduces overfitting · inverted dropout and why it works · data
+augmentation and early stopping · normalising inputs · vanishing and exploding gradients ·
+He / Xavier initialisation · numerical gradients and gradient checking.
+
 ---
 
 ## Using the slide decks
@@ -95,7 +108,7 @@ Decks print to PDF at 1600×900 (⌘P / Ctrl-P).
 ## Attribution
 
 Lecture content is adapted from **Andrew Ng's Deep Learning Specialization**
-([deeplearning.ai](https://www.deeplearning.ai/)), Course 1 Modules 1–4, and uses the
+([deeplearning.ai](https://www.deeplearning.ai/)), Course 1 Modules 1–4 and Course 2 Module 1, and uses the
 definition of machine learning from Tom Mitchell, *Machine Learning* (McGraw-Hill, 1997).
 
 The source PDFs from those courses are **not redistributed here** — only the teaching

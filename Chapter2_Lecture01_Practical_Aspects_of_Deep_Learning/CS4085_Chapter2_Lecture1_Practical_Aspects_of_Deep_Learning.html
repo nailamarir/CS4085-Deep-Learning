@@ -1,0 +1,2386 @@
+<title>Practical Aspects of Deep Learning — Chapter 2, Lecture 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
+
+<style>
+/* ============================================================
+   CS4085 · Chapter 2, Lecture 1 — Practical Aspects of Deep Learning
+   Same CS50 house style as Chapters 1-4.
+   Source: Ng, Deep Learning Specialization, C2M1.
+   ============================================================ */
+:root{
+  --black:#000000; --white:#ffffff;
+  --blue:#0091ff; --orange:#e8590c; --yellow:#f5a623;
+  --green:#28a138; --red:#e01b24; --purple:#a56cf5;
+  --node:#3d3d3d; --dim:#8a8a8a;
+  --sans:"Poppins","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono","SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--black)}
+body{background:var(--black);color:var(--white);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden;background:var(--black)}
+.slide{position:absolute;inset:0;display:none;background:var(--black);
+  padding:6vh 7vw;font-size:clamp(13px,1.7vh,28px)}
+.slide.active{display:flex}
+
+.split{width:100%;height:100%;display:grid;grid-template-columns:1fr 1.15fr;
+  align-items:center;gap:4vw}
+.split .word{font-size:clamp(38px,6.6vw,104px);font-weight:700;line-height:1.06;
+  letter-spacing:-.022em;text-align:center;text-wrap:balance}
+.split .art{display:flex;align-items:center;justify-content:center}
+.split .art svg{width:100%;height:auto;max-height:74vh}
+
+.center{width:100%;height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;gap:.55em}
+.center .big{font-size:clamp(40px,7.2vw,116px);font-weight:700;line-height:1.05;
+  letter-spacing:-.024em;text-wrap:balance}
+.center .mid{font-size:clamp(26px,4.2vw,64px);font-weight:600;line-height:1.14;
+  letter-spacing:-.018em;max-width:19ch;text-wrap:balance}
+.center .sub{font-size:clamp(15px,1.85vw,30px);font-weight:400;color:var(--dim);
+  line-height:1.5;max-width:34ch;text-wrap:balance}
+.center .tag{font-family:var(--mono);font-size:clamp(10px,.92vw,15px);
+  letter-spacing:.26em;text-transform:uppercase;color:#5a7d99;font-weight:400}
+
+.doc{width:100%;height:100%;display:flex;flex-direction:column;
+  justify-content:center;gap:2.6vh}
+.doc h2{margin:0;font-size:clamp(34px,5.4vw,86px);font-weight:700;
+  letter-spacing:-.026em;line-height:1.04;text-wrap:balance}
+.doc .kicker{font-family:var(--mono);font-size:clamp(10px,.88vw,14px);
+  letter-spacing:.26em;text-transform:uppercase;color:#5a7d99;
+  margin-bottom:-1vh;font-weight:400}
+.doc p{margin:0;font-size:clamp(14px,1.5vw,25px);line-height:1.62;
+  color:#d8d8d8;max-width:56ch}
+.doc p b,.doc li b{color:var(--white);font-weight:600}
+.doc .lede{font-size:clamp(16px,1.95vw,33px);line-height:1.48;
+  color:var(--white);max-width:44ch;font-weight:400}
+.doc .art{display:flex;align-items:center;justify-content:center;min-height:0}
+.doc .art svg{width:100%;height:auto;max-height:52vh}
+.k-bowl .doc{gap:1.4vh;justify-content:center}
+.k-bowl .art svg{max-height:63vh}
+
+.tbl{overflow-x:auto;overflow-y:auto;max-height:64vh}
+table{border-collapse:collapse;width:100%;font-size:clamp(11px,1.24vw,21px)}
+th{text-align:left;padding:.5em .8em .5em 0;font-family:var(--mono);font-weight:400;
+  font-size:.76em;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+  border-bottom:2px solid #2a2a2a;white-space:nowrap}
+td{padding:.62em .8em .62em 0;border-bottom:1px solid #1c1c1c;
+  line-height:1.34;vertical-align:top;color:#e2e2e2}
+td.k{font-family:var(--mono);color:var(--blue);font-weight:700;white-space:nowrap}
+tr.mark td{color:var(--white);font-weight:600}
+
+.rules{display:flex;flex-direction:column;gap:1.4vh;max-width:56ch;margin:0;padding:0}
+.rules li{list-style:none;font-size:clamp(13px,1.5vw,25px);line-height:1.46;
+  color:#e2e2e2;display:grid;grid-template-columns:1.9em 1fr;gap:.5em}
+.rules li span:first-child{font-family:var(--mono);color:var(--blue);font-weight:700}
+
+.cards{display:grid;gap:1.6vw;width:100%}
+.cards.c2{grid-template-columns:repeat(2,1fr)}
+.cards.c3{grid-template-columns:repeat(3,1fr)}
+.card{border:1px solid #232323;border-radius:10px;padding:2.2vh 1.5vw;
+  display:flex;flex-direction:column;gap:.9vh;background:#0a0a0a}
+.card .n{font-family:var(--mono);font-size:clamp(10px,.95vw,15px);
+  letter-spacing:.2em;color:var(--blue)}
+.card h3.comp{margin:0;font-size:clamp(19px,2.5vw,40px);font-weight:700;
+  letter-spacing:-.02em;line-height:1.06;margin-bottom:.2vh}
+.card p.role{font-size:clamp(11px,1.05vw,17px);color:var(--dim);
+  line-height:1.3;margin:0 0 .6vh}
+.card p{margin:0;font-size:clamp(12px,1.18vw,20px);line-height:1.5;color:#c4c4c4}
+.card .eg{font-size:clamp(11px,1.05vw,17px);color:var(--dim);line-height:1.45;
+  border-top:1px solid #1e1e1e;padding-top:.9vh;margin-top:auto}
+.card.b{border-color:#123c5e} .card.b .n{color:var(--blue)} .card.b h3{color:var(--blue)}
+.card.o{border-color:#4a2a10} .card.o .n{color:var(--orange)} .card.o h3{color:var(--orange)}
+.card.g{border-color:#16401f} .card.g .n{color:var(--green)} .card.g h3{color:var(--green)}
+.card.p{border-color:#33224d} .card.p .n{color:var(--purple)} .card.p h3{color:var(--purple)}
+.card.r{border-color:#4d1418} .card.r .n{color:var(--red)} .card.r h3{color:var(--red)}
+
+.math{font-family:var(--mono);font-size:clamp(15px,2.15vw,38px);color:var(--white);
+  line-height:1.5;text-align:center;letter-spacing:-.01em}
+.math .hl{color:var(--blue)} .math .hl2{color:var(--orange)}
+.math .hl3{color:var(--green)} .math .bad{color:var(--red)}
+.math .an{display:block;font-family:var(--sans);font-size:clamp(11px,1.1vw,18px);
+  color:var(--dim);margin-top:.7em;letter-spacing:0}
+.mathrow{display:flex;flex-direction:column;gap:2.2vh;align-items:center;width:100%}
+
+.bar-progress{position:fixed;left:0;bottom:0;height:2px;background:var(--blue);
+  z-index:30;transition:width .3s ease}
+.hint{position:fixed;right:2vw;bottom:2.4vh;z-index:30;font-family:var(--mono);
+  font-size:11px;letter-spacing:.16em;color:#4a4a4a;text-transform:uppercase;
+  transition:opacity .6s ease}
+.hint.hide{opacity:0}
+.credit{position:fixed;left:2vw;bottom:2.4vh;z-index:30;font-family:var(--mono);
+  font-size:10px;letter-spacing:.1em;color:#3a3a3a}
+
+.slide.active .split > *,.slide.active .center > *,.slide.active .doc > *{
+  animation:fade .45s ease backwards}
+.slide.active .split > *:nth-child(2){animation-delay:.1s}
+.slide.active .center > *:nth-child(2),.slide.active .doc > *:nth-child(2){animation-delay:.07s}
+.slide.active .doc > *:nth-child(3){animation-delay:.13s}
+.slide.active .doc > *:nth-child(4){animation-delay:.19s}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}
+  .dgm animate{display:none}
+}
+@media (max-aspect-ratio:1/1){
+  .split{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:3vh}
+  .split .art svg{max-height:52vh}
+  .cards.c2,.cards.c3{grid-template-columns:1fr}
+}
+@media print{
+  @page{size:1600px 900px;margin:0}
+  .slide{display:flex!important;position:relative;inset:auto;width:1600px;height:900px;
+    font-size:21px;page-break-after:always;break-after:page}
+  .deck{width:auto;height:auto;overflow:visible}
+  .bar-progress,.hint,.credit{display:none}
+  html,body{overflow:visible}
+  .dgm animate{display:none}
+}
+
+/* ---------- question slide ---------- */
+.qhead{font-family:var(--mono);font-size:clamp(10px,.88vw,14px);letter-spacing:.26em;
+  text-transform:uppercase;color:var(--yellow);margin-bottom:-1vh}
+.qtext{font-size:clamp(24px,3.4vw,54px);font-weight:700;letter-spacing:-.02em;
+  line-height:1.1;text-wrap:balance;margin:0}
+.opts{display:flex;flex-direction:column;gap:1.15vh;margin:0;padding:0;max-width:74ch;
+  list-style:none}
+.opts li{list-style:none;display:grid;grid-template-columns:2.3em 1fr;gap:.7em;
+  align-items:baseline;border:1px solid #232323;border-radius:9px;
+  padding:1.5vh 1.4vw;background:#0a0a0a;
+  font-size:clamp(13px,1.5vw,25px);line-height:1.4;color:#d8d8d8;
+  transition:border-color .25s,background .25s,color .25s,opacity .25s}
+.opts li .lt{font-family:var(--mono);color:var(--dim);font-weight:700}
+.opts li .mono{font-family:var(--mono)}
+.slide.show .opts li.ans{border-color:var(--green);background:#0d1f12;color:#fff}
+.slide.show .opts li.ans .lt{color:var(--green)}
+.slide.show .opts li:not(.ans){opacity:.35}
+.qwhy{font-size:clamp(13px,1.45vw,24px);color:var(--dim);line-height:1.5;
+  max-width:70ch;opacity:0;transition:opacity .3s;margin:0}
+.slide.show .qwhy{opacity:1}
+.qwhy b{color:var(--green)}
+.qhint{font-family:var(--mono);font-size:clamp(10px,.9vw,15px);color:#4a4a4a;
+  letter-spacing:.12em;text-transform:uppercase;transition:opacity .3s;margin:0}
+.slide.show .qhint{opacity:0}
+
+.k-dnn .doc{gap:1.6vh}
+.k-dnn .art svg{max-height:66vh}
+
+.k-note .doc{gap:2vh}
+.nt-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:3vw;align-items:center;min-height:0}
+.nt-grid svg{width:100%;height:auto;max-height:66vh}
+.nt{display:flex;flex-direction:column;gap:1.9vh;margin:0;padding:0}
+.nt li{list-style:none;display:grid;grid-template-columns:4.6em 1fr;gap:.6em;align-items:baseline;
+  font-size:clamp(13px,1.45vw,24px);line-height:1.45;color:#e2e2e2;
+  border-bottom:1px solid #1c1c1c;padding-bottom:1.5vh}
+.nt li:last-child{border-bottom:0}
+.nt .s{font-family:var(--mono);color:var(--blue);font-weight:700;white-space:nowrap}
+.nt sup{font-size:.62em;line-height:0}
+.doc p sup{font-size:.64em;line-height:0}
+.nt .m{font-family:var(--mono);color:#fff;font-size:.92em}
+.nt .eg{display:block;color:var(--dim);font-size:.82em;margin-top:.3em}
+@media (max-aspect-ratio:1/1){.nt-grid{grid-template-columns:1fr}}
+
+
+.k-fb .doc{gap:2vh}
+.fb-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:3vw;align-items:center;min-height:0}
+.fb-grid svg{width:100%;height:auto;max-height:56vh}
+.fb-grid .cards{grid-template-columns:1fr;gap:1.8vh}
+.fn{font-family:var(--mono);color:#fff;font-size:clamp(12px,1.35vw,23px);line-height:1.8;margin:0}
+.fn sup{font-size:.64em;line-height:0}
+.fn .k{color:var(--dim);font-family:var(--sans);font-size:.78em;display:inline-block;width:5.2em}
+.card.rb{border-color:#4d1418} .card.rb .n{color:var(--red)}
+.k-fb2 .art svg{max-height:62vh}
+@media (max-aspect-ratio:1/1){.fb-grid{grid-template-columns:1fr}}
+
+
+.k-ct .doc{gap:2.4vh}
+.claim{font-size:clamp(18px,2.35vw,40px);line-height:1.42;color:#fff;max-width:54ch;font-weight:400;margin:0;text-wrap:balance}
+.claim .u{text-decoration:underline;text-underline-offset:.18em;text-decoration-thickness:2px}
+.claim .u1{text-decoration-color:var(--green)} .claim .u2{text-decoration-color:var(--red)}
+.xorbox{border-left:3px solid var(--green);padding:1.8vh 1.6vw;background:#0a0a0a;border-radius:0 8px 8px 0;max-width:none;display:grid;grid-template-columns:auto 1fr;gap:1vh 3vw;align-items:center}
+.xorbox .kicker,.xorbox .eq{grid-column:1/-1}
+.xorbox .eq{white-space:nowrap}
+.xorbox sub{font-size:.6em}
+.bits{display:flex;gap:.5em;align-items:center;font-family:var(--mono);font-size:clamp(14px,1.7vw,28px)}
+.bits span.b{display:inline-grid;place-items:center;width:1.7em;height:1.7em;border:1.5px solid #333;border-radius:6px;color:#8a8a8a}
+.bits span.b.on{border-color:var(--green);color:#fff;background:#0f2a14}
+.bits .res{margin-left:.6em;color:var(--dim);font-size:.8em}
+.bits .res b{color:var(--green)}
+.xorbox .eq{text-align:left;font-size:clamp(14px,1.9vw,32px)}
+.xorbox p{margin:.6vh 0 0}
+.ct-grid{display:grid;grid-template-columns:1fr 1fr;gap:3vw;min-height:0}
+.ct-grid svg{width:100%;height:auto;max-height:44vh}
+.ct-grid .card{align-items:stretch}
+@media (max-aspect-ratio:1/1){.ct-grid{grid-template-columns:1fr}}
+
+.k-int .doc{gap:2vh}
+.k-int .art svg{max-height:62vh}
+
+.k-fp .doc{gap:1.8vh}
+.fp-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:3vw;align-items:center;min-height:0}
+.fp-grid svg{width:100%;height:auto;max-height:60vh}
+.eqs{display:flex;flex-direction:column;gap:1.6vh}
+.eqrow{display:grid;grid-template-columns:4.6em 1fr 1fr;gap:.8em;align-items:baseline;font-family:var(--mono);font-size:clamp(12px,1.45vw,24px);border-bottom:1px solid #1c1c1c;padding-bottom:1.3vh}
+.eqrow sup,.eqnote sup{font-size:.64em;line-height:0}
+.eqrow .ln{font-size:.62em;letter-spacing:.14em;text-transform:uppercase}
+.eqrow .c1{color:var(--blue)} .eqrow .c2{color:var(--purple)} .eqrow .c3{color:var(--orange)} .eqrow .c4{color:var(--green)}
+.eqnote{margin:.6vh 0 0!important;color:var(--dim)!important;font-size:clamp(12px,1.25vw,21px)!important}
+.eqnote .m{font-family:var(--mono);color:#fff}
+.k-rule .rulebox{max-width:62ch;padding:3vh 2.4vw}
+.k-rule .rulebox .eq{font-size:clamp(16px,2.3vw,38px);line-height:1.7}
+.fp-grid .card{padding:1.8vh 1.4vw;gap:.6vh}
+.eq{font-family:var(--mono);font-size:clamp(11px,1.28vw,21px);line-height:1.85;color:#fff;margin:0}
+.eq sup{font-size:.64em;line-height:0}
+.eq .c1{color:var(--blue)} .eq .c2{color:var(--purple)} .eq .c3{color:var(--orange)} .eq .c4{color:var(--green)}
+.eq .gap{display:inline-block;width:1.6em}
+.eq .dim{color:var(--dim)}
+.k-fp .eg sup{font-size:.64em;line-height:0}
+.rulebox{border:2px solid var(--yellow);border-radius:10px;padding:2vh 1.6vw;background:#0d0b04;
+  display:flex;flex-direction:column;justify-content:center;gap:.8vh}
+.rulebox .n{font-family:var(--mono);font-size:clamp(10px,.95vw,15px);letter-spacing:.2em;color:var(--yellow)}
+.rulebox .eq{font-size:clamp(13px,1.6vw,27px)}
+.rulebox p{margin:0;font-size:clamp(11px,1.05vw,17px);color:var(--dim);line-height:1.45}
+@media (max-aspect-ratio:1/1){.fp-grid{grid-template-columns:1fr}}
+
+
+
+/* v2 — large text */
+.slide{padding:6vh 6.5vw}
+.doc{gap:3.6vh}
+.doc h2{font-size:clamp(34px,5vw,84px)}
+.doc .kicker{font-size:clamp(12px,1.1vw,18px)}
+.doc p,.doc li{font-size:clamp(20px,2.3vw,38px);line-height:1.4;max-width:none}
+.say{font-size:clamp(24px,3vw,50px)!important;font-weight:600;color:#fff!important;line-height:1.25!important;margin:0}
+.say.y{color:var(--yellow)!important} .say.g{color:var(--green)!important}
+.say b{color:inherit}
+.cap{text-align:center;margin:0 auto!important;color:#cfcfcf!important}
+.cap.left,.math.left{text-align:left;margin:0!important}
+.pts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2.2vh}
+.pts li{padding-left:1.3em;position:relative;color:#e8e8e8}
+.pts li::before{content:"";position:absolute;left:0;top:.55em;width:.45em;height:.45em;border-radius:50%;background:var(--blue)}
+.pts b{color:#fff}
+.two{display:grid;gap:4vw;align-items:center;min-height:0}
+.two .side{display:flex;flex-direction:column;gap:3vh}
+.two svg{width:100%;height:auto;max-height:58vh}
+.card{padding:3vh 2vw;gap:1.2vh}
+.card .n{font-size:clamp(13px,1.2vw,20px)}
+.card h3.comp{font-size:clamp(28px,3.6vw,60px)}
+.card p{font-size:clamp(18px,2vw,32px);color:#cfcfcf;line-height:1.35}
+.cards{gap:2.4vw}
+.math{font-size:clamp(22px,3vw,52px);line-height:1.5;margin:0}
+.math sup,.doc sup,.card sup{font-size:.6em;line-height:0}
+.code{font-family:var(--mono);font-size:clamp(18px,2.3vw,38px);line-height:1.8;color:#fff;
+  border-left:4px solid var(--blue);padding:1vh 0 1vh 1.4em}
+.code .hl3{color:var(--green)}
+table{font-size:clamp(20px,2.3vw,38px)}
+th{font-size:.6em}
+td{padding:.7em 1em .7em 0}
+.qtext{font-size:clamp(30px,4.4vw,72px)!important}
+.opts{max-width:none}
+.opts li{font-size:clamp(20px,2.4vw,40px);padding:1.8vh 1.6vw}
+.qwhy{font-size:clamp(18px,2vw,34px)}
+.qhint{font-size:clamp(12px,1.1vw,18px)}
+.k-wide .art svg{max-height:60vh}
+.k-kp .art svg{max-height:50vh;width:auto;max-width:100%}
+.doc .art{min-height:0}
+.doc .art svg{max-height:56vh}
+@media (max-aspect-ratio:1/1){.two{grid-template-columns:1fr!important}}
+
+.k-cardfig .card .art svg{max-height:34vh}
+.k-cardfig .card{align-items:center;text-align:center}
+.cards.c1{grid-template-columns:1fr}
+
+</style>
+
+<div class="deck" id="deck">
+
+  <section class="slide">
+    <div class="center">
+      <div class="tag">CS 4085 · Deep Learning · Chapter 2 · Lecture 1</div>
+      <div class="big">Practical Aspects<br>of Deep Learning</div>
+      <div class="sub" style="margin-top:1.2em;color:#c8c8c8">
+        Dr. Naila Marir<br>
+        <span style="color:var(--dim)">Effat University · College of Engineering</span>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">This lecture</div>
+      <h2>Three parts</h2>
+      <div class="cards c3">
+        <div class="card b"><div class="n">PART 1</div><h3 class="comp">Set up</h3><p>data splits, bias and variance</p></div>
+        <div class="card p"><div class="n">PART 2</div><h3 class="comp">Regularise</h3><p>stop overfitting</p></div>
+        <div class="card g"><div class="n">PART 3</div><h3 class="comp">Optimise</h3><p>make training fast and reliable</p></div>
+      </div>
+    </div>
+  </section>
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 1</div>
+      <div class="big">Setting Up Your<br>ML Application</div>
+      
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Setting up</div>
+      <h2>Applied ML is iterative</h2>
+      <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 460 380" role="img" aria-label="A cycle of three steps joined by arrows: idea, then code, then experiment, then back to idea.">
+<defs><marker id="cy1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--blue)"/></marker></defs>
+<path d="M274 73 A130 130 0 0 1 358 218" fill="none" stroke="var(--blue)" stroke-width="3" marker-end="url(#cy1)"/>
+<path d="M314 295 A130 130 0 0 1 146 295" fill="none" stroke="var(--blue)" stroke-width="3" marker-end="url(#cy1)"/>
+<path d="M102 218 A130 130 0 0 1 186 73" fill="none" stroke="var(--blue)" stroke-width="3" marker-end="url(#cy1)"/>
+<rect x="160" y="41" width="140" height="48" rx="24" fill="#0a0a0a" stroke="var(--yellow)" stroke-width="2.4"/>
+<text x="230" y="72" fill="var(--yellow)" font-size="19" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Idea</text>
+<rect x="273" y="236" width="140" height="48" rx="24" fill="#0a0a0a" stroke="var(--blue)" stroke-width="2.4"/>
+<text x="343" y="267" fill="var(--blue)" font-size="19" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Code</text>
+<rect x="47" y="236" width="140" height="48" rx="24" fill="#0a0a0a" stroke="var(--green)" stroke-width="2.4"/>
+<text x="117" y="267" fill="var(--green)" font-size="19" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Experiment</text>
+<text x="230" y="201" fill="#6a6a6a" font-size="14" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >repeat many times</text>
+</svg>
+      </div>
+        <div class="side">
+      <ul class="pts">
+        <li>How many <b>layers</b>?</li>
+        <li>How many <b>hidden units</b>?</li>
+        <li>Which <b>learning rate</b>?</li>
+        <li>Which <b>activation</b>?</li>
+      </ul>      <p class="say y">You can’t guess. You <b>try</b>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Setting up</div>
+      <h2>Train / dev / test sets</h2>
+      <div class="art">
+<svg viewBox="0 0 900 120" role="img" aria-label="One long bar of data split into a large training set, then a smaller dev set, then a test set.">
+<rect x="40" y="40" width="600" height="64" rx="6" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.4"/>
+<text x="340.0" y="80" fill="#fff" font-size="20" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Training set</text>
+<rect x="640" y="40" width="120" height="64" rx="6" fill="#33224d" stroke="var(--purple)" stroke-width="2.4"/>
+<text x="700.0" y="80" fill="#fff" font-size="20" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Dev</text>
+<rect x="760" y="40" width="100" height="64" rx="6" fill="#0f2a14" stroke="var(--green)" stroke-width="2.4"/>
+<text x="810.0" y="80" fill="#fff" font-size="20" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Test</text>
+<text x="40" y="26" fill="#6a6a6a" font-size="14" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >ALL YOUR DATA</text>
+</svg>
+      </div>
+      <div class="cards c3">
+        <div class="card b"><div class="n">TRAIN</div><h3 class="comp">Learn W, b</h3></div>
+        <div class="card p"><div class="n">DEV</div><h3 class="comp">Pick the best model</h3></div>
+        <div class="card g"><div class="n">TEST</div><h3 class="comp">Final score</h3></div>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Setting up</div>
+      <h2>How big is each set?</h2>
+      <div class="art">
+<svg viewBox="0 0 900 330" role="img" aria-label="Four stacked bars comparing splits. Small data: 70/30 or 60/20/20. Big data with a million examples: 98/1/1. Even bigger: 99.5/0.25/0.25.">
+<text x="40" y="30" fill="#bdbdbd" font-size="15" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >Small data · 100 – 10,000 examples</text>
+<rect x="40.0" y="40" width="392.0" height="30" rx="3" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<rect x="434.0" y="40" width="168.0" height="30" rx="3" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="628" y="62" fill="#fff" font-size="19" font-weight="700" text-anchor="start" font-family="JetBrains Mono,monospace" >70 / 30</text>
+<text x="40" y="106" fill="#bdbdbd" font-size="15" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >Small data · with a dev set</text>
+<rect x="40.0" y="116" width="336.0" height="30" rx="3" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<rect x="378.0" y="116" width="112.0" height="30" rx="3" fill="#33224d" stroke="var(--purple)" stroke-width="2"/>
+<rect x="492.0" y="116" width="112.0" height="30" rx="3" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="628" y="138" fill="#fff" font-size="19" font-weight="700" text-anchor="start" font-family="JetBrains Mono,monospace" >60 / 20 / 20</text>
+<text x="40" y="182" fill="#bdbdbd" font-size="15" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >Big data · 1,000,000 examples</text>
+<rect x="40.0" y="192" width="548.8" height="30" rx="3" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<rect x="590.8" y="192" width="5.6" height="30" rx="3" fill="#33224d" stroke="var(--purple)" stroke-width="2"/>
+<rect x="598.4" y="192" width="5.6" height="30" rx="3" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="628" y="214" fill="#fff" font-size="19" font-weight="700" text-anchor="start" font-family="JetBrains Mono,monospace" >98 / 1 / 1</text>
+<text x="40" y="258" fill="#bdbdbd" font-size="15" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >Even bigger</text>
+<rect x="40.0" y="268" width="557.2" height="30" rx="3" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<rect x="599.2" y="268" width="5.0" height="30" rx="3" fill="#33224d" stroke="var(--purple)" stroke-width="2"/>
+<rect x="606.2" y="268" width="5.0" height="30" rx="3" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="628" y="290" fill="#fff" font-size="19" font-weight="700" text-anchor="start" font-family="JetBrains Mono,monospace" >99.5 / 0.25 / 0.25</text>
+<line x1="40" y1="160" x2="860" y2="160" stroke="#2a2a2a" stroke-dasharray="4 4"/>
+</svg>
+      </div>
+      <p class="cap">Big data → dev and test can be <b>1%</b> or less.</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Setting up · a common trap</div>
+      <h2>Same distribution for dev and test</h2>
+      <div class="art">
+<svg viewBox="0 0 900 300" role="img" aria-label="Left: a sharp, well-framed cat photo labelled training set, from webpages. Right: two blurry, dim cat photos labelled dev and test sets, from app users."><defs><filter id="mmblur"><feGaussianBlur stdDeviation="3.2"/></filter><marker id="mm1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#9a9a9a"/></marker></defs>
+<g transform="translate(40,40)"><rect width="260" height="200" rx="10" fill="#10202c" stroke="#3a3a3a"/><g transform="scale(1.733,1.667)"><rect x="0" y="92" width="150" height="28" fill="#203018"/><path d="M30 112 Q32 60 62 52 L56 22 L76 44 Q86 41 96 44 L116 22 L110 54 Q132 64 128 112z" fill="#3a2410" stroke="var(--orange)" stroke-width="2.4"/><circle cx="74" cy="66" r="4.5" fill="var(--yellow)"/><circle cx="98" cy="66" r="4.5" fill="var(--yellow)"/><path d="M82 78 l4 4 l4 -4" fill="none" stroke="var(--orange)" stroke-width="2"/><path d="M128 104 Q150 92 140 70" fill="none" stroke="var(--orange)" stroke-width="5" stroke-linecap="round"/></g></g>
+<text x="170" y="280" fill="var(--orange)" font-size="20" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >TRAIN · web photos</text>
+<g transform="translate(470,40)"><rect width="180" height="140" rx="10" fill="#1a1a1a" stroke="#3a3a3a"/><g transform="scale(1.200,1.167)" filter="url(#mmblur)"><rect x="0" y="92" width="150" height="28" fill="#203018"/><path d="M30 112 Q32 60 62 52 L56 22 L76 44 Q86 41 96 44 L116 22 L110 54 Q132 64 128 112z" fill="#3a2410" stroke="var(--orange)" stroke-width="2.4"/><circle cx="74" cy="66" r="4.5" fill="var(--yellow)"/><circle cx="98" cy="66" r="4.5" fill="var(--yellow)"/><path d="M82 78 l4 4 l4 -4" fill="none" stroke="var(--orange)" stroke-width="2"/><path d="M128 104 Q150 92 140 70" fill="none" stroke="var(--orange)" stroke-width="5" stroke-linecap="round"/></g></g>
+<g transform="translate(680,80)"><rect width="180" height="140" rx="10" fill="#1a1a1a" stroke="#3a3a3a"/><g transform="scale(1.200,1.167)" filter="url(#mmblur)"><rect x="0" y="92" width="150" height="28" fill="#203018"/><path d="M30 112 Q32 60 62 52 L56 22 L76 44 Q86 41 96 44 L116 22 L110 54 Q132 64 128 112z" fill="#3a2410" stroke="var(--orange)" stroke-width="2.4"/><circle cx="74" cy="66" r="4.5" fill="var(--yellow)"/><circle cx="98" cy="66" r="4.5" fill="var(--yellow)"/><path d="M82 78 l4 4 l4 -4" fill="none" stroke="var(--orange)" stroke-width="2"/><path d="M128 104 Q150 92 140 70" fill="none" stroke="var(--orange)" stroke-width="5" stroke-linecap="round"/></g></g>
+<text x="665" y="280" fill="var(--blue)" font-size="20" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >DEV + TEST · app photos</text>
+<path d="M330 140 H440" stroke="#9a9a9a" stroke-width="2.6" stroke-dasharray="7 6"/>
+<text x="385" y="128" fill="var(--red)" font-size="40" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >≠</text>
+</svg>
+      </div>
+      <p class="say y">Dev and test must come from the <b>same</b> place.</p>
+    </div>
+  </section>
+  <section class="slide k-q">
+    <div class="doc">
+      <div class="qhead">Question</div>
+      <h2 class="qtext">You have 2,000,000 examples.<br>Which split?</h2>
+      <ul class="opts">
+        <li><span class="lt">A</span><span><span class="mono">60 / 20 / 20</span></span></li>
+        <li class="ans"><span class="lt">B</span><span><span class="mono">98 / 1 / 1</span></span></li>
+        <li><span class="lt">C</span><span><span class="mono">33 / 33 / 33</span></span></li>
+        <li><span class="lt">D</span><span><span class="mono">50 / 50 / 0</span></span></li>
+      </ul>
+      <p class="qwhy"><b>B.</b> 20,000 examples is plenty for dev and for test. Put the rest into training.</p>
+      <p class="qhint">press A to reveal</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Bias and variance</div>
+      <h2>Bias and variance</h2>
+      <div class="art">
+<svg viewBox="0 0 900 290" role="img" aria-label="Three plots of the same two-class data. Left: a straight-line boundary that misclassifies many points, labelled high bias, underfitting. Middle: a smooth curved boundary, labelled just right. Right: a wiggly boundary that loops around a single outlier, labelled high variance, overfitting.">
+<g transform="translate(20,6)">
+<path d="M18 4 V210 H250" fill="none" stroke="#6a6a6a" stroke-width="1.6"/>
+<circle cx="45" cy="110" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="65" cy="95" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="50" cy="140" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="80" cy="125" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="70" cy="160" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="100" cy="145" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="95" cy="105" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="120" cy="130" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="115" cy="165" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="60" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="90" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="125" cy="100" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="165" cy="70" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<path d="M35 40 l10 10 M45 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M65 30 l10 10 M75 30 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M95 50 l10 10 M105 50 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M125 25 l10 10 M135 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 40 l10 10 M165 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M185 25 l10 10 M195 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M205 65 l10 10 M215 65 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M180 95 l10 10 M190 95 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M215 115 l10 10 M225 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 115 l10 10 M165 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M195 155 l10 10 M205 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M145 155 l10 10 M155 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M170 180 l10 10 M180 180 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M135 75 l10 10 M145 75 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M60 10 L200 205" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<text x="250" y="226" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >x₁</text>
+<text x="8" y="12" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >x₂</text>
+<text x="135" y="252" fill="#fff" font-size="18" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >high bias</text>
+<text x="135" y="276" fill="var(--orange)" font-size="14" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >underfitting</text>
+</g>
+<g transform="translate(320,6)">
+<path d="M18 4 V210 H250" fill="none" stroke="#6a6a6a" stroke-width="1.6"/>
+<circle cx="45" cy="110" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="65" cy="95" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="50" cy="140" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="80" cy="125" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="70" cy="160" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="100" cy="145" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="95" cy="105" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="120" cy="130" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="115" cy="165" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="60" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="90" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="125" cy="100" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="165" cy="70" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<path d="M35 40 l10 10 M45 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M65 30 l10 10 M75 30 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M95 50 l10 10 M105 50 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M125 25 l10 10 M135 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 40 l10 10 M165 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M185 25 l10 10 M195 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M205 65 l10 10 M215 65 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M180 95 l10 10 M190 95 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M215 115 l10 10 M225 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 115 l10 10 M165 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M195 155 l10 10 M205 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M145 155 l10 10 M155 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M170 180 l10 10 M180 180 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M135 75 l10 10 M145 75 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M20 78 C70 70, 115 66, 130 92 S 142 150, 134 175 S 128 200, 128 205" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<text x="250" y="226" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >x₁</text>
+<text x="8" y="12" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >x₂</text>
+<text x="135" y="252" fill="#fff" font-size="18" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >“just right”</text>
+<text x="135" y="276" fill="var(--green)" font-size="14" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >generalises</text>
+</g>
+<g transform="translate(620,6)">
+<path d="M18 4 V210 H250" fill="none" stroke="#6a6a6a" stroke-width="1.6"/>
+<circle cx="45" cy="110" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="65" cy="95" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="50" cy="140" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="80" cy="125" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="70" cy="160" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="100" cy="145" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="95" cy="105" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="120" cy="130" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="115" cy="165" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="60" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="90" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="125" cy="100" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="165" cy="70" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<path d="M35 40 l10 10 M45 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M65 30 l10 10 M75 30 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M95 50 l10 10 M105 50 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M125 25 l10 10 M135 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 40 l10 10 M165 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M185 25 l10 10 M195 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M205 65 l10 10 M215 65 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M180 95 l10 10 M190 95 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M215 115 l10 10 M225 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 115 l10 10 M165 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M195 155 l10 10 M205 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M145 155 l10 10 M155 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M170 180 l10 10 M180 180 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M135 75 l10 10 M145 75 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M20 78 C70 70, 110 64, 125 80 C140 92, 148 52, 166 52 C186 52, 188 84, 166 90 C146 96, 140 110, 140 135 S128 190, 128 205" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<text x="250" y="226" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >x₁</text>
+<text x="8" y="12" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >x₂</text>
+<text x="135" y="252" fill="#fff" font-size="18" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >high variance</text>
+<text x="135" y="276" fill="var(--red)" font-size="14" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >overfitting</text>
+</g>
+</svg>
+      </div>
+    </div>
+  </section>
+  <section class="slide k-cardfig">
+    <div class="doc">
+      <div class="kicker">Bias and variance</div>
+      <h2>Underfitting vs overfitting</h2>
+      <div class="cards c2">
+        <div class="card o"><div class="n">HIGH BIAS</div><div class="art"><svg viewBox="0 0 290 260" role="img" aria-label="High bias: a decision boundary on two-class data."><defs></defs>
+<g transform="translate(20,4)">
+<path d="M18 4 V210 H250" fill="none" stroke="#6a6a6a" stroke-width="1.6"/>
+<circle cx="45" cy="110" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="65" cy="95" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="50" cy="140" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="80" cy="125" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="70" cy="160" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="100" cy="145" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="95" cy="105" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="120" cy="130" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="115" cy="165" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="60" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="90" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="125" cy="100" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="165" cy="70" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<path d="M35 40 l10 10 M45 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M65 30 l10 10 M75 30 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M95 50 l10 10 M105 50 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M125 25 l10 10 M135 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 40 l10 10 M165 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M185 25 l10 10 M195 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M205 65 l10 10 M215 65 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M180 95 l10 10 M190 95 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M215 115 l10 10 M225 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 115 l10 10 M165 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M195 155 l10 10 M205 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M145 155 l10 10 M155 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M170 180 l10 10 M180 180 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M135 75 l10 10 M145 75 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M60 10 L200 205" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<text x="250" y="226" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >x₁</text>
+<text x="8" y="12" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >x₂</text>
+</g>
+</svg></div><h3 class="comp">Underfits</h3><p>too simple</p></div>
+        <div class="card r"><div class="n">HIGH VARIANCE</div><div class="art"><svg viewBox="0 0 290 260" role="img" aria-label="High variance: a decision boundary on two-class data."><defs></defs>
+<g transform="translate(20,4)">
+<path d="M18 4 V210 H250" fill="none" stroke="#6a6a6a" stroke-width="1.6"/>
+<circle cx="45" cy="110" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="65" cy="95" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="50" cy="140" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="80" cy="125" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="70" cy="160" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="100" cy="145" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="95" cy="105" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="120" cy="130" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="115" cy="165" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="60" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="90" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="125" cy="100" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="165" cy="70" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<path d="M35 40 l10 10 M45 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M65 30 l10 10 M75 30 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M95 50 l10 10 M105 50 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M125 25 l10 10 M135 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 40 l10 10 M165 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M185 25 l10 10 M195 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M205 65 l10 10 M215 65 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M180 95 l10 10 M190 95 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M215 115 l10 10 M225 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 115 l10 10 M165 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M195 155 l10 10 M205 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M145 155 l10 10 M155 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M170 180 l10 10 M180 180 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M135 75 l10 10 M145 75 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M20 78 C70 70, 110 64, 125 80 C140 92, 148 52, 166 52 C186 52, 188 84, 166 90 C146 96, 140 110, 140 135 S128 190, 128 205" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<text x="250" y="226" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >x₁</text>
+<text x="8" y="12" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >x₂</text>
+</g>
+</svg></div><h3 class="comp">Overfits</h3><p>memorises noise</p></div>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Bias and variance · diagnose</div>
+      <h2>Read two numbers</h2>
+
+      <div class="tbl"><table>
+        <thead><tr><th></th><th>Case 1</th><th>Case 2</th><th>Case 3</th><th>Case 4</th></tr></thead>
+        <tbody>
+          <tr><td>Train error</td><td class="k">1%</td><td class="k">15%</td><td class="k">15%</td><td class="k">0.5%</td></tr>
+          <tr><td>Dev error</td><td class="k">11%</td><td class="k">16%</td><td class="k">30%</td><td class="k">1%</td></tr>
+          <tr class="mark"><td></td><td style="color:var(--red)">high<br>variance</td><td style="color:var(--orange)">high<br>bias</td>
+            <td style="color:var(--purple)">both</td><td style="color:var(--green)">good</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Bias and variance · the rule</div>
+      <h2>What each number tells you</h2>
+      <div class="two" style="grid-template-columns:1.4fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 640 350" role="img" aria-label="Bar chart: Bayes error 0%, training error 15%, dev error 30%. The distance from Bayes to train is bias; the gap from train to dev is variance."><defs><marker id="eb1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#fff"/></marker></defs>
+<path d="M120 30 V300 H600" fill="none" stroke="#5a5a5a" stroke-width="1.6"/>
+<text x="108" y="306.0" fill="#6a6a6a" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >0%</text>
+<line x1="120" y1="300.0" x2="600" y2="300.0" stroke="#1e1e1e"/>
+<text x="108" y="227.875" fill="#6a6a6a" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >10%</text>
+<line x1="120" y1="221.875" x2="600" y2="221.875" stroke="#1e1e1e"/>
+<text x="108" y="149.75" fill="#6a6a6a" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >20%</text>
+<line x1="120" y1="143.75" x2="600" y2="143.75" stroke="#1e1e1e"/>
+<text x="108" y="71.625" fill="#6a6a6a" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >30%</text>
+<line x1="120" y1="65.625" x2="600" y2="65.625" stroke="#1e1e1e"/>
+<rect x="125" y="297" width="90" height="3" rx="4" fill="#141414" stroke="#5a5a5a" stroke-width="2.4"/>
+<text x="170" y="332" fill="#9a9a9a" font-size="22" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Bayes</text>
+<text x="170" y="287" fill="#fff" font-size="22" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >0%</text>
+<rect x="285" y="182.8125" width="90" height="117.1875" rx="4" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.4"/>
+<text x="330" y="332" fill="var(--blue)" font-size="22" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Train</text>
+<text x="330" y="172.8125" fill="#fff" font-size="22" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >15%</text>
+<rect x="445" y="65.625" width="90" height="234.375" rx="4" fill="#33224d" stroke="var(--purple)" stroke-width="2.4"/>
+<text x="490" y="332" fill="var(--purple)" font-size="22" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Dev</text>
+<text x="490" y="55.625" fill="#fff" font-size="22" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >30%</text>
+<path d="M262 300.0 V182.8125" stroke="var(--orange)" stroke-width="5"/>
+<text x="254" y="249.40625" fill="var(--orange)" font-size="22" font-weight="700" text-anchor="end" font-family="JetBrains Mono,monospace" >bias</text>
+<path d="M422 182.8125 V65.625" stroke="var(--red)" stroke-width="5"/>
+<text x="414" y="132.21875" fill="var(--red)" font-size="22" font-weight="700" text-anchor="end" font-family="JetBrains Mono,monospace" >variance</text>
+<line x1="170" y1="300.0" x2="375" y2="300.0" stroke="var(--orange)" stroke-dasharray="4 4"/>
+<line x1="285" y1="182.8125" x2="535" y2="182.8125" stroke="var(--red)" stroke-dasharray="4 4"/>
+</svg>
+      </div>
+        <div class="side">
+      <ul class="pts">
+        <li>Bayes → train = <b style='color:var(--orange)'>bias</b></li>
+        <li>Train → dev = <b style='color:var(--red)'>variance</b></li>
+      </ul>
+      <p class="cap left">Case 3: high bias <b>and</b> high variance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Bias and variance · compared to what?</div>
+      <h2>Bayes error matters</h2>
+      <div class="two" style="grid-template-columns:1.4fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 640 350" role="img" aria-label="Bar chart: Bayes error 14%, training error 15%, dev error 16%. The distance from Bayes to train is bias; the gap from train to dev is variance."><defs><marker id="eb1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#fff"/></marker></defs>
+<path d="M120 30 V300 H600" fill="none" stroke="#5a5a5a" stroke-width="1.6"/>
+<text x="108" y="306.0" fill="#6a6a6a" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >0%</text>
+<line x1="120" y1="300.0" x2="600" y2="300.0" stroke="#1e1e1e"/>
+<text x="108" y="227.875" fill="#6a6a6a" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >10%</text>
+<line x1="120" y1="221.875" x2="600" y2="221.875" stroke="#1e1e1e"/>
+<text x="108" y="149.75" fill="#6a6a6a" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >20%</text>
+<line x1="120" y1="143.75" x2="600" y2="143.75" stroke="#1e1e1e"/>
+<text x="108" y="71.625" fill="#6a6a6a" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >30%</text>
+<line x1="120" y1="65.625" x2="600" y2="65.625" stroke="#1e1e1e"/>
+<rect x="125" y="190.625" width="90" height="109.375" rx="4" fill="#141414" stroke="#5a5a5a" stroke-width="2.4"/>
+<text x="170" y="332" fill="#9a9a9a" font-size="22" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Bayes</text>
+<text x="170" y="180.625" fill="#fff" font-size="22" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >14%</text>
+<rect x="285" y="182.8125" width="90" height="117.1875" rx="4" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.4"/>
+<text x="330" y="332" fill="var(--blue)" font-size="22" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Train</text>
+<text x="330" y="172.8125" fill="#fff" font-size="22" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >15%</text>
+<rect x="445" y="175.0" width="90" height="125.0" rx="4" fill="#33224d" stroke="var(--purple)" stroke-width="2.4"/>
+<text x="490" y="332" fill="var(--purple)" font-size="22" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Dev</text>
+<text x="490" y="165.0" fill="#fff" font-size="22" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >16%</text>
+<path d="M262 190.625 V182.8125" stroke="var(--orange)" stroke-width="5"/>
+<path d="M422 182.8125 V175.0" stroke="var(--red)" stroke-width="5"/>
+<line x1="170" y1="190.625" x2="375" y2="190.625" stroke="var(--orange)" stroke-dasharray="4 4"/>
+<line x1="285" y1="182.8125" x2="535" y2="182.8125" stroke="var(--red)" stroke-dasharray="4 4"/>
+</svg>
+      </div>
+        <div class="side">
+      <ul class="pts">
+        <li>Blurry photos: best possible ≈ 14%</li>
+        <li>Now 15% train error is <b>fine</b></li>
+      </ul>
+      <p class="cap left">Judge bias against the best possible error.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Bias and variance</div>
+      <h2>It can be both</h2>
+      <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 300 290" role="img" aria-label="A boundary that is mostly a straight line, so it underfits most of the data, but has a loop that bends around one outlier, so it also overfits.">
+<g transform="translate(20,6)">
+<path d="M18 4 V210 H250" fill="none" stroke="#6a6a6a" stroke-width="1.6"/>
+<circle cx="45" cy="110" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="65" cy="95" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="50" cy="140" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="80" cy="125" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="70" cy="160" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="100" cy="145" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="95" cy="105" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="120" cy="130" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="115" cy="165" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="60" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="90" cy="185" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="125" cy="100" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<circle cx="165" cy="70" r="6" fill="none" stroke="#d8d8d8" stroke-width="1.8"/>
+<path d="M35 40 l10 10 M45 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M65 30 l10 10 M75 30 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M95 50 l10 10 M105 50 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M125 25 l10 10 M135 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 40 l10 10 M165 40 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M185 25 l10 10 M195 25 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M205 65 l10 10 M215 65 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M180 95 l10 10 M190 95 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M215 115 l10 10 M225 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M155 115 l10 10 M165 115 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M195 155 l10 10 M205 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M145 155 l10 10 M155 155 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M170 180 l10 10 M180 180 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M135 75 l10 10 M145 75 l-10 10" stroke="var(--red)" stroke-width="2"/>
+<path d="M60 10 L100 66 C110 50, 176 44, 182 66 C188 90, 130 92, 114 86 L200 205" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<text x="250" y="226" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >x₁</text>
+<text x="8" y="12" fill="#8a8a8a" font-size="13" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >x₂</text>
+<text x="135" y="252" fill="#fff" font-size="18" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >high bias + high variance</text>
+</g>
+</svg>
+      </div>
+        <div class="side">
+      <ul class="pts">
+        <li>Straight line → <b>underfits</b></li>
+        <li>Loop around one point → <b>overfits</b></li>
+      </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide k-q">
+    <div class="doc">
+      <div class="qhead">Question</div>
+      <h2 class="qtext">Train error 2%, dev error 14%.<br>What is the problem?</h2>
+      <ul class="opts">
+        <li><span class="lt">A</span><span>High bias</span></li>
+        <li class="ans"><span class="lt">B</span><span>High variance</span></li>
+        <li><span class="lt">C</span><span>Both</span></li>
+        <li><span class="lt">D</span><span>Neither</span></li>
+      </ul>
+      <p class="qwhy"><b>B.</b> Train error is low, but the jump to dev is large. That is <b>high variance</b>.</p>
+      <p class="qhint">press A to reveal</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Basic recipe</div>
+      <h2>Basic recipe for ML</h2>
+      <div class="art">
+<svg viewBox="0 0 900 400" role="img" aria-label="Flowchart. Ask: high bias, judged by training set performance? If yes, try a bigger network, train longer, or a different architecture, and ask again. If no, ask: high variance, judged by dev set performance? If yes, get more data, add regularisation, or try a different architecture, then go back to the start. If no, you are done.">
+<defs><marker id="rc1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#9a9a9a"/></marker><marker id="rc2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--orange)"/></marker><marker id="rc3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--purple)"/></marker><marker id="rc4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--green)"/></marker></defs>
+<path d="M160 30 L280 80 L160 130 L40 80z" fill="#0a0a0a" stroke="var(--orange)" stroke-width="2.4"/><text x="160" y="76" fill="#fff" font-size="17" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >High bias?</text><text x="160" y="98" fill="#8a8a8a" font-size="12" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >training-set performance</text>
+<path d="M160 210 L280 260 L160 310 L40 260z" fill="#0a0a0a" stroke="var(--purple)" stroke-width="2.4"/><text x="160" y="256" fill="#fff" font-size="17" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >High variance?</text><text x="160" y="278" fill="#8a8a8a" font-size="12" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >dev-set performance</text>
+<rect x="420" y="30" width="300" height="100" rx="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/><text x="440" y="60" fill="#fff" font-size="16" font-weight="600" text-anchor="start" font-family="Poppins,sans-serif" >• Bigger network</text><text x="440" y="86" fill="#bdbdbd" font-size="14" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >• Train longer</text><text x="440" y="112" fill="#bdbdbd" font-size="14" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >• (Different architecture)</text>
+<rect x="420" y="210" width="300" height="100" rx="10" fill="#33224d" stroke="var(--purple)" stroke-width="2.2"/><text x="440" y="240" fill="#fff" font-size="16" font-weight="600" text-anchor="start" font-family="Poppins,sans-serif" >• More data</text><text x="440" y="266" fill="#bdbdbd" font-size="14" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >• Regularisation</text><text x="440" y="292" fill="#bdbdbd" font-size="14" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >• (Different architecture)</text>
+<path d="M282 80 H412" stroke="var(--orange)" stroke-width="2.4" marker-end="url(#rc2)"/><text x="347" y="70" fill="var(--orange)" font-size="14" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >yes</text>
+<path d="M282 260 H412" stroke="var(--purple)" stroke-width="2.4" marker-end="url(#rc3)"/><text x="347" y="250" fill="var(--purple)" font-size="14" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >yes</text>
+<path d="M160 132 V202" stroke="#9a9a9a" stroke-width="2.4" marker-end="url(#rc1)"/><text x="178" y="172" fill="#9a9a9a" font-size="14" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >no</text>
+<path d="M160 312 V352" stroke="var(--green)" stroke-width="2.4" marker-end="url(#rc4)"/><text x="178" y="340" fill="var(--green)" font-size="14" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >no</text>
+<rect x="110" y="356" width="100" height="38" rx="19" fill="#0f2a14" stroke="var(--green)" stroke-width="2.2"/><text x="160" y="381" fill="#fff" font-size="17" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >Done</text>
+<path d="M720 260 H770 V80 M720 80 H770 V10 H160 V22" fill="none" stroke="#9a9a9a" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rc1)"/>
+<text x="782" y="160" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >then ask</text>
+<text x="782" y="178" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >again</text>
+</svg>
+      </div>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Basic recipe</div>
+      <h2>Two tools that just work</h2>
+      <div class="art">
+<svg viewBox="0 0 900 300" role="img" aria-label="Left: a small network grows into a bigger network to cut bias. Right: a small stack of data grows into a tall stack to cut variance."><defs><marker id="tl1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#9a9a9a"/></marker></defs>
+<line x1="40" y1="130" x2="86" y2="130" stroke="#4a4a4a" stroke-width=".8"/><line x1="40" y1="130" x2="86" y2="170" stroke="#4a4a4a" stroke-width=".8"/><line x1="40" y1="170" x2="86" y2="130" stroke="#4a4a4a" stroke-width=".8"/><line x1="40" y1="170" x2="86" y2="170" stroke="#4a4a4a" stroke-width=".8"/><line x1="86" y1="130" x2="132" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="86" y1="170" x2="132" y2="150" stroke="#4a4a4a" stroke-width=".8"/><circle cx="40" cy="130" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="40" cy="170" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="86" cy="130" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="86" cy="170" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="132" cy="150" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<path d="M150 150 h50" stroke="#9a9a9a" stroke-width="2.6" marker-end="url(#tl1)"/>
+<line x1="225" y1="86" x2="271" y2="86" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="86" x2="271" y2="118" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="86" x2="271" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="86" x2="271" y2="182" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="86" x2="271" y2="214" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="118" x2="271" y2="86" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="118" x2="271" y2="118" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="118" x2="271" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="118" x2="271" y2="182" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="118" x2="271" y2="214" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="150" x2="271" y2="86" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="150" x2="271" y2="118" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="150" x2="271" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="150" x2="271" y2="182" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="150" x2="271" y2="214" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="182" x2="271" y2="86" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="182" x2="271" y2="118" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="182" x2="271" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="182" x2="271" y2="182" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="182" x2="271" y2="214" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="214" x2="271" y2="86" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="214" x2="271" y2="118" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="214" x2="271" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="214" x2="271" y2="182" stroke="#4a4a4a" stroke-width=".8"/><line x1="225" y1="214" x2="271" y2="214" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="86" x2="317" y2="86" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="86" x2="317" y2="118" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="86" x2="317" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="86" x2="317" y2="182" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="86" x2="317" y2="214" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="118" x2="317" y2="86" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="118" x2="317" y2="118" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="118" x2="317" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="118" x2="317" y2="182" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="118" x2="317" y2="214" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="150" x2="317" y2="86" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="150" x2="317" y2="118" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="150" x2="317" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="150" x2="317" y2="182" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="150" x2="317" y2="214" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="182" x2="317" y2="86" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="182" x2="317" y2="118" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="182" x2="317" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="182" x2="317" y2="182" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="182" x2="317" y2="214" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="214" x2="317" y2="86" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="214" x2="317" y2="118" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="214" x2="317" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="214" x2="317" y2="182" stroke="#4a4a4a" stroke-width=".8"/><line x1="271" y1="214" x2="317" y2="214" stroke="#4a4a4a" stroke-width=".8"/><line x1="317" y1="86" x2="363" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="317" y1="118" x2="363" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="317" y1="150" x2="363" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="317" y1="182" x2="363" y2="150" stroke="#4a4a4a" stroke-width=".8"/><line x1="317" y1="214" x2="363" y2="150" stroke="#4a4a4a" stroke-width=".8"/><circle cx="225" cy="86" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="225" cy="118" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="225" cy="150" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="225" cy="182" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="225" cy="214" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="271" cy="86" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="271" cy="118" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="271" cy="150" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="271" cy="182" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="271" cy="214" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="317" cy="86" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="317" cy="118" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="317" cy="150" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="317" cy="182" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="317" cy="214" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/><circle cx="363" cy="150" r="10" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<text x="220" y="280" fill="var(--orange)" font-size="19" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >bigger network → less bias</text>
+<rect x="560" y="238" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="560" y="222" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="560" y="206" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/>
+<path d="M650 200 h50" stroke="#9a9a9a" stroke-width="2.6" marker-end="url(#tl1)"/>
+<rect x="720" y="238" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="222" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="206" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="190" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="174" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="158" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="142" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="126" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="110" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="94" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="78" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="62" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/><rect x="720" y="46" width="70" height="12" rx="2" fill="#33224d" stroke="var(--purple)" stroke-width="1.6"/>
+<text x="690" y="280" fill="var(--purple)" font-size="19" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >more data → less variance</text>
+</svg>
+      </div>
+      <p class="cap">Each fixes one problem without hurting the other.</p>
+    </div>
+  </section>
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 2</div>
+      <div class="big">Regularisation</div>
+      <div class="sub" style="margin-top:1em">The first fix for high variance.</div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Regularisation · logistic regression</div>
+      <h2>Penalise large weights</h2>
+      <p class="math">J = (1/m) Σ ℒ(ŷ, y) + <span class="hl">(λ/2m) ‖w‖²</span></p>
+      <ul class="pts">
+        <li>‖w‖² = w₁² + w₂² + … = wᵀw</li>
+        <li><b>λ</b> is a hyperparameter — tune it on dev</li>
+      </ul>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Regularisation · the effect</div>
+      <h2>Large weights get pushed down</h2>
+      <div class="art">
+<svg viewBox="0 0 640 300" role="img" aria-label="Eight weights before and after L2 regularisation. Every weight is smaller afterwards, and the largest ones shrink the most."><defs></defs>
+<line x1="40" y1="150" x2="620" y2="150" stroke="#5a5a5a" stroke-width="1.6"/>
+<rect x="60" y="86" width="22" height="64" fill="#141414" stroke="#6a6a6a" stroke-width="1.6"/>
+<rect x="86" y="124" width="22" height="26" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<rect x="128" y="150" width="22" height="48" fill="#141414" stroke="#6a6a6a" stroke-width="1.6"/>
+<rect x="154" y="150" width="22" height="20" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<rect x="195" y="68" width="22" height="82" fill="#141414" stroke="#6a6a6a" stroke-width="1.6"/>
+<rect x="221" y="118" width="22" height="32" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<rect x="262" y="132" width="22" height="18" fill="#141414" stroke="#6a6a6a" stroke-width="1.6"/>
+<rect x="288" y="140" width="22" height="10" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<rect x="330" y="150" width="22" height="72" fill="#141414" stroke="#6a6a6a" stroke-width="1.6"/>
+<rect x="356" y="150" width="22" height="28" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<rect x="398" y="114" width="22" height="36" fill="#141414" stroke="#6a6a6a" stroke-width="1.6"/>
+<rect x="424" y="134" width="22" height="16" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<rect x="465" y="150" width="22" height="24" fill="#141414" stroke="#6a6a6a" stroke-width="1.6"/>
+<rect x="491" y="150" width="22" height="12" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<rect x="532" y="96" width="22" height="54" fill="#141414" stroke="#6a6a6a" stroke-width="1.6"/>
+<rect x="558" y="128" width="22" height="22" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<rect x="60" y="270" width="18" height="18" fill="#141414" stroke="#6a6a6a"/><text x="88" y="285" fill="#9a9a9a" font-size="17" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >λ = 0</text>
+<rect x="260" y="270" width="18" height="18" fill="#0f2a14" stroke="var(--green)"/><text x="288" y="285" fill="var(--green)" font-size="17" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >λ > 0</text>
+</svg>
+      </div>
+      <p class="cap">The bigger the weight, the bigger the penalty.</p>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Regularisation</div>
+      <h2>L2 or L1?</h2>
+
+      <p class="math"><span class="hl">L2:</span> (λ/2m) Σ w<sub>j</sub>²</p>
+      <p class="math"><span class="hl2">L1:</span> (λ/2m) Σ |w<sub>j</sub>|</p>
+      <p class="say ">L1 makes weights zero. In practice, use <b>L2</b>.</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Regularisation · L2 vs L1, the picture</div>
+      <h2>Circle vs diamond</h2>
+      <div class="art">
+<svg viewBox="0 0 760 440" role="img" aria-label="Two plots of weight space w1 by w2 with elliptical cost contours. Left, L2: the constraint is a circle and the best point touches it where both weights are non-zero. Right, L1: the constraint is a diamond and the best point lands on a corner where w1 is exactly zero."><defs></defs>
+<path d="M40 220 H340 M190 70 V370" stroke="#4a4a4a" stroke-width="1.4"/>
+<text x="340" y="212" fill="#8a8a8a" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >w₁</text>
+<text x="200" y="84" fill="#8a8a8a" font-size="16" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >w₂</text>
+<circle cx="190" cy="220" r="62" fill="#0a1a26" stroke="var(--blue)" stroke-width="3"/>
+<ellipse cx="285" cy="100" rx="40" ry="20" transform="rotate(-35 285 100)" fill="none" stroke="var(--red)" stroke-width="1.8"/>
+<ellipse cx="285" cy="100" rx="74" ry="37" transform="rotate(-35 285 100)" fill="none" stroke="#c84a2a" stroke-width="1.8"/>
+<ellipse cx="285" cy="100" rx="108" ry="54" transform="rotate(-35 285 100)" fill="none" stroke="#9a3a2a" stroke-width="1.8"/>
+<circle cx="285" cy="100" r="4" fill="var(--red)"/>
+<circle cx="230" cy="173" r="8" fill="var(--yellow)"/>
+<text x="190" y="420" fill="var(--blue)" font-size="22" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif" >L2 · both weights small</text>
+<path d="M420 220 H720 M570 70 V370" stroke="#4a4a4a" stroke-width="1.4"/>
+<text x="720" y="212" fill="#8a8a8a" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >w₁</text>
+<text x="580" y="84" fill="#8a8a8a" font-size="16" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >w₂</text>
+<path d="M570 154 L636 220 L570 286 L504 220z" fill="#2a1608" stroke="var(--orange)" stroke-width="3"/>
+<ellipse cx="665" cy="100" rx="40" ry="20" transform="rotate(-35 665 100)" fill="none" stroke="var(--red)" stroke-width="1.8"/>
+<ellipse cx="665" cy="100" rx="74" ry="37" transform="rotate(-35 665 100)" fill="none" stroke="#c84a2a" stroke-width="1.8"/>
+<ellipse cx="665" cy="100" rx="108" ry="54" transform="rotate(-35 665 100)" fill="none" stroke="#9a3a2a" stroke-width="1.8"/>
+<circle cx="665" cy="100" r="4" fill="var(--red)"/>
+<circle cx="570" cy="154" r="8" fill="var(--yellow)"/>
+<text x="558" y="152" fill="var(--yellow)" font-size="16" font-weight="700" text-anchor="end" font-family="JetBrains Mono,monospace" >w₁ = 0</text>
+<text x="570" y="420" fill="var(--orange)" font-size="22" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif" >L1 · corner → a zero weight</text>
+</svg>
+      </div>
+      <p class="cap">The diamond’s corners sit on the axes → some weights become exactly 0.</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Regularisation · neural network</div>
+      <h2>Penalise every layer</h2>
+      <p class="math">+ <span class="hl">(λ/2m) Σ<sub>l</sub> ‖W<sup>[l]</sup>‖<sub>F</sub>²</span></p>
+      <div class="art">
+<svg viewBox="0 0 880 300" role="img" aria-label="A 3 by 4 weight matrix W. Each entry is squared, and all twelve squares are added to give the squared Frobenius norm."><defs><marker id="fr1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#9a9a9a"/></marker></defs>
+<rect x="54" y="54" width="340" height="204" rx="6" fill="none" stroke="var(--purple)" stroke-width="2.4"/>
+<rect x="63" y="63" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="101.0" y="99.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.5</text>
+<rect x="145" y="63" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="183.0" y="99.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >-1.2</text>
+<rect x="227" y="63" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="265.0" y="99.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.3</text>
+<rect x="309" y="63" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="347.0" y="99.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.8</text>
+<rect x="63" y="127" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="101.0" y="163.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >-0.4</text>
+<rect x="145" y="127" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="183.0" y="163.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.9</text>
+<rect x="227" y="127" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="265.0" y="163.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >-0.7</text>
+<rect x="309" y="127" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="347.0" y="163.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.2</text>
+<rect x="63" y="191" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="101.0" y="227.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1.1</text>
+<rect x="145" y="191" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="183.0" y="227.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >-0.3</text>
+<rect x="227" y="191" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="265.0" y="227.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.6</text>
+<rect x="309" y="191" width="76" height="58" rx="5" fill="#33224d"/>
+<text x="347.0" y="227.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >-0.9</text>
+<rect x="474" y="54" width="340" height="204" rx="6" fill="none" stroke="var(--green)" stroke-width="2.4"/>
+<rect x="483" y="63" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="521.0" y="99.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.25</text>
+<rect x="565" y="63" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="603.0" y="99.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1.44</text>
+<rect x="647" y="63" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="685.0" y="99.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.09</text>
+<rect x="729" y="63" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="767.0" y="99.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.64</text>
+<rect x="483" y="127" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="521.0" y="163.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.16</text>
+<rect x="565" y="127" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="603.0" y="163.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.81</text>
+<rect x="647" y="127" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="685.0" y="163.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.49</text>
+<rect x="729" y="127" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="767.0" y="163.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.04</text>
+<rect x="483" y="191" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="521.0" y="227.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1.21</text>
+<rect x="565" y="191" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="603.0" y="227.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.09</text>
+<rect x="647" y="191" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="685.0" y="227.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.36</text>
+<rect x="729" y="191" width="76" height="58" rx="5" fill="#0f2a14"/>
+<text x="767.0" y="227.0" fill="#fff" font-size="20" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.81</text>
+<text x="224" y="36" fill="var(--purple)" font-size="18" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >W  (n[l] × n[l−1])</text>
+<text x="644" y="36" fill="var(--green)" font-size="18" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >square every entry</text>
+<path d="M405 150 h60" stroke="#9a9a9a" stroke-width="2.6" marker-end="url(#fr1)"/>
+<text x="644" y="290" fill="var(--green)" font-size="20" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >add them all:  ‖W‖F² = 6.39</text>
+</svg>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Regularisation · backprop</div>
+      <h2>One extra term in dW</h2>
+      <p class="math">dW<sup>[l]</sup> = (backprop) + <span class="hl">(λ/m) W<sup>[l]</sup></span></p>
+      <p class="cap">Everything else in backprop stays the same.</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Regularisation · the update</div>
+      <h2>Why it’s called weight decay</h2>
+      <p class="math">W<sup>[l]</sup> := <span class="hl3">(1 − αλ/m)</span> W<sup>[l]</sup> − α (backprop)</p>
+      <div class="art">
+<svg viewBox="0 0 700 320" role="img" aria-label="A weight's size over training steps. Without regularisation it stays large; with weight decay it is multiplied by a factor slightly below 1 every step and shrinks steadily."><defs></defs>
+<path d="M70 20 V270 H660" fill="none" stroke="#5a5a5a" stroke-width="1.6"/>
+<polyline points="70,70 76,73 82,76 87,79 93,81 99,83 105,85 111,87 116,87 122,88 128,88 134,87 140,86 145,85 151,83 157,81 163,78 169,75 174,73 180,70 186,67 192,64 198,61 203,59 209,56 215,55 221,53 227,52 232,52 238,52 244,53 250,54 256,55 261,57 267,60 273,62 279,65 285,68 290,71 296,74 302,77 308,79 314,82 319,84 325,86 331,87 337,88 343,88 348,88 354,87 360,86 366,84 372,82 377,80 383,77 389,75 395,72 401,69 406,66 412,63 418,60 424,58 430,56 435,54 441,53 447,52 453,52 459,52 464,53 470,54 476,56 482,58 488,60 493,63 499,66 505,69 511,72 517,75 522,78 528,80 534,82 540,84 546,86 551,87 557,88 563,88 569,88 575,87 580,86 586,84 592,82 598,79 604,77 609,74 615,71 621,68 627,65 633,62 638,59 644,57 650,55" fill="none" stroke="#7a7a7a" stroke-width="3" stroke-dasharray="8 6"/>
+<polyline points="70,70 76,75 82,79 87,83 93,87 99,91 105,95 111,99 116,102 122,105 128,108 134,111 140,114 145,116 151,118 157,120 163,122 169,124 174,126 180,128 186,130 192,132 198,134 203,136 209,138 215,140 221,142 227,144 232,146 238,148 244,151 250,153 256,155 261,158 267,160 273,163 279,165 285,168 290,170 296,172 302,174 308,177 314,179 319,181 325,182 331,184 337,186 343,187 348,189 354,190 360,191 366,193 372,194 377,195 383,196 389,197 395,198 401,199 406,200 412,201 418,202 424,203 430,204 435,205 441,206 447,207 453,208 459,209 464,210 470,211 476,213 482,214 488,215 493,216 499,217 505,219 511,220 517,221 522,222 528,223 534,224 540,225 546,226 551,227 557,228 563,229 569,229 575,230 580,231 586,231 592,232 598,232 604,233 609,233 615,234 621,234 627,235 633,235 638,236 644,236 650,237" fill="none" stroke="var(--green)" stroke-width="4"/>
+<text x="650" y="38" fill="#9a9a9a" font-size="20" font-weight="600" text-anchor="end" font-family="Poppins,sans-serif" >no regularisation</text>
+<text x="150" y="258" fill="var(--green)" font-size="20" font-weight="700" text-anchor="start" font-family="Poppins,sans-serif" >with weight decay</text>
+<text x="365" y="305" fill="#8a8a8a" font-size="17" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >training steps →</text>
+<text x="58" y="30" fill="#8a8a8a" font-size="17" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >|w|</text>
+</svg>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Why regularisation works · 1</div>
+      <h2>Big λ → smaller network</h2>
+      <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 520 240" role="img" aria-label="A network in which most hidden units are crossed out, leaving a thin path that behaves like a much smaller network.">
+<defs><marker id="nt85917" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--green)"/></marker></defs>
+<g stroke="#6e6e6e" stroke-width="1" opacity=".65">
+<line x1="80" y1="46" x2="170" y2="46"/>
+<line x1="80" y1="120" x2="170" y2="46"/>
+<line x1="80" y1="194" x2="170" y2="46"/>
+<line x1="210" y1="46" x2="300" y2="120"/>
+<line x1="340" y1="120" x2="420" y2="120"/>
+</g>
+<text x="56" y="53" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">1</tspan></text>
+<text x="56" y="127" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">2</tspan></text>
+<text x="56" y="201" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">3</tspan></text>
+<circle cx="190" cy="46" r="20" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="190" cy="120" r="20" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2" stroke-dasharray="3 3"/>
+<path d="M178 108 l24 24 M202 108 l-24 24" stroke="var(--red)" stroke-width="2.6"/>
+<circle cx="190" cy="194" r="20" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2" stroke-dasharray="3 3"/>
+<path d="M178 182 l24 24 M202 182 l-24 24" stroke="var(--red)" stroke-width="2.6"/>
+<circle cx="320" cy="46" r="20" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2" stroke-dasharray="3 3"/>
+<path d="M308 34 l24 24 M332 34 l-24 24" stroke="var(--red)" stroke-width="2.6"/>
+<circle cx="320" cy="120" r="20" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="320" cy="194" r="20" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2" stroke-dasharray="3 3"/>
+<path d="M308 182 l24 24 M332 182 l-24 24" stroke="var(--red)" stroke-width="2.6"/>
+<circle cx="440" cy="120" r="20" fill="#0f2a14" stroke="var(--green)" stroke-width="2.2"/>
+<path d="M462 120 h34" stroke="var(--green)" stroke-width="2.4" marker-end="url(#nt85917)"/>
+<text x="508" y="128" fill="var(--green)" font-size="24" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >ŷ</text>
+</svg>
+      </div>
+        <div class="side">
+      <ul class="pts">
+        <li>λ large → W ≈ 0</li>
+        <li>Many units do almost nothing</li>
+        <li>Simpler model → less overfitting</li>
+      </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Why regularisation works · 2</div>
+      <h2>Small weights → nearly linear</h2>
+      <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 520 330" role="img" aria-label="The tanh curve. Near z equals zero it is almost a straight line, highlighted in red. When the weights are small, z stays in this region, so the unit behaves almost linearly.">
+<path d="M20 160 H500 M260 20 V300" stroke="#4a4a4a" stroke-width="1.4"/>
+<polyline points="20.0,270.0 22.4,270.0 24.8,270.0 27.2,270.0 29.6,270.0 32.0,270.0 34.4,270.0 36.8,270.0 39.2,270.0 41.6,270.0 44.0,270.0 46.4,270.0 48.8,270.0 51.2,270.0 53.6,270.0 56.0,270.0 58.4,270.0 60.8,269.9 63.2,269.9 65.6,269.9 68.0,269.9 70.4,269.9 72.8,269.9 75.2,269.9 77.6,269.9 80.0,269.9 82.4,269.9 84.8,269.9 87.2,269.8 89.6,269.8 92.0,269.8 94.4,269.8 96.8,269.8 99.2,269.7 101.6,269.7 104.0,269.7 106.4,269.6 108.8,269.6 111.2,269.6 113.6,269.5 116.0,269.5 118.4,269.4 120.8,269.3 123.2,269.3 125.6,269.2 128.0,269.1 130.4,269.0 132.8,268.9 135.2,268.8 137.6,268.7 140.0,268.5 142.4,268.4 144.8,268.2 147.2,268.0 149.6,267.8 152.0,267.6 154.4,267.3 156.8,267.1 159.2,266.7 161.6,266.4 164.0,266.0 166.4,265.6 168.8,265.2 171.2,264.7 173.6,264.1 176.0,263.6 178.4,262.9 180.8,262.2 183.2,261.4 185.6,260.5 188.0,259.6 190.4,258.5 192.8,257.4 195.2,256.1 197.6,254.8 200.0,253.3 202.4,251.7 204.8,250.0 207.2,248.1 209.6,246.0 212.0,243.8 214.4,241.4 216.8,238.8 219.2,236.0 221.6,233.0 224.0,229.9 226.4,226.5 228.8,222.9 231.2,219.1 233.6,215.1 236.0,210.8 238.4,206.4 240.8,201.8 243.2,197.0 245.6,192.0 248.0,186.9 250.4,181.7 252.8,176.4 255.2,171.0 257.6,165.5 260.0,160.0 262.4,154.5 264.8,149.0 267.2,143.6 269.6,138.3 272.0,133.1 274.4,128.0 276.8,123.0 279.2,118.2 281.6,113.6 284.0,109.2 286.4,104.9 288.8,100.9 291.2,97.1 293.6,93.5 296.0,90.1 298.4,87.0 300.8,84.0 303.2,81.2 305.6,78.6 308.0,76.2 310.4,74.0 312.8,71.9 315.2,70.0 317.6,68.3 320.0,66.7 322.4,65.2 324.8,63.9 327.2,62.6 329.6,61.5 332.0,60.4 334.4,59.5 336.8,58.6 339.2,57.8 341.6,57.1 344.0,56.4 346.4,55.9 348.8,55.3 351.2,54.8 353.6,54.4 356.0,54.0 358.4,53.6 360.8,53.3 363.2,52.9 365.6,52.7 368.0,52.4 370.4,52.2 372.8,52.0 375.2,51.8 377.6,51.6 380.0,51.5 382.4,51.3 384.8,51.2 387.2,51.1 389.6,51.0 392.0,50.9 394.4,50.8 396.8,50.7 399.2,50.7 401.6,50.6 404.0,50.5 406.4,50.5 408.8,50.4 411.2,50.4 413.6,50.4 416.0,50.3 418.4,50.3 420.8,50.3 423.2,50.2 425.6,50.2 428.0,50.2 430.4,50.2 432.8,50.2 435.2,50.1 437.6,50.1 440.0,50.1 442.4,50.1 444.8,50.1 447.2,50.1 449.6,50.1 452.0,50.1 454.4,50.1 456.8,50.1 459.2,50.1 461.6,50.0 464.0,50.0 466.4,50.0 468.8,50.0 471.2,50.0 473.6,50.0 476.0,50.0 478.4,50.0 480.8,50.0 483.2,50.0 485.6,50.0 488.0,50.0 490.4,50.0 492.8,50.0 495.2,50.0 497.6,50.0 500.0,50.0" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<polyline points="233.6,215.1 236.0,210.8 238.4,206.4 240.8,201.8 243.2,197.0 245.6,192.0 248.0,186.9 250.4,181.7 252.8,176.4 255.2,171.0 257.6,165.5 260.0,160.0 262.4,154.5 264.8,149.0 267.2,143.6 269.6,138.3 272.0,133.1 274.4,128.0 276.8,123.0 279.2,118.2 281.6,113.6 284.0,109.2 286.4,104.9" fill="none" stroke="var(--red)" stroke-width="7" stroke-linecap="round"/>
+<rect x="234" y="18" width="53" height="284" fill="var(--red)" opacity=".08"/>
+<text x="260" y="318" fill="var(--red)" font-size="15" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >small z → almost linear</text>
+<text x="498" y="150" fill="#8a8a8a" font-size="15" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >z</text>
+<text x="470" y="46" fill="var(--blue)" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >tanh(z)</text>
+</svg>
+      </div>
+        <div class="side">
+      <ul class="pts">
+        <li>λ ↑ → W ↓ → z small</li>
+        <li>tanh is <b>linear</b> near 0</li>
+        <li>A linear network can’t overfit wiggles</li>
+      </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Regularisation · debugging tip</div>
+      <h2>Plot the full cost</h2>
+      <p class="math">J = (1/m) Σ ℒ + <span class="hl">(λ/2m) Σ ‖W‖²</span></p>
+
+      <div class="two" style="grid-template-columns:1.2fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 640 300" role="img" aria-label="Cost J against iterations. Including the regularisation term, J falls smoothly every iteration."><defs></defs>
+<path d="M60 20 V250 H620" fill="none" stroke="#5a5a5a" stroke-width="1.6"/>
+<polyline points="60,60 66,68 71,76 76,83 82,90 88,97 93,103 98,109 104,115 110,120 115,126 120,131 126,136 132,140 137,145 142,149 148,153 154,157 159,161 164,164 170,167 176,171 181,174 186,177 192,180 198,182 203,185 208,187 214,190 220,192 225,194 230,196 236,198 242,200 247,202 252,203 258,205 264,207 269,208 274,209 280,211 286,212 291,213 296,215 302,216 308,217 313,218 318,219 324,220 330,221 335,221 340,222 346,223 352,224 357,225 362,225 368,226 374,227 379,227 384,228 390,228 396,229 401,229 406,230 412,230 418,231 423,231 428,231 434,232 440,232 445,233 450,233 456,233 462,233 467,234 472,234 478,234 484,235 489,235 494,235 500,235 506,235 511,236 516,236 522,236 528,236 533,236 538,237 544,237 550,237 555,237 560,237 566,237 572,237 577,237 582,238 588,238 594,238 599,238 604,238 610,238" fill="none" stroke="var(--blue)" stroke-width="4"/>
+<text x="610" y="110" fill="var(--blue)" font-size="22" font-weight="700" text-anchor="end" font-family="Poppins,sans-serif" >J falls every iteration ✓</text>
+<text x="340" y="285" fill="#8a8a8a" font-size="17" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >iterations →</text>
+<text x="48" y="32" fill="#8a8a8a" font-size="18" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >J</text>
+</svg>
+      </div>
+        <div class="side">
+      <p class="say ">Include the λ term when you check J.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Dropout</div>
+      <h2>Randomly drop units</h2>
+      <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 580 280" role="img" aria-label="A full network with four inputs, three hidden layers of four units and one output.">
+<defs><marker id="nt38970" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--green)"/></marker></defs>
+<g stroke="#6e6e6e" stroke-width="1" opacity=".65">
+<line x1="75" y1="56" x2="155" y2="56"/>
+<line x1="75" y1="56" x2="155" y2="112"/>
+<line x1="75" y1="56" x2="155" y2="168"/>
+<line x1="75" y1="56" x2="155" y2="224"/>
+<line x1="75" y1="112" x2="155" y2="56"/>
+<line x1="75" y1="112" x2="155" y2="112"/>
+<line x1="75" y1="112" x2="155" y2="168"/>
+<line x1="75" y1="112" x2="155" y2="224"/>
+<line x1="75" y1="168" x2="155" y2="56"/>
+<line x1="75" y1="168" x2="155" y2="112"/>
+<line x1="75" y1="168" x2="155" y2="168"/>
+<line x1="75" y1="168" x2="155" y2="224"/>
+<line x1="75" y1="224" x2="155" y2="56"/>
+<line x1="75" y1="224" x2="155" y2="112"/>
+<line x1="75" y1="224" x2="155" y2="168"/>
+<line x1="75" y1="224" x2="155" y2="224"/>
+<line x1="185" y1="56" x2="265" y2="56"/>
+<line x1="185" y1="56" x2="265" y2="112"/>
+<line x1="185" y1="56" x2="265" y2="168"/>
+<line x1="185" y1="56" x2="265" y2="224"/>
+<line x1="185" y1="112" x2="265" y2="56"/>
+<line x1="185" y1="112" x2="265" y2="112"/>
+<line x1="185" y1="112" x2="265" y2="168"/>
+<line x1="185" y1="112" x2="265" y2="224"/>
+<line x1="185" y1="168" x2="265" y2="56"/>
+<line x1="185" y1="168" x2="265" y2="112"/>
+<line x1="185" y1="168" x2="265" y2="168"/>
+<line x1="185" y1="168" x2="265" y2="224"/>
+<line x1="185" y1="224" x2="265" y2="56"/>
+<line x1="185" y1="224" x2="265" y2="112"/>
+<line x1="185" y1="224" x2="265" y2="168"/>
+<line x1="185" y1="224" x2="265" y2="224"/>
+<line x1="295" y1="56" x2="375" y2="56"/>
+<line x1="295" y1="56" x2="375" y2="112"/>
+<line x1="295" y1="56" x2="375" y2="168"/>
+<line x1="295" y1="56" x2="375" y2="224"/>
+<line x1="295" y1="112" x2="375" y2="56"/>
+<line x1="295" y1="112" x2="375" y2="112"/>
+<line x1="295" y1="112" x2="375" y2="168"/>
+<line x1="295" y1="112" x2="375" y2="224"/>
+<line x1="295" y1="168" x2="375" y2="56"/>
+<line x1="295" y1="168" x2="375" y2="112"/>
+<line x1="295" y1="168" x2="375" y2="168"/>
+<line x1="295" y1="168" x2="375" y2="224"/>
+<line x1="295" y1="224" x2="375" y2="56"/>
+<line x1="295" y1="224" x2="375" y2="112"/>
+<line x1="295" y1="224" x2="375" y2="168"/>
+<line x1="295" y1="224" x2="375" y2="224"/>
+<line x1="405" y1="56" x2="475" y2="140"/>
+<line x1="405" y1="112" x2="475" y2="140"/>
+<line x1="405" y1="168" x2="475" y2="140"/>
+<line x1="405" y1="224" x2="475" y2="140"/>
+</g>
+<text x="56" y="63" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">1</tspan></text>
+<text x="56" y="119" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">2</tspan></text>
+<text x="56" y="175" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">3</tspan></text>
+<text x="56" y="231" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">4</tspan></text>
+<circle cx="170" cy="56" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="112" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="168" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="224" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="56" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="112" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="168" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="224" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="56" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="112" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="168" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="224" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="490" cy="140" r="15" fill="#0f2a14" stroke="var(--green)" stroke-width="2.2"/>
+<path d="M507 140 h34" stroke="var(--green)" stroke-width="2.4" marker-end="url(#nt38970)"/>
+<text x="553" y="148" fill="var(--green)" font-size="24" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >ŷ</text>
+</svg>
+      </div>
+        <div class="side">
+      <div class="art">
+<svg viewBox="0 0 580 280" role="img" aria-label="The same network with about half of the hidden units in each layer crossed out at random.">
+<defs><marker id="nt99233" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--green)"/></marker></defs>
+<g stroke="#6e6e6e" stroke-width="1" opacity=".65">
+<line x1="75" y1="56" x2="155" y2="56"/>
+<line x1="75" y1="56" x2="155" y2="168"/>
+<line x1="75" y1="112" x2="155" y2="56"/>
+<line x1="75" y1="112" x2="155" y2="168"/>
+<line x1="75" y1="168" x2="155" y2="56"/>
+<line x1="75" y1="168" x2="155" y2="168"/>
+<line x1="75" y1="224" x2="155" y2="56"/>
+<line x1="75" y1="224" x2="155" y2="168"/>
+<line x1="185" y1="56" x2="265" y2="112"/>
+<line x1="185" y1="56" x2="265" y2="168"/>
+<line x1="185" y1="168" x2="265" y2="112"/>
+<line x1="185" y1="168" x2="265" y2="168"/>
+<line x1="295" y1="112" x2="375" y2="112"/>
+<line x1="295" y1="112" x2="375" y2="224"/>
+<line x1="295" y1="168" x2="375" y2="112"/>
+<line x1="295" y1="168" x2="375" y2="224"/>
+<line x1="405" y1="112" x2="475" y2="140"/>
+<line x1="405" y1="224" x2="475" y2="140"/>
+</g>
+<text x="56" y="63" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">1</tspan></text>
+<text x="56" y="119" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">2</tspan></text>
+<text x="56" y="175" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">3</tspan></text>
+<text x="56" y="231" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">4</tspan></text>
+<circle cx="170" cy="56" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="112" r="15" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2" stroke-dasharray="3 3"/>
+<path d="M161 103 l18 18 M179 103 l-18 18" stroke="var(--red)" stroke-width="2.6"/>
+<circle cx="170" cy="168" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="224" r="15" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2" stroke-dasharray="3 3"/>
+<path d="M161 215 l18 18 M179 215 l-18 18" stroke="var(--red)" stroke-width="2.6"/>
+<circle cx="280" cy="56" r="15" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2" stroke-dasharray="3 3"/>
+<path d="M271 47 l18 18 M289 47 l-18 18" stroke="var(--red)" stroke-width="2.6"/>
+<circle cx="280" cy="112" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="168" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="224" r="15" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2" stroke-dasharray="3 3"/>
+<path d="M271 215 l18 18 M289 215 l-18 18" stroke="var(--red)" stroke-width="2.6"/>
+<circle cx="390" cy="56" r="15" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2" stroke-dasharray="3 3"/>
+<path d="M381 47 l18 18 M399 47 l-18 18" stroke="var(--red)" stroke-width="2.6"/>
+<circle cx="390" cy="112" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="168" r="15" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2" stroke-dasharray="3 3"/>
+<path d="M381 159 l18 18 M399 159 l-18 18" stroke="var(--red)" stroke-width="2.6"/>
+<circle cx="390" cy="224" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="490" cy="140" r="15" fill="#0f2a14" stroke="var(--green)" stroke-width="2.2"/>
+<path d="M507 140 h34" stroke="var(--green)" stroke-width="2.4" marker-end="url(#nt99233)"/>
+<text x="553" y="148" fill="var(--green)" font-size="24" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >ŷ</text>
+<text x="170" y="266" fill="var(--yellow)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >keep 0.5</text>
+<text x="280" y="266" fill="var(--yellow)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >keep 0.5</text>
+<text x="390" y="266" fill="var(--yellow)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >keep 0.5</text>
+</svg>
+      </div>
+        </div>
+      </div>
+      <p class="cap">A different random network for <b>every</b> training example.</p>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Dropout · in code</div>
+      <h2>Inverted dropout</h2>
+
+      <div class="code">
+        d3 = np.random.rand(*a3.shape) &lt; keep_prob<br>
+        a3 = a3 * d3<br>
+        <span class="hl3">a3 = a3 / keep_prob</span>
+      </div>
+      <p class="cap">Layer 3, keep_prob = 0.8. Next slide: what each line does.</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Dropout · step by step</div>
+      <h2>Mask, multiply, rescale</h2>
+      <div class="art">
+<svg viewBox="0 0 760 420" role="img" aria-label="Inverted dropout on one column of activations: a3, a random 0/1 mask d3 with keep probability 0.8, their product with two units zeroed, and the result divided by 0.8 to restore the scale."><defs><marker id="mk1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#9a9a9a"/></marker></defs>
+<text x="100" y="28" fill="var(--blue)" font-size="20" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >a3</text>
+<rect x="60" y="44" width="80" height="38" rx="5" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<text x="100" y="70" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.9</text>
+<rect x="60" y="88" width="80" height="38" rx="5" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<text x="100" y="114" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.4</text>
+<rect x="60" y="132" width="80" height="38" rx="5" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<text x="100" y="158" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1.2</text>
+<rect x="60" y="176" width="80" height="38" rx="5" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<text x="100" y="202" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.7</text>
+<rect x="60" y="220" width="80" height="38" rx="5" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<text x="100" y="246" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.3</text>
+<rect x="60" y="264" width="80" height="38" rx="5" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<text x="100" y="290" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1.0</text>
+<rect x="60" y="308" width="80" height="38" rx="5" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<text x="100" y="334" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.6</text>
+<rect x="60" y="352" width="80" height="38" rx="5" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<text x="100" y="378" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.8</text>
+<text x="190" y="220" fill="#9a9a9a" font-size="34" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >×</text>
+<text x="280" y="28" fill="var(--yellow)" font-size="20" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >d3</text>
+<rect x="240" y="44" width="80" height="38" rx="5" fill="#2a2206" stroke="var(--yellow)" stroke-width="2"/>
+<text x="280" y="70" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1</text>
+<rect x="240" y="88" width="80" height="38" rx="5" fill="#2a2206" stroke="var(--yellow)" stroke-width="2"/>
+<text x="280" y="114" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1</text>
+<rect x="240" y="132" width="80" height="38" rx="5" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2"/>
+<text x="280" y="158" fill="#5a5a5a" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0</text>
+<rect x="240" y="176" width="80" height="38" rx="5" fill="#2a2206" stroke="var(--yellow)" stroke-width="2"/>
+<text x="280" y="202" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1</text>
+<rect x="240" y="220" width="80" height="38" rx="5" fill="#2a2206" stroke="var(--yellow)" stroke-width="2"/>
+<text x="280" y="246" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1</text>
+<rect x="240" y="264" width="80" height="38" rx="5" fill="#2a2206" stroke="var(--yellow)" stroke-width="2"/>
+<text x="280" y="290" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1</text>
+<rect x="240" y="308" width="80" height="38" rx="5" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2"/>
+<text x="280" y="334" fill="#5a5a5a" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0</text>
+<rect x="240" y="352" width="80" height="38" rx="5" fill="#2a2206" stroke="var(--yellow)" stroke-width="2"/>
+<text x="280" y="378" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1</text>
+<text x="370" y="220" fill="#9a9a9a" font-size="34" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >→</text>
+<text x="460" y="28" fill="var(--orange)" font-size="20" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >a3 · d3</text>
+<rect x="420" y="44" width="80" height="38" rx="5" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<text x="460" y="70" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.9</text>
+<rect x="420" y="88" width="80" height="38" rx="5" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<text x="460" y="114" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.4</text>
+<rect x="420" y="132" width="80" height="38" rx="5" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2"/>
+<text x="460" y="158" fill="#5a5a5a" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.0</text>
+<rect x="420" y="176" width="80" height="38" rx="5" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<text x="460" y="202" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.7</text>
+<rect x="420" y="220" width="80" height="38" rx="5" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<text x="460" y="246" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.3</text>
+<rect x="420" y="264" width="80" height="38" rx="5" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<text x="460" y="290" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1.0</text>
+<rect x="420" y="308" width="80" height="38" rx="5" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2"/>
+<text x="460" y="334" fill="#5a5a5a" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.0</text>
+<rect x="420" y="352" width="80" height="38" rx="5" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<text x="460" y="378" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.8</text>
+<text x="550" y="220" fill="#9a9a9a" font-size="34" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >→</text>
+<text x="640" y="28" fill="var(--green)" font-size="20" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >÷ 0.8</text>
+<rect x="600" y="44" width="80" height="38" rx="5" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="640" y="70" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1.12</text>
+<rect x="600" y="88" width="80" height="38" rx="5" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="640" y="114" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.50</text>
+<rect x="600" y="132" width="80" height="38" rx="5" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2"/>
+<text x="640" y="158" fill="#5a5a5a" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.00</text>
+<rect x="600" y="176" width="80" height="38" rx="5" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="640" y="202" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.87</text>
+<rect x="600" y="220" width="80" height="38" rx="5" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="640" y="246" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.37</text>
+<rect x="600" y="264" width="80" height="38" rx="5" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="640" y="290" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1.25</text>
+<rect x="600" y="308" width="80" height="38" rx="5" fill="#0a0a0a" stroke="#3a3a3a" stroke-width="2"/>
+<text x="640" y="334" fill="#5a5a5a" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.00</text>
+<rect x="600" y="352" width="80" height="38" rx="5" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="640" y="378" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >1.00</text>
+</svg>
+      </div>
+      <p class="cap">Dropping 20% makes a3 smaller → <b>÷ 0.8</b> restores its size.</p>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Dropout · test time</div>
+      <h2>No dropout at test time</h2>
+
+            <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 580 280" role="img" aria-label="The full network with every unit active, used at test time.">
+<defs><marker id="nt38970" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--green)"/></marker></defs>
+<g stroke="#6e6e6e" stroke-width="1" opacity=".65">
+<line x1="75" y1="56" x2="155" y2="56"/>
+<line x1="75" y1="56" x2="155" y2="112"/>
+<line x1="75" y1="56" x2="155" y2="168"/>
+<line x1="75" y1="56" x2="155" y2="224"/>
+<line x1="75" y1="112" x2="155" y2="56"/>
+<line x1="75" y1="112" x2="155" y2="112"/>
+<line x1="75" y1="112" x2="155" y2="168"/>
+<line x1="75" y1="112" x2="155" y2="224"/>
+<line x1="75" y1="168" x2="155" y2="56"/>
+<line x1="75" y1="168" x2="155" y2="112"/>
+<line x1="75" y1="168" x2="155" y2="168"/>
+<line x1="75" y1="168" x2="155" y2="224"/>
+<line x1="75" y1="224" x2="155" y2="56"/>
+<line x1="75" y1="224" x2="155" y2="112"/>
+<line x1="75" y1="224" x2="155" y2="168"/>
+<line x1="75" y1="224" x2="155" y2="224"/>
+<line x1="185" y1="56" x2="265" y2="56"/>
+<line x1="185" y1="56" x2="265" y2="112"/>
+<line x1="185" y1="56" x2="265" y2="168"/>
+<line x1="185" y1="56" x2="265" y2="224"/>
+<line x1="185" y1="112" x2="265" y2="56"/>
+<line x1="185" y1="112" x2="265" y2="112"/>
+<line x1="185" y1="112" x2="265" y2="168"/>
+<line x1="185" y1="112" x2="265" y2="224"/>
+<line x1="185" y1="168" x2="265" y2="56"/>
+<line x1="185" y1="168" x2="265" y2="112"/>
+<line x1="185" y1="168" x2="265" y2="168"/>
+<line x1="185" y1="168" x2="265" y2="224"/>
+<line x1="185" y1="224" x2="265" y2="56"/>
+<line x1="185" y1="224" x2="265" y2="112"/>
+<line x1="185" y1="224" x2="265" y2="168"/>
+<line x1="185" y1="224" x2="265" y2="224"/>
+<line x1="295" y1="56" x2="375" y2="56"/>
+<line x1="295" y1="56" x2="375" y2="112"/>
+<line x1="295" y1="56" x2="375" y2="168"/>
+<line x1="295" y1="56" x2="375" y2="224"/>
+<line x1="295" y1="112" x2="375" y2="56"/>
+<line x1="295" y1="112" x2="375" y2="112"/>
+<line x1="295" y1="112" x2="375" y2="168"/>
+<line x1="295" y1="112" x2="375" y2="224"/>
+<line x1="295" y1="168" x2="375" y2="56"/>
+<line x1="295" y1="168" x2="375" y2="112"/>
+<line x1="295" y1="168" x2="375" y2="168"/>
+<line x1="295" y1="168" x2="375" y2="224"/>
+<line x1="295" y1="224" x2="375" y2="56"/>
+<line x1="295" y1="224" x2="375" y2="112"/>
+<line x1="295" y1="224" x2="375" y2="168"/>
+<line x1="295" y1="224" x2="375" y2="224"/>
+<line x1="405" y1="56" x2="475" y2="140"/>
+<line x1="405" y1="112" x2="475" y2="140"/>
+<line x1="405" y1="168" x2="475" y2="140"/>
+<line x1="405" y1="224" x2="475" y2="140"/>
+</g>
+<text x="56" y="63" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">1</tspan></text>
+<text x="56" y="119" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">2</tspan></text>
+<text x="56" y="175" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">3</tspan></text>
+<text x="56" y="231" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">4</tspan></text>
+<circle cx="170" cy="56" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="112" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="168" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="224" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="56" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="112" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="168" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="224" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="56" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="112" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="168" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="224" r="15" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="490" cy="140" r="15" fill="#0f2a14" stroke="var(--green)" stroke-width="2.2"/>
+<path d="M507 140 h34" stroke="var(--green)" stroke-width="2.4" marker-end="url(#nt38970)"/>
+<text x="553" y="148" fill="var(--green)" font-size="24" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >ŷ</text>
+</svg>
+      </div>
+        <div class="side">
+      <ul class="pts">
+        <li>Use <b>all</b> units</li>
+        <li>No random mask</li>
+        <li>No ÷ keep_prob</li>
+      </ul>
+        </div>
+      </div>
+      <p class="cap">Predictions must be the same every time.</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Dropout · why it works</div>
+      <h2>Can’t rely on one feature</h2>
+      <div class="art">
+<svg viewBox="0 0 760 320" role="img" aria-label="Left: one unit relies almost entirely on a single input with a large weight; if that input is dropped, the unit fails. Right: with dropout the unit spreads small weights across all four inputs."><defs></defs>
+<line x1="80" y1="60" x2="260" y2="150" stroke="var(--red)" stroke-width="1.3" opacity=".85"/>
+<circle cx="70" cy="60" r="12" fill="#141414" stroke="#8a8a8a" stroke-width="2"/>
+<text x="160" y="95.0" fill="var(--red)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.1</text>
+<line x1="80" y1="120" x2="260" y2="150" stroke="var(--red)" stroke-width="8.8" opacity=".85"/>
+<circle cx="70" cy="120" r="12" fill="#141414" stroke="#8a8a8a" stroke-width="2"/>
+<text x="160" y="125.0" fill="var(--red)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >2.6</text>
+<line x1="80" y1="180" x2="260" y2="150" stroke="var(--red)" stroke-width="1.3" opacity=".85"/>
+<circle cx="70" cy="180" r="12" fill="#141414" stroke="#8a8a8a" stroke-width="2"/>
+<text x="160" y="155.0" fill="var(--red)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.1</text>
+<line x1="80" y1="240" x2="260" y2="150" stroke="var(--red)" stroke-width="1.6" opacity=".85"/>
+<circle cx="70" cy="240" r="12" fill="#141414" stroke="#8a8a8a" stroke-width="2"/>
+<text x="160" y="185.0" fill="var(--red)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.2</text>
+<circle cx="280" cy="150" r="22" fill="#2a1608" stroke="var(--orange)" stroke-width="2.6"/>
+<text x="190" y="300" fill="var(--red)" font-size="20" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >without dropout</text>
+<line x1="460" y1="60" x2="640" y2="150" stroke="var(--green)" stroke-width="3.4" opacity=".85"/>
+<circle cx="450" cy="60" r="12" fill="#141414" stroke="#8a8a8a" stroke-width="2"/>
+<text x="540" y="95.0" fill="var(--green)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.8</text>
+<line x1="460" y1="120" x2="640" y2="150" stroke="var(--green)" stroke-width="3.4" opacity=".85"/>
+<circle cx="450" cy="120" r="12" fill="#141414" stroke="#8a8a8a" stroke-width="2"/>
+<text x="540" y="125.0" fill="var(--green)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.8</text>
+<line x1="460" y1="180" x2="640" y2="150" stroke="var(--green)" stroke-width="3.1" opacity=".85"/>
+<circle cx="450" cy="180" r="12" fill="#141414" stroke="#8a8a8a" stroke-width="2"/>
+<text x="540" y="155.0" fill="var(--green)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.7</text>
+<line x1="460" y1="240" x2="640" y2="150" stroke="var(--green)" stroke-width="3.4" opacity=".85"/>
+<circle cx="450" cy="240" r="12" fill="#141414" stroke="#8a8a8a" stroke-width="2"/>
+<text x="540" y="185.0" fill="var(--green)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.8</text>
+<circle cx="660" cy="150" r="22" fill="#2a1608" stroke="var(--orange)" stroke-width="2.6"/>
+<text x="570" y="300" fill="var(--green)" font-size="20" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >with dropout</text>
+</svg>
+      </div>
+      <p class="cap">Any input may vanish → spread the weight out → smaller weights, like L2.</p>
+    </div>
+  </section>
+  <section class="slide k-kp">
+    <div class="doc">
+      <div class="kicker">Dropout · tuning</div>
+      <h2>keep_prob can differ by layer</h2>
+      <div class="art">
+<svg viewBox="0 0 680 270" role="img" aria-label="A network with layers of 7, 7, 3, 2 and 1 units. keep_prob is 0.7, 0.5 for the largest layer, 0.7, then 1.0 for the last two.">
+<defs><marker id="nt74653" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--green)"/></marker></defs>
+<g stroke="#6e6e6e" stroke-width="1" opacity=".65">
+<line x1="71" y1="100" x2="159" y2="40"/>
+<line x1="71" y1="100" x2="159" y2="70"/>
+<line x1="71" y1="100" x2="159" y2="100"/>
+<line x1="71" y1="100" x2="159" y2="130"/>
+<line x1="71" y1="100" x2="159" y2="160"/>
+<line x1="71" y1="100" x2="159" y2="190"/>
+<line x1="71" y1="100" x2="159" y2="220"/>
+<line x1="71" y1="130" x2="159" y2="40"/>
+<line x1="71" y1="130" x2="159" y2="70"/>
+<line x1="71" y1="130" x2="159" y2="100"/>
+<line x1="71" y1="130" x2="159" y2="130"/>
+<line x1="71" y1="130" x2="159" y2="160"/>
+<line x1="71" y1="130" x2="159" y2="190"/>
+<line x1="71" y1="130" x2="159" y2="220"/>
+<line x1="71" y1="160" x2="159" y2="40"/>
+<line x1="71" y1="160" x2="159" y2="70"/>
+<line x1="71" y1="160" x2="159" y2="100"/>
+<line x1="71" y1="160" x2="159" y2="130"/>
+<line x1="71" y1="160" x2="159" y2="160"/>
+<line x1="71" y1="160" x2="159" y2="190"/>
+<line x1="71" y1="160" x2="159" y2="220"/>
+<line x1="181" y1="40" x2="269" y2="40"/>
+<line x1="181" y1="40" x2="269" y2="70"/>
+<line x1="181" y1="40" x2="269" y2="100"/>
+<line x1="181" y1="40" x2="269" y2="130"/>
+<line x1="181" y1="40" x2="269" y2="160"/>
+<line x1="181" y1="40" x2="269" y2="190"/>
+<line x1="181" y1="40" x2="269" y2="220"/>
+<line x1="181" y1="70" x2="269" y2="40"/>
+<line x1="181" y1="70" x2="269" y2="70"/>
+<line x1="181" y1="70" x2="269" y2="100"/>
+<line x1="181" y1="70" x2="269" y2="130"/>
+<line x1="181" y1="70" x2="269" y2="160"/>
+<line x1="181" y1="70" x2="269" y2="190"/>
+<line x1="181" y1="70" x2="269" y2="220"/>
+<line x1="181" y1="100" x2="269" y2="40"/>
+<line x1="181" y1="100" x2="269" y2="70"/>
+<line x1="181" y1="100" x2="269" y2="100"/>
+<line x1="181" y1="100" x2="269" y2="130"/>
+<line x1="181" y1="100" x2="269" y2="160"/>
+<line x1="181" y1="100" x2="269" y2="190"/>
+<line x1="181" y1="100" x2="269" y2="220"/>
+<line x1="181" y1="130" x2="269" y2="40"/>
+<line x1="181" y1="130" x2="269" y2="70"/>
+<line x1="181" y1="130" x2="269" y2="100"/>
+<line x1="181" y1="130" x2="269" y2="130"/>
+<line x1="181" y1="130" x2="269" y2="160"/>
+<line x1="181" y1="130" x2="269" y2="190"/>
+<line x1="181" y1="130" x2="269" y2="220"/>
+<line x1="181" y1="160" x2="269" y2="40"/>
+<line x1="181" y1="160" x2="269" y2="70"/>
+<line x1="181" y1="160" x2="269" y2="100"/>
+<line x1="181" y1="160" x2="269" y2="130"/>
+<line x1="181" y1="160" x2="269" y2="160"/>
+<line x1="181" y1="160" x2="269" y2="190"/>
+<line x1="181" y1="160" x2="269" y2="220"/>
+<line x1="181" y1="190" x2="269" y2="40"/>
+<line x1="181" y1="190" x2="269" y2="70"/>
+<line x1="181" y1="190" x2="269" y2="100"/>
+<line x1="181" y1="190" x2="269" y2="130"/>
+<line x1="181" y1="190" x2="269" y2="160"/>
+<line x1="181" y1="190" x2="269" y2="190"/>
+<line x1="181" y1="190" x2="269" y2="220"/>
+<line x1="181" y1="220" x2="269" y2="40"/>
+<line x1="181" y1="220" x2="269" y2="70"/>
+<line x1="181" y1="220" x2="269" y2="100"/>
+<line x1="181" y1="220" x2="269" y2="130"/>
+<line x1="181" y1="220" x2="269" y2="160"/>
+<line x1="181" y1="220" x2="269" y2="190"/>
+<line x1="181" y1="220" x2="269" y2="220"/>
+<line x1="291" y1="40" x2="379" y2="100"/>
+<line x1="291" y1="40" x2="379" y2="130"/>
+<line x1="291" y1="40" x2="379" y2="160"/>
+<line x1="291" y1="70" x2="379" y2="100"/>
+<line x1="291" y1="70" x2="379" y2="130"/>
+<line x1="291" y1="70" x2="379" y2="160"/>
+<line x1="291" y1="100" x2="379" y2="100"/>
+<line x1="291" y1="100" x2="379" y2="130"/>
+<line x1="291" y1="100" x2="379" y2="160"/>
+<line x1="291" y1="130" x2="379" y2="100"/>
+<line x1="291" y1="130" x2="379" y2="130"/>
+<line x1="291" y1="130" x2="379" y2="160"/>
+<line x1="291" y1="160" x2="379" y2="100"/>
+<line x1="291" y1="160" x2="379" y2="130"/>
+<line x1="291" y1="160" x2="379" y2="160"/>
+<line x1="291" y1="190" x2="379" y2="100"/>
+<line x1="291" y1="190" x2="379" y2="130"/>
+<line x1="291" y1="190" x2="379" y2="160"/>
+<line x1="291" y1="220" x2="379" y2="100"/>
+<line x1="291" y1="220" x2="379" y2="130"/>
+<line x1="291" y1="220" x2="379" y2="160"/>
+<line x1="401" y1="100" x2="479" y2="115"/>
+<line x1="401" y1="100" x2="479" y2="145"/>
+<line x1="401" y1="130" x2="479" y2="115"/>
+<line x1="401" y1="130" x2="479" y2="145"/>
+<line x1="401" y1="160" x2="479" y2="115"/>
+<line x1="401" y1="160" x2="479" y2="145"/>
+<line x1="501" y1="115" x2="569" y2="130"/>
+<line x1="501" y1="145" x2="569" y2="130"/>
+</g>
+<text x="56" y="107" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">1</tspan></text>
+<text x="56" y="137" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">2</tspan></text>
+<text x="56" y="167" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">3</tspan></text>
+<circle cx="170" cy="40" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="70" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="100" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="130" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="160" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="190" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="170" cy="220" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="40" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="70" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="100" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="130" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="160" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="190" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="280" cy="220" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="100" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="130" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="390" cy="160" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="490" cy="115" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="490" cy="145" r="11" fill="#2a1608" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="580" cy="130" r="11" fill="#0f2a14" stroke="var(--green)" stroke-width="2.2"/>
+<path d="M593 130 h34" stroke="var(--green)" stroke-width="2.4" marker-end="url(#nt74653)"/>
+<text x="639" y="138" fill="var(--green)" font-size="24" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >ŷ</text>
+<text x="170" y="256" fill="var(--yellow)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.7</text>
+<text x="280" y="256" fill="var(--yellow)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.5</text>
+<text x="390" y="256" fill="var(--yellow)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >0.7</text>
+<text x="490" y="256" fill="var(--yellow)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >1.0</text>
+<text x="580" y="256" fill="var(--yellow)" font-size="15" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >1.0</text>
+</svg>
+      </div>
+      <p class="cap">Big layers → lower keep_prob. Small layers → 1.0.</p>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Dropout · one downside</div>
+      <h2>J is no longer well defined</h2>
+      <div class="two" style="grid-template-columns:1.3fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 640 300" role="img" aria-label="Cost J against iterations. With dropout on, the curve is jagged and hard to read. With dropout off, it falls smoothly."><defs></defs>
+<path d="M60 20 V250 H620" fill="none" stroke="#5a5a5a" stroke-width="1.6"/>
+<polyline points="60,46 66,69 71,66 76,85 82,91 88,68 93,70 98,118 104,93 110,97 115,141 120,117 126,141 132,126 137,138 142,116 148,145 154,160 159,145 164,159 170,158 176,130 181,168 186,162 192,149 198,137 203,183 208,165 214,179 220,190 225,183 230,195 236,170 242,192 247,175 252,202 258,200 264,161 269,164 274,170 280,210 286,183 291,194 296,178 302,190 308,185 313,184 318,197 324,197 330,215 335,204 340,218 346,214 352,222 357,206 362,180 368,217 374,223 379,220 384,203 390,211 396,186 401,218 406,205 412,191 418,179 423,221 428,228 434,182 440,219 445,199 450,186 456,194 462,219 467,224 472,181 478,211 484,182 489,217 494,197 500,226 506,231 511,207 516,232 522,197 528,185 533,212 538,183 544,192 550,203 555,213 560,190 566,184 572,227 577,198 582,232 588,229 594,202 599,206 604,209 610,216" fill="none" stroke="var(--red)" stroke-width="2.2" opacity=".9"/>
+<text x="610" y="40" fill="var(--red)" font-size="21" font-weight="700" text-anchor="end" font-family="Poppins,sans-serif" >dropout on: noisy</text>
+<polyline points="60,60 66,68 71,76 76,83 82,90 88,97 93,103 98,109 104,115 110,120 115,126 120,131 126,136 132,140 137,145 142,149 148,153 154,157 159,161 164,164 170,167 176,171 181,174 186,177 192,180 198,182 203,185 208,187 214,190 220,192 225,194 230,196 236,198 242,200 247,202 252,203 258,205 264,207 269,208 274,209 280,211 286,212 291,213 296,215 302,216 308,217 313,218 318,219 324,220 330,221 335,221 340,222 346,223 352,224 357,225 362,225 368,226 374,227 379,227 384,228 390,228 396,229 401,229 406,230 412,230 418,231 423,231 428,231 434,232 440,232 445,233 450,233 456,233 462,233 467,234 472,234 478,234 484,235 489,235 494,235 500,235 506,235 511,236 516,236 522,236 528,236 533,236 538,237 544,237 550,237 555,237 560,237 566,237 572,237 577,237 582,238 588,238 594,238 599,238 604,238 610,238" fill="none" stroke="var(--green)" stroke-width="4"/>
+<text x="610" y="68" fill="var(--green)" font-size="21" font-weight="700" text-anchor="end" font-family="Poppins,sans-serif" >keep_prob = 1: smooth</text>
+<text x="340" y="285" fill="#8a8a8a" font-size="17" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >iterations →</text>
+<text x="48" y="32" fill="#8a8a8a" font-size="18" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >J</text>
+</svg>
+      </div>
+        <div class="side">
+      <ul class="pts">
+        <li>Dropout <b>off</b> → check J</li>
+        <li>Then dropout <b>on</b></li>
+      </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide k-q">
+    <div class="doc">
+      <div class="qhead">Question</div>
+      <h2 class="qtext">keep_prob goes from 0.5 to 0.6.<br>What happens?</h2>
+      <ul class="opts">
+        <li><span class="lt">A</span><span>More regularisation</span></li>
+        <li class="ans"><span class="lt">B</span><span>Less regularisation</span></li>
+        <li><span class="lt">C</span><span>More layers</span></li>
+        <li><span class="lt">D</span><span>Nothing</span></li>
+      </ul>
+      <p class="qwhy"><b>B.</b> Fewer units are dropped, so the regularising effect is <b>weaker</b>.</p>
+      <p class="qhint">press A to reveal</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Other methods</div>
+      <h2>Data augmentation</h2>
+      <div class="art">
+<svg viewBox="0 0 900 340" role="img" aria-label="Data augmentation. A cat image becomes extra training examples by flipping it horizontally and by a zoomed random crop. A handwritten digit 4 becomes extra examples by small rotations and distortions.">
+<defs><marker id="ag1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#9a9a9a"/></marker><clipPath id="agc"><rect x="0" y="0" width="150" height="120" rx="8"/></clipPath></defs>
+<g transform="translate(30,20)"><rect width="150" height="120" rx="8" fill="#141414" stroke="#3a3a3a"/>
+<g clip-path="url(#agc)"><g transform=" scale(1.0) translate(-0.0,-0.0)">
+<path d="M30 112 Q32 60 62 52 L56 22 L76 44 Q86 41 96 44 L116 22 L110 54 Q132 64 128 112z" fill="#3a2410" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="74" cy="66" r="4" fill="var(--yellow)"/><circle cx="98" cy="66" r="4" fill="var(--yellow)"/>
+<path d="M82 78 l4 4 l4 -4" fill="none" stroke="var(--orange)" stroke-width="2"/>
+<path d="M128 104 Q150 92 140 70" fill="none" stroke="var(--orange)" stroke-width="5" stroke-linecap="round"/>
+</g></g>
+<text x="75" y="142" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >original</text>
+</g>
+<path d="M200 80 h70" stroke="#9a9a9a" stroke-width="2.4" marker-end="url(#ag1)"/>
+<g transform="translate(300,20)"><rect width="150" height="120" rx="8" fill="#141414" stroke="#3a3a3a"/>
+<g clip-path="url(#agc)"><g transform="translate(150,0) scale(-1,1) scale(1.0) translate(-0.0,-0.0)">
+<path d="M30 112 Q32 60 62 52 L56 22 L76 44 Q86 41 96 44 L116 22 L110 54 Q132 64 128 112z" fill="#3a2410" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="74" cy="66" r="4" fill="var(--yellow)"/><circle cx="98" cy="66" r="4" fill="var(--yellow)"/>
+<path d="M82 78 l4 4 l4 -4" fill="none" stroke="var(--orange)" stroke-width="2"/>
+<path d="M128 104 Q150 92 140 70" fill="none" stroke="var(--orange)" stroke-width="5" stroke-linecap="round"/>
+</g></g>
+<text x="75" y="142" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >flipped</text>
+</g>
+<g transform="translate(480,20)"><rect width="150" height="120" rx="8" fill="#141414" stroke="#3a3a3a"/>
+<g clip-path="url(#agc)"><g transform=" scale(1.45) translate(-12.4,-9.3)">
+<path d="M30 112 Q32 60 62 52 L56 22 L76 44 Q86 41 96 44 L116 22 L110 54 Q132 64 128 112z" fill="#3a2410" stroke="var(--orange)" stroke-width="2.2"/>
+<circle cx="74" cy="66" r="4" fill="var(--yellow)"/><circle cx="98" cy="66" r="4" fill="var(--yellow)"/>
+<path d="M82 78 l4 4 l4 -4" fill="none" stroke="var(--orange)" stroke-width="2"/>
+<path d="M128 104 Q150 92 140 70" fill="none" stroke="var(--orange)" stroke-width="5" stroke-linecap="round"/>
+</g></g>
+<text x="75" y="142" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >random crop + zoom</text>
+</g>
+<g transform="translate(105,245)"><rect x="-55" y="-58" width="110" height="116" rx="8" fill="#141414" stroke="#3a3a3a"/><text x="0" y="34" fill="#fff" font-size="96" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(0) skewX(0)">4</text><text x="0" y="80" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >original</text></g>
+<path d="M200 245 h70" stroke="#9a9a9a" stroke-width="2.4" marker-end="url(#ag1)"/>
+<g transform="translate(355,245)"><rect x="-55" y="-58" width="110" height="116" rx="8" fill="#141414" stroke="#3a3a3a"/><text x="0" y="34" fill="var(--blue)" font-size="96" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(-14) skewX(0)">4</text><text x="0" y="80" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >rotated</text></g>
+<g transform="translate(500,245)"><rect x="-55" y="-58" width="110" height="116" rx="8" fill="#141414" stroke="#3a3a3a"/><text x="0" y="34" fill="var(--blue)" font-size="96" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(10) skewX(-12)">4</text><text x="0" y="80" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >rotated + skewed</text></g>
+<g transform="translate(645,245)"><rect x="-55" y="-58" width="110" height="116" rx="8" fill="#141414" stroke="#3a3a3a"/><text x="0" y="34" fill="var(--blue)" font-size="96" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif" transform="rotate(0) skewX(18)">4</text><text x="0" y="80" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >distorted</text></g>
+<text x="690" y="70" fill="var(--green)" font-size="15" font-weight="600" text-anchor="start" font-family="Poppins,sans-serif" >free extra examples:</text>
+<text x="690" y="92" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >still clearly a cat</text>
+</svg>
+      </div>
+      <p class="cap">Flip, crop, rotate, distort → <b>free</b> extra data.</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Other methods</div>
+      <h2>Early stopping</h2>
+      <div class="art">
+<svg viewBox="0 0 760 340" role="img" aria-label="Error against number of iterations. Training error keeps falling. Dev set error falls, reaches a minimum part way through, then rises. Early stopping halts training at the dev minimum, where the weights are mid-size.">
+<defs><marker id="es1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--yellow)"/></marker></defs>
+<path d="M70 20 V280 H720" fill="none" stroke="#6a6a6a" stroke-width="1.6"/>
+<polyline points="70.0,60.0 76.5,68.9 83.0,77.4 89.5,85.5 96.0,93.2 102.5,100.7 109.0,107.7 115.5,114.5 122.0,121.0 128.5,127.1 135.0,133.1 141.5,138.7 148.0,144.1 154.5,149.2 161.0,154.2 167.5,158.9 174.0,163.4 180.5,167.6 187.0,171.8 193.5,175.7 200.0,179.4 206.5,183.0 213.0,186.4 219.5,189.7 226.0,192.8 232.5,195.8 239.0,198.7 245.5,201.4 252.0,204.0 258.5,206.5 265.0,208.9 271.5,211.1 278.0,213.3 284.5,215.4 291.0,217.4 297.5,219.3 304.0,221.1 310.5,222.8 317.0,224.4 323.5,226.0 330.0,227.5 336.5,229.0 343.0,230.4 349.5,231.7 356.0,232.9 362.5,234.1 369.0,235.3 375.5,236.4 382.0,237.4 388.5,238.4 395.0,239.4 401.5,240.3 408.0,241.2 414.5,242.0 421.0,242.8 427.5,243.6 434.0,244.3 440.5,245.0 447.0,245.7 453.5,246.3 460.0,246.9 466.5,247.5 473.0,248.1 479.5,248.6 486.0,249.1 492.5,249.6 499.0,250.0 505.5,250.5 512.0,250.9 518.5,251.3 525.0,251.7 531.5,252.1 538.0,252.4 544.5,252.8 551.0,253.1 557.5,253.4 564.0,253.7 570.5,254.0 577.0,254.2 583.5,254.5 590.0,254.7 596.5,255.0 603.0,255.2 609.5,255.4 616.0,255.6 622.5,255.8 629.0,256.0 635.5,256.2 642.0,256.3 648.5,256.5 655.0,256.7 661.5,256.8 668.0,256.9 674.5,257.1 681.0,257.2 687.5,257.3 694.0,257.5 700.5,257.6 707.0,257.7 713.5,257.8 720.0,257.9" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<polyline points="70.0,60.0 76.5,69.2 83.0,77.9 89.5,86.1 96.0,93.9 102.5,101.2 109.0,108.2 115.5,114.8 122.0,121.0 128.5,126.9 135.0,132.5 141.5,137.7 148.0,142.7 154.5,147.4 161.0,151.9 167.5,156.1 174.0,160.1 180.5,163.9 187.0,167.5 193.5,170.8 200.0,174.0 206.5,177.1 213.0,179.9 219.5,182.6 226.0,185.2 232.5,187.6 239.0,189.9 245.5,192.1 252.0,194.1 258.5,196.1 265.0,197.9 271.5,199.6 278.0,201.2 284.5,202.7 291.0,204.1 297.5,205.4 304.0,206.6 310.5,207.6 317.0,208.6 323.5,209.6 330.0,210.4 336.5,211.1 343.0,211.8 349.5,212.4 356.0,212.9 362.5,213.3 369.0,213.7 375.5,214.0 382.0,214.3 388.5,214.5 395.0,214.6 401.5,214.7 408.0,214.7 414.5,214.7 421.0,214.6 427.5,214.5 434.0,214.3 440.5,214.1 447.0,213.8 453.5,213.5 460.0,213.1 466.5,212.7 473.0,212.3 479.5,211.8 486.0,211.3 492.5,210.7 499.0,210.1 505.5,209.5 512.0,208.8 518.5,208.1 525.0,207.3 531.5,206.5 538.0,205.7 544.5,204.9 551.0,204.0 557.5,203.1 564.0,202.1 570.5,201.1 577.0,200.1 583.5,199.1 590.0,198.0 596.5,196.9 603.0,195.8 609.5,194.6 616.0,193.4 622.5,192.2 629.0,190.9 635.5,189.7 642.0,188.4 648.5,187.0 655.0,185.7 661.5,184.3 668.0,182.8 674.5,181.4 681.0,179.9 687.5,178.4 694.0,176.9 700.5,175.4 707.0,173.8 713.5,172.2 720.0,170.5" fill="none" stroke="var(--purple)" stroke-width="3"/>
+<line x1="408" y1="30" x2="408" y2="280" stroke="var(--yellow)" stroke-width="2" stroke-dasharray="6 5"/>
+<circle cx="408" cy="215" r="7" fill="var(--yellow)"/>
+<text x="418.0" y="40" fill="var(--yellow)" font-size="16" font-weight="700" text-anchor="start" font-family="JetBrains Mono,monospace" >stop here</text>
+<text x="716" y="228" fill="var(--purple)" font-size="15" font-weight="600" text-anchor="end" font-family="Poppins,sans-serif" >dev set error</text>
+<text x="716" y="252" fill="var(--blue)" font-size="15" font-weight="600" text-anchor="end" font-family="Poppins,sans-serif" >training error / J</text>
+<text x="395" y="330" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" ># iterations →</text>
+<text x="80" y="302" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="start" font-family="JetBrains Mono,monospace" >w ≈ 0</text>
+<text x="408.0" y="302" fill="var(--yellow)" font-size="14" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >mid-size ‖w‖</text>
+<text x="716" y="302" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >large w</text>
+<text x="60" y="30" fill="#8a8a8a" font-size="14" font-weight="400" text-anchor="end" font-family="Poppins,sans-serif" >error</text>
+</svg>
+      </div>
+      <p class="cap">Stop where the <b>dev error</b> is lowest.</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Other methods · the catch</div>
+      <h2>Early stopping turns both knobs</h2>
+      <div class="art">
+<svg viewBox="0 0 760 260" role="img" aria-label="Two separate knobs. Knob one, optimise J, uses gradient descent or Adam. Knob two, don't overfit, uses regularisation or more data. Early stopping turns both knobs at once."><defs></defs>
+<circle cx="190" cy="110" r="70" fill="#0a0a0a" stroke="var(--blue)" stroke-width="4"/>
+<line x1="190" y1="110" x2="232" y2="62" stroke="var(--blue)" stroke-width="7" stroke-linecap="round"/>
+<circle cx="190" cy="110" r="9" fill="var(--blue)"/>
+<text x="190" y="214" fill="var(--blue)" font-size="22" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif" >Lower J</text>
+<text x="190" y="244" fill="#9a9a9a" font-size="16" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >gradient descent, Adam</text>
+<circle cx="570" cy="110" r="70" fill="#0a0a0a" stroke="var(--purple)" stroke-width="4"/>
+<line x1="570" y1="110" x2="612" y2="62" stroke="var(--purple)" stroke-width="7" stroke-linecap="round"/>
+<circle cx="570" cy="110" r="9" fill="var(--purple)"/>
+<text x="570" y="214" fill="var(--purple)" font-size="22" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif" >Don’t overfit</text>
+<text x="570" y="244" fill="#9a9a9a" font-size="16" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >L2, dropout, more data</text>
+<text x="380" y="118" fill="#8a8a8a" font-size="17" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >one knob each</text>
+</svg>
+      </div>
+      <p class="cap">Ng prefers L2: one knob per job (“orthogonalisation”).</p>
+    </div>
+  </section>
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Part 3</div>
+      <div class="big">Setting Up the<br>Optimisation Problem</div>
+      
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Normalising inputs</div>
+      <h2>Normalise the inputs</h2>
+      <div class="art">
+<svg viewBox="0 0 900 300" role="img" aria-label="Three scatter plots of two features. Left: raw data, spread widely along x1 and narrowly along x2, away from the origin. Middle: after subtracting the mean, centred on the origin but still stretched along x1. Right: after dividing by the standard deviation, a round cloud with equal spread on both axes.">
+<path d="M40 20 V250 H300" stroke="#4a4a4a" stroke-width="1.4"/>
+<circle cx="134.8" cy="132.4" r="3.6" fill="#9a9a9a"/>
+<circle cx="84.5" cy="129.4" r="3.6" fill="#9a9a9a"/>
+<circle cx="177.2" cy="142.1" r="3.6" fill="#9a9a9a"/>
+<circle cx="171.5" cy="137.7" r="3.6" fill="#9a9a9a"/>
+<circle cx="77.5" cy="143.1" r="3.6" fill="#9a9a9a"/>
+<circle cx="88.1" cy="138.6" r="3.6" fill="#9a9a9a"/>
+<circle cx="154.9" cy="137.9" r="3.6" fill="#9a9a9a"/>
+<circle cx="114.6" cy="144.1" r="3.6" fill="#9a9a9a"/>
+<circle cx="195.5" cy="128.8" r="3.6" fill="#9a9a9a"/>
+<circle cx="149.3" cy="143.8" r="3.6" fill="#9a9a9a"/>
+<circle cx="265.3" cy="123.0" r="3.6" fill="#9a9a9a"/>
+<circle cx="127.9" cy="134.9" r="3.6" fill="#9a9a9a"/>
+<circle cx="98.9" cy="134.3" r="3.6" fill="#9a9a9a"/>
+<circle cx="233.2" cy="134.8" r="3.6" fill="#9a9a9a"/>
+<circle cx="106.1" cy="151.2" r="3.6" fill="#9a9a9a"/>
+<circle cx="144.5" cy="146.3" r="3.6" fill="#9a9a9a"/>
+<circle cx="179.5" cy="137.1" r="3.6" fill="#9a9a9a"/>
+<circle cx="111.2" cy="138.8" r="3.6" fill="#9a9a9a"/>
+<circle cx="206.1" cy="147.0" r="3.6" fill="#9a9a9a"/>
+<circle cx="187.1" cy="136.6" r="3.6" fill="#9a9a9a"/>
+<circle cx="160.6" cy="144.9" r="3.6" fill="#9a9a9a"/>
+<circle cx="209.8" cy="124.8" r="3.6" fill="#9a9a9a"/>
+<circle cx="118.8" cy="149.8" r="3.6" fill="#9a9a9a"/>
+<circle cx="245.0" cy="145.0" r="3.6" fill="#9a9a9a"/>
+<circle cx="215.9" cy="146.0" r="3.6" fill="#9a9a9a"/>
+<circle cx="93.6" cy="115.5" r="3.6" fill="#9a9a9a"/>
+<circle cx="153.6" cy="139.8" r="3.6" fill="#9a9a9a"/>
+<circle cx="167.8" cy="145.2" r="3.6" fill="#9a9a9a"/>
+<circle cx="77.8" cy="147.5" r="3.6" fill="#9a9a9a"/>
+<circle cx="184.6" cy="153.3" r="3.6" fill="#9a9a9a"/>
+<circle cx="245.1" cy="145.4" r="3.6" fill="#9a9a9a"/>
+<circle cx="188.9" cy="127.2" r="3.6" fill="#9a9a9a"/>
+<circle cx="186.0" cy="156.6" r="3.6" fill="#9a9a9a"/>
+<circle cx="258.9" cy="135.3" r="3.6" fill="#9a9a9a"/>
+<circle cx="164.8" cy="141.6" r="3.6" fill="#9a9a9a"/>
+<circle cx="210.3" cy="142.7" r="3.6" fill="#9a9a9a"/>
+<circle cx="199.4" cy="123.3" r="3.6" fill="#9a9a9a"/>
+<circle cx="126.9" cy="140.7" r="3.6" fill="#9a9a9a"/>
+<circle cx="147.2" cy="140.9" r="3.6" fill="#9a9a9a"/>
+<circle cx="162.3" cy="141.7" r="3.6" fill="#9a9a9a"/>
+<text x="170" y="292" fill="#9a9a9a" font-size="16" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >raw data</text>
+<path d="M320 150 H580 M450 30 V270" stroke="#4a4a4a" stroke-width="1.4"/>
+<circle cx="421.6" cy="143.2" r="3.6" fill="var(--blue)"/>
+<circle cx="371.4" cy="140.2" r="3.6" fill="var(--blue)"/>
+<circle cx="464.0" cy="152.8" r="3.6" fill="var(--blue)"/>
+<circle cx="458.4" cy="148.5" r="3.6" fill="var(--blue)"/>
+<circle cx="364.4" cy="153.9" r="3.6" fill="var(--blue)"/>
+<circle cx="375.0" cy="149.4" r="3.6" fill="var(--blue)"/>
+<circle cx="441.8" cy="148.6" r="3.6" fill="var(--blue)"/>
+<circle cx="401.5" cy="154.9" r="3.6" fill="var(--blue)"/>
+<circle cx="482.4" cy="139.6" r="3.6" fill="var(--blue)"/>
+<circle cx="436.2" cy="154.6" r="3.6" fill="var(--blue)"/>
+<circle cx="552.1" cy="133.7" r="3.6" fill="var(--blue)"/>
+<circle cx="414.8" cy="145.6" r="3.6" fill="var(--blue)"/>
+<circle cx="385.7" cy="145.1" r="3.6" fill="var(--blue)"/>
+<circle cx="520.1" cy="145.6" r="3.6" fill="var(--blue)"/>
+<circle cx="393.0" cy="162.0" r="3.6" fill="var(--blue)"/>
+<circle cx="431.3" cy="157.1" r="3.6" fill="var(--blue)"/>
+<circle cx="466.4" cy="147.9" r="3.6" fill="var(--blue)"/>
+<circle cx="398.1" cy="149.6" r="3.6" fill="var(--blue)"/>
+<circle cx="492.9" cy="157.8" r="3.6" fill="var(--blue)"/>
+<circle cx="474.0" cy="147.3" r="3.6" fill="var(--blue)"/>
+<circle cx="447.5" cy="155.7" r="3.6" fill="var(--blue)"/>
+<circle cx="496.7" cy="135.5" r="3.6" fill="var(--blue)"/>
+<circle cx="405.7" cy="160.6" r="3.6" fill="var(--blue)"/>
+<circle cx="531.9" cy="155.7" r="3.6" fill="var(--blue)"/>
+<circle cx="502.8" cy="156.7" r="3.6" fill="var(--blue)"/>
+<circle cx="380.5" cy="126.3" r="3.6" fill="var(--blue)"/>
+<circle cx="440.5" cy="150.5" r="3.6" fill="var(--blue)"/>
+<circle cx="454.7" cy="155.9" r="3.6" fill="var(--blue)"/>
+<circle cx="364.7" cy="158.3" r="3.6" fill="var(--blue)"/>
+<circle cx="471.5" cy="164.1" r="3.6" fill="var(--blue)"/>
+<circle cx="532.0" cy="156.2" r="3.6" fill="var(--blue)"/>
+<circle cx="475.7" cy="138.0" r="3.6" fill="var(--blue)"/>
+<circle cx="472.8" cy="167.4" r="3.6" fill="var(--blue)"/>
+<circle cx="545.8" cy="146.1" r="3.6" fill="var(--blue)"/>
+<circle cx="451.7" cy="152.4" r="3.6" fill="var(--blue)"/>
+<circle cx="497.2" cy="153.5" r="3.6" fill="var(--blue)"/>
+<circle cx="486.3" cy="134.1" r="3.6" fill="var(--blue)"/>
+<circle cx="413.8" cy="151.5" r="3.6" fill="var(--blue)"/>
+<circle cx="434.0" cy="151.7" r="3.6" fill="var(--blue)"/>
+<circle cx="449.2" cy="152.5" r="3.6" fill="var(--blue)"/>
+<text x="450" y="292" fill="var(--blue)" font-size="16" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >1 · subtract the mean</text>
+<path d="M620 150 H880 M750 30 V270" stroke="#4a4a4a" stroke-width="1.4"/>
+<circle cx="723.0" cy="112.1" r="3.6" fill="var(--green)"/>
+<circle cx="675.3" cy="95.5" r="3.6" fill="var(--green)"/>
+<circle cx="763.3" cy="165.8" r="3.6" fill="var(--green)"/>
+<circle cx="757.9" cy="141.4" r="3.6" fill="var(--green)"/>
+<circle cx="668.6" cy="171.7" r="3.6" fill="var(--green)"/>
+<circle cx="678.7" cy="146.6" r="3.6" fill="var(--green)"/>
+<circle cx="742.2" cy="142.4" r="3.6" fill="var(--green)"/>
+<circle cx="703.9" cy="177.0" r="3.6" fill="var(--green)"/>
+<circle cx="780.7" cy="92.3" r="3.6" fill="var(--green)"/>
+<circle cx="736.9" cy="175.4" r="3.6" fill="var(--green)"/>
+<circle cx="847.0" cy="59.8" r="3.6" fill="var(--green)"/>
+<circle cx="716.5" cy="125.8" r="3.6" fill="var(--green)"/>
+<circle cx="688.9" cy="122.7" r="3.6" fill="var(--green)"/>
+<circle cx="816.6" cy="125.4" r="3.6" fill="var(--green)"/>
+<circle cx="695.9" cy="216.4" r="3.6" fill="var(--green)"/>
+<circle cx="732.3" cy="189.2" r="3.6" fill="var(--green)"/>
+<circle cx="765.6" cy="138.2" r="3.6" fill="var(--green)"/>
+<circle cx="700.6" cy="147.6" r="3.6" fill="var(--green)"/>
+<circle cx="790.8" cy="193.2" r="3.6" fill="var(--green)"/>
+<circle cx="772.8" cy="135.3" r="3.6" fill="var(--green)"/>
+<circle cx="747.6" cy="181.6" r="3.6" fill="var(--green)"/>
+<circle cx="794.3" cy="69.8" r="3.6" fill="var(--green)"/>
+<circle cx="707.9" cy="208.7" r="3.6" fill="var(--green)"/>
+<circle cx="827.8" cy="181.8" r="3.6" fill="var(--green)"/>
+<circle cx="800.1" cy="187.3" r="3.6" fill="var(--green)"/>
+<circle cx="683.9" cy="18.5" r="3.6" fill="var(--green)"/>
+<circle cx="741.0" cy="153.0" r="3.6" fill="var(--green)"/>
+<circle cx="754.4" cy="182.9" r="3.6" fill="var(--green)"/>
+<circle cx="669.0" cy="196.0" r="3.6" fill="var(--green)"/>
+<circle cx="770.4" cy="228.2" r="3.6" fill="var(--green)"/>
+<circle cx="827.9" cy="184.3" r="3.6" fill="var(--green)"/>
+<circle cx="774.5" cy="83.5" r="3.6" fill="var(--green)"/>
+<circle cx="771.7" cy="246.3" r="3.6" fill="var(--green)"/>
+<circle cx="841.0" cy="128.3" r="3.6" fill="var(--green)"/>
+<circle cx="751.6" cy="163.4" r="3.6" fill="var(--green)"/>
+<circle cx="794.8" cy="169.5" r="3.6" fill="var(--green)"/>
+<circle cx="784.5" cy="61.7" r="3.6" fill="var(--green)"/>
+<circle cx="715.6" cy="158.3" r="3.6" fill="var(--green)"/>
+<circle cx="734.8" cy="159.5" r="3.6" fill="var(--green)"/>
+<circle cx="749.2" cy="163.6" r="3.6" fill="var(--green)"/>
+<text x="750" y="292" fill="var(--green)" font-size="16" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >2 · divide by σ</text>
+</svg>
+      </div>
+      <div class="cards c2">
+        <div class="card b"><div class="n">STEP 1</div><h3 class="comp">x := x − μ</h3></div>
+        <div class="card g"><div class="n">STEP 2</div><h3 class="comp">x := x / σ</h3></div>
+      </div>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Normalising inputs</div>
+      <h2>Use the same μ and σ</h2>
+      <div class="art">
+<svg viewBox="0 0 880 300" role="img" aria-label="The training set produces mu and sigma. The same mu and sigma are then applied to the training, dev and test sets."><defs><marker id="sm1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--yellow)"/></marker></defs>
+<rect x="30" y="110" width="170" height="80" rx="10" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.4"/><text x="115" y="157" fill="#fff" font-size="19" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >training set</text>
+<path d="M204 150 h70" stroke="var(--yellow)" stroke-width="2.6" marker-end="url(#sm1)"/>
+<circle cx="340" cy="150" r="60" fill="#2a2206" stroke="var(--yellow)" stroke-width="3"/><text x="340" y="158" fill="var(--yellow)" font-size="26" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >μ, σ</text>
+<path d="M402 150 L590 65" stroke="var(--yellow)" stroke-width="2.4" marker-end="url(#sm1)"/>
+<rect x="600" y="40" width="240" height="50" rx="8" fill="#0a1a26" stroke="var(--blue)" stroke-width="2.2"/><text x="720" y="72" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >(x − μ) / σ · train</text>
+<path d="M402 150 L590 155" stroke="var(--yellow)" stroke-width="2.4" marker-end="url(#sm1)"/>
+<rect x="600" y="130" width="240" height="50" rx="8" fill="#33224d" stroke="var(--purple)" stroke-width="2.2"/><text x="720" y="162" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >(x − μ) / σ · dev</text>
+<path d="M402 150 L590 245" stroke="var(--yellow)" stroke-width="2.4" marker-end="url(#sm1)"/>
+<rect x="600" y="220" width="240" height="50" rx="8" fill="#0f2a14" stroke="var(--green)" stroke-width="2.2"/><text x="720" y="252" fill="#fff" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >(x − μ) / σ · test</text>
+</svg>
+      </div>
+      <p class="cap">Compute μ, σ on <b>training</b> data only. Reuse them everywhere.</p>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Normalising inputs · why</div>
+      <h2>Round bowls are easier</h2>
+      <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 420 340" role="img" aria-label="Contours of the cost J over w and b, unnormalised. The contours are long thin ellipses, so gradient descent zig-zags across the valley with many small steps.">
+<defs><marker id="ctunnormalised" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#fff"/></marker></defs>
+<ellipse cx="210" cy="160" rx="185" ry="40" transform="rotate(-28 210 160)" fill="none" stroke="var(--red)" stroke-width="2"/>
+<ellipse cx="210" cy="160" rx="152" ry="33" transform="rotate(-28 210 160)" fill="none" stroke="var(--orange)" stroke-width="2"/>
+<ellipse cx="210" cy="160" rx="118" ry="26" transform="rotate(-28 210 160)" fill="none" stroke="var(--yellow)" stroke-width="2"/>
+<ellipse cx="210" cy="160" rx="85" ry="18" transform="rotate(-28 210 160)" fill="none" stroke="var(--green)" stroke-width="2"/>
+<ellipse cx="210" cy="160" rx="52" ry="11" transform="rotate(-28 210 160)" fill="none" stroke="var(--blue)" stroke-width="2"/>
+<circle cx="210" cy="160" r="5" fill="#fff"/>
+<path d="M60 270 L88 215 L110 262 L128 214 L148 248 L164 210 L180 232 L194 198 L205 170" fill="none" stroke="#fff" stroke-width="2.2" marker-end="url(#ctunnormalised)"/>
+<text x="210" y="328" fill="var(--red)" font-size="24" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >many zig-zag steps</text>
+</svg>
+      </div>
+        <div class="side">
+      <div class="art">
+<svg viewBox="0 0 420 340" role="img" aria-label="Contours of the cost J over w and b, normalised. The contours are round, so gradient descent heads straight to the minimum in a few steps.">
+<defs><marker id="ctnormalised" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#fff"/></marker></defs>
+<circle cx="210" cy="160" r="130" fill="none" stroke="var(--red)" stroke-width="2"/>
+<circle cx="210" cy="160" r="107" fill="none" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="210" cy="160" r="83" fill="none" stroke="var(--yellow)" stroke-width="2"/>
+<circle cx="210" cy="160" r="60" fill="none" stroke="var(--green)" stroke-width="2"/>
+<circle cx="210" cy="160" r="36" fill="none" stroke="var(--blue)" stroke-width="2"/>
+<circle cx="210" cy="160" r="5" fill="#fff"/>
+<path d="M110 230 L165 190 L198 168" fill="none" stroke="#fff" stroke-width="2.4" marker-end="url(#ctnormalised)"/>
+<text x="210" y="328" fill="var(--green)" font-size="24" font-weight="600" text-anchor="middle" font-family="Poppins,sans-serif" >few, direct steps</text>
+</svg>
+      </div>
+        </div>
+      </div>
+      <p class="cap">Features on the same scale → faster gradient descent.</p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Vanishing / exploding gradients</div>
+      <h2>Deep = many multiplications</h2>
+      <div class="art">
+<svg viewBox="0 0 900 220" role="img" aria-label="A very deep, narrow network: two inputs, many layers of two units each, and one output. Each layer multiplies by its own weight matrix W.">
+<defs><marker id="dc1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--green)"/></marker></defs>
+<g stroke="#6e6e6e" stroke-width="1" opacity=".6">
+<line x1="103" y1="70" x2="139" y2="70"/>
+<line x1="103" y1="70" x2="139" y2="140"/>
+<line x1="103" y1="140" x2="139" y2="70"/>
+<line x1="103" y1="140" x2="139" y2="140"/>
+<line x1="165" y1="70" x2="201" y2="70"/>
+<line x1="165" y1="70" x2="201" y2="140"/>
+<line x1="165" y1="140" x2="201" y2="70"/>
+<line x1="165" y1="140" x2="201" y2="140"/>
+<line x1="227" y1="70" x2="263" y2="70"/>
+<line x1="227" y1="70" x2="263" y2="140"/>
+<line x1="227" y1="140" x2="263" y2="70"/>
+<line x1="227" y1="140" x2="263" y2="140"/>
+<line x1="289" y1="70" x2="325" y2="70"/>
+<line x1="289" y1="70" x2="325" y2="140"/>
+<line x1="289" y1="140" x2="325" y2="70"/>
+<line x1="289" y1="140" x2="325" y2="140"/>
+<line x1="351" y1="70" x2="387" y2="70"/>
+<line x1="351" y1="70" x2="387" y2="140"/>
+<line x1="351" y1="140" x2="387" y2="70"/>
+<line x1="351" y1="140" x2="387" y2="140"/>
+<line x1="413" y1="70" x2="449" y2="70"/>
+<line x1="413" y1="70" x2="449" y2="140"/>
+<line x1="413" y1="140" x2="449" y2="70"/>
+<line x1="413" y1="140" x2="449" y2="140"/>
+<line x1="475" y1="70" x2="511" y2="70"/>
+<line x1="475" y1="70" x2="511" y2="140"/>
+<line x1="475" y1="140" x2="511" y2="70"/>
+<line x1="475" y1="140" x2="511" y2="140"/>
+<line x1="537" y1="70" x2="573" y2="70"/>
+<line x1="537" y1="70" x2="573" y2="140"/>
+<line x1="537" y1="140" x2="573" y2="70"/>
+<line x1="537" y1="140" x2="573" y2="140"/>
+<line x1="599" y1="70" x2="635" y2="70"/>
+<line x1="599" y1="70" x2="635" y2="140"/>
+<line x1="599" y1="140" x2="635" y2="70"/>
+<line x1="599" y1="140" x2="635" y2="140"/>
+<line x1="661" y1="70" x2="697" y2="70"/>
+<line x1="661" y1="70" x2="697" y2="140"/>
+<line x1="661" y1="140" x2="697" y2="70"/>
+<line x1="661" y1="140" x2="697" y2="140"/>
+<line x1="723" y1="70" x2="759" y2="70"/>
+<line x1="723" y1="70" x2="759" y2="140"/>
+<line x1="723" y1="140" x2="759" y2="70"/>
+<line x1="723" y1="140" x2="759" y2="140"/>
+<line x1="785" y1="70" x2="819" y2="105"/>
+<line x1="785" y1="140" x2="819" y2="105"/>
+</g>
+<text x="96" y="77" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">1</tspan></text>
+<text x="96" y="147" fill="var(--blue)" font-size="20" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="12" font-style="normal">2</tspan></text>
+<circle cx="152" cy="70" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="152" cy="140" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="214" cy="70" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="214" cy="140" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="276" cy="70" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="276" cy="140" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="338" cy="70" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="338" cy="140" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="400" cy="70" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="400" cy="140" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="462" cy="70" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="462" cy="140" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="524" cy="70" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="524" cy="140" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="586" cy="70" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="586" cy="140" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="648" cy="70" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="648" cy="140" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="710" cy="70" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="710" cy="140" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="772" cy="70" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="772" cy="140" r="13" fill="#2a1608" stroke="var(--orange)" stroke-width="2"/>
+<circle cx="834" cy="105" r="14" fill="#0f2a14" stroke="var(--green)" stroke-width="2.2"/>
+<path d="M850 105 h30" stroke="var(--green)" stroke-width="2.4" marker-end="url(#dc1)"/><text x="892" y="113" fill="var(--green)" font-size="22" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >ŷ</text>
+<text x="121.0" y="196" fill="var(--purple)" font-size="16" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >W<tspan dy="-9" font-size="11">[1]</tspan><tspan dy="9"></tspan></text>
+<text x="183.0" y="196" fill="var(--purple)" font-size="16" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >W<tspan dy="-9" font-size="11">[2]</tspan><tspan dy="9"></tspan></text>
+<text x="245.0" y="196" fill="var(--purple)" font-size="16" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >W<tspan dy="-9" font-size="11">[3]</tspan><tspan dy="9"></tspan></text>
+<text x="493.0" y="196" fill="var(--purple)" font-size="18" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >· · ·</text>
+<text x="803.0" y="196" fill="var(--purple)" font-size="16" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >W<tspan dy="-9" font-size="11">[L]</tspan><tspan dy="9"></tspan></text>
+<text x="450" y="26" fill="var(--yellow)" font-size="16" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >L = 150 layers, say</text>
+</svg>
+      </div>
+      <p class="math"><span class="hl">ŷ = W<sup>[L]</sup> ⋯ W<sup>[2]</sup> W<sup>[1]</sup> x</span></p>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Vanishing / exploding gradients</div>
+      <h2>A little above or below 1</h2>
+      <div class="two" style="grid-template-columns:1.9fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 760 340" role="img" aria-label="Log-scale plot of activation size against number of layers. With weights 1.5 times identity it climbs to about ten to the 26 by layer 150. With 0.5 times identity it falls to about ten to the minus 45."><defs></defs>
+<path d="M90 30 V300 H720" fill="none" stroke="#5a5a5a" stroke-width="1.6"/>
+<line x1="90" y1="59" x2="720" y2="59" stroke="#1e1e1e"/><text x="80" y="66.1891891891892" fill="#8a8a8a" font-size="19" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >10²⁰</text>
+<line x1="90" y1="132" x2="720" y2="132" stroke="#1e1e1e"/><text x="80" y="139.16216216216216" fill="#8a8a8a" font-size="19" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >10⁰</text>
+<line x1="90" y1="205" x2="720" y2="205" stroke="#1e1e1e"/><text x="80" y="212.13513513513513" fill="#8a8a8a" font-size="19" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >10⁻²⁰</text>
+<line x1="90" y1="278" x2="720" y2="278" stroke="#1e1e1e"/><text x="80" y="285.1081081081081" fill="#8a8a8a" font-size="19" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >10⁻⁴⁰</text>
+<line x1="90" y1="132" x2="720" y2="132" stroke="#4a4a4a" stroke-width="1.4"/>
+<polyline points="90.0,132.2 102.6,130.2 115.2,128.3 127.8,126.4 140.4,124.5 153.0,122.5 165.6,120.6 178.2,118.7 190.8,116.7 203.4,114.8 216.0,112.9 228.6,111.0 241.2,109.0 253.8,107.1 266.4,105.2 279.0,103.2 291.6,101.3 304.2,99.4 316.8,97.5 329.4,95.5 342.0,93.6 354.6,91.7 367.2,89.8 379.8,87.8 392.4,85.9 405.0,84.0 417.6,82.0 430.2,80.1 442.8,78.2 455.4,76.3 468.0,74.3 480.6,72.4 493.2,70.5 505.8,68.6 518.4,66.6 531.0,64.7 543.6,62.8 556.2,60.8 568.8,58.9 581.4,57.0 594.0,55.1 606.6,53.1 619.2,51.2 631.8,49.3 644.4,47.4 657.0,45.4 669.6,43.5 682.2,41.6 694.8,39.6 707.4,37.7 720.0,35.8" fill="none" stroke="var(--red)" stroke-width="4"/>
+<polyline points="90.0,132.2 102.6,135.5 115.2,138.8 127.8,142.0 140.4,145.3 153.0,148.6 165.6,151.9 178.2,155.2 190.8,158.5 203.4,161.8 216.0,165.1 228.6,168.4 241.2,171.7 253.8,175.0 266.4,178.3 279.0,181.6 291.6,184.9 304.2,188.2 316.8,191.5 329.4,194.8 342.0,198.1 354.6,201.4 367.2,204.7 379.8,207.9 392.4,211.2 405.0,214.5 417.6,217.8 430.2,221.1 442.8,224.4 455.4,227.7 468.0,231.0 480.6,234.3 493.2,237.6 505.8,240.9 518.4,244.2 531.0,247.5 543.6,250.8 556.2,254.1 568.8,257.4 581.4,260.7 594.0,264.0 606.6,267.3 619.2,270.6 631.8,273.8 644.4,277.1 657.0,280.4 669.6,283.7 682.2,287.0 694.8,290.3 707.4,293.6 720.0,296.9" fill="none" stroke="var(--blue)" stroke-width="4"/>
+<text x="720" y="25.29729729729729" fill="var(--red)" font-size="23" font-weight="700" text-anchor="end" font-family="Poppins,sans-serif" >1.5ᴸ explodes</text>
+<text x="140.4" y="263.5135135135135" fill="var(--blue)" font-size="23" font-weight="700" text-anchor="start" font-family="Poppins,sans-serif" >0.5ᴸ vanishes</text>
+<text x="405.0" y="334" fill="#8a8a8a" font-size="17" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >layer L →</text>
+<text x="720.0" y="324" fill="#8a8a8a" font-size="17" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >150</text>
+</svg>
+      </div>
+        <div class="side">
+      <div class="cards c1">
+        <div class="card r"><div class="n">W = 1.5 · I</div><h3 class="comp">Explodes</h3></div>
+        <div class="card b"><div class="n">W = 0.5 · I</div><h3 class="comp">Vanishes</h3></div>
+      </div>
+      <p class="cap left">Gradients do the same → training breaks.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Weight initialisation</div>
+      <h2>More inputs → smaller weights</h2>
+      <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 520 300" role="img" aria-label="A single neuron with four inputs x1 to x4, each multiplied by a weight, summed into z, passed through g to give a and the prediction y hat.">
+<defs><marker id="sn1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--green)"/></marker></defs>
+<line x1="100" y1="60" x2="282" y2="150" stroke="#6e6e6e" stroke-width="1.6"/>
+<text x="86" y="67" fill="var(--blue)" font-size="22" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="13" font-style="normal">1</tspan></text>
+<text x="190" y="97.0" fill="var(--purple)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >w₁</text>
+<line x1="100" y1="120" x2="282" y2="150" stroke="#6e6e6e" stroke-width="1.6"/>
+<text x="86" y="127" fill="var(--blue)" font-size="22" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="13" font-style="normal">2</tspan></text>
+<text x="190" y="127.0" fill="var(--purple)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >w₂</text>
+<line x1="100" y1="180" x2="282" y2="150" stroke="#6e6e6e" stroke-width="1.6"/>
+<text x="86" y="187" fill="var(--blue)" font-size="22" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="13" font-style="normal">3</tspan></text>
+<text x="190" y="157.0" fill="var(--purple)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >w₃</text>
+<line x1="100" y1="240" x2="282" y2="150" stroke="#6e6e6e" stroke-width="1.6"/>
+<text x="86" y="247" fill="var(--blue)" font-size="22" font-style="italic" text-anchor="end" font-family="Poppins,sans-serif">x<tspan dy="6" font-size="13" font-style="normal">4</tspan></text>
+<text x="190" y="187.0" fill="var(--purple)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >w₄</text>
+<circle cx="310" cy="150" r="28" fill="#2a1608" stroke="var(--orange)" stroke-width="2.6"/>
+<path d="M340 150 h60" stroke="var(--green)" stroke-width="2.4" marker-end="url(#sn1)"/><text x="424" y="158" fill="var(--green)" font-size="24" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >ŷ</text>
+<text x="310" y="210" fill="#bdbdbd" font-size="16" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >a = g(z)</text>
+</svg>
+      </div>
+        <div class="side">
+      <ul class="pts">
+        <li>z adds up <b>n</b> terms</li>
+        <li>Big n → small w</li>
+        <li>Var(w) = <b>2/n</b> for ReLU</li>
+      </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Weight initialisation · in code</div>
+      <h2>Scale the random weights</h2>
+
+      <div class="code">W<sup>[l]</sup> = np.random.randn(shape) * <span class="hl3">np.sqrt(2 / n<sup>[l−1]</sup>)</span></div>
+      <div class="tbl"><table>
+        <tbody>
+          <tr class="mark"><td>ReLU</td><td class="k">√(2 / n<sup>[l−1]</sup>)</td><td>He</td></tr>
+          <tr><td>tanh</td><td class="k">√(1 / n<sup>[l−1]</sup>)</td><td>Xavier</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+  <section class="slide k-q">
+    <div class="doc">
+      <div class="qhead">Question</div>
+      <h2 class="qtext">ReLU layer, 500 inputs.<br>Multiply randn by?</h2>
+      <ul class="opts">
+        <li><span class="lt">A</span><span><span class="mono">0.01</span></span></li>
+        <li class="ans"><span class="lt">B</span><span><span class="mono">√(2/500) ≈ 0.063</span></span></li>
+        <li><span class="lt">C</span><span><span class="mono">√(1/500) ≈ 0.045</span></span></li>
+        <li><span class="lt">D</span><span><span class="mono">2/500</span></span></li>
+      </ul>
+      <p class="qwhy"><b>B.</b> For ReLU use He initialisation: √(2/n).</p>
+      <p class="qhint">press A to reveal</p>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Gradient checking · step 1</div>
+      <h2>Approximate a derivative</h2>
+      <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 460 340" role="img" aria-label="The curve f of theta equals theta cubed. A small triangle spans from theta to theta plus epsilon, giving the one-sided difference.">
+<path d="M60 20 V300 H440" fill="none" stroke="#6a6a6a" stroke-width="1.4"/>
+<polyline points="60.0,289.8 64.2,289.1 68.3,288.5 72.5,287.8 76.6,287.1 80.8,286.4 85.0,285.6 89.1,284.8 93.3,284.0 97.4,283.2 101.6,282.3 105.8,281.4 109.9,280.5 114.1,279.5 118.2,278.5 122.4,277.5 126.6,276.4 130.7,275.4 134.9,274.2 139.0,273.1 143.2,271.9 147.4,270.7 151.5,269.4 155.7,268.1 159.8,266.8 164.0,265.4 168.2,264.0 172.3,262.6 176.5,261.1 180.6,259.6 184.8,258.1 189.0,256.5 193.1,254.8 197.3,253.2 201.4,251.4 205.6,249.7 209.8,247.9 213.9,246.1 218.1,244.2 222.2,242.2 226.4,240.3 230.6,238.3 234.7,236.2 238.9,234.1 243.0,232.0 247.2,229.8 251.4,227.5 255.5,225.2 259.7,222.9 263.8,220.5 268.0,218.1 272.2,215.6 276.3,213.1 280.5,210.5 284.6,207.9 288.8,205.2 293.0,202.4 297.1,199.6 301.3,196.8 305.4,193.9 309.6,191.0 313.8,188.0 317.9,184.9 322.1,181.8 326.2,178.6 330.4,175.4 334.6,172.1 338.7,168.8 342.9,165.4 347.0,162.0 351.2,158.4 355.4,154.9 359.5,151.2 363.7,147.6 367.8,143.8 372.0,140.0 376.2,136.1 380.3,132.2 384.5,128.2 388.6,124.1 392.8,120.0 397.0,115.8 401.1,111.6 405.3,107.3 409.4,102.9 413.6,98.4 417.8,93.9 421.9,89.4 426.1,84.7 430.2,80.0 434.4,75.2" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<path d="M372 140 L434 75 L434 140z" fill="var(--green)" opacity=".18"/>
+<path d="M372 140 L434 75" stroke="var(--green)" stroke-width="3"/>
+<path d="M434 140 V75" stroke="var(--green)" stroke-width="1.6" stroke-dasharray="4 4"/>
+<path d="M372 140 H434" stroke="var(--green)" stroke-width="1.6" stroke-dasharray="4 4"/>
+<line x1="372" y1="296" x2="372" y2="304" stroke="#bdbdbd" stroke-width="1.6"/><text x="372" y="324" fill="#bdbdbd" font-size="14" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >θ</text>
+<circle cx="372" cy="140" r="5" fill="var(--green)"/>
+<line x1="434" y1="296" x2="434" y2="304" stroke="#bdbdbd" stroke-width="1.6"/><text x="434" y="324" fill="#bdbdbd" font-size="14" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >θ+ε</text>
+<circle cx="434" cy="75" r="5" fill="var(--green)"/>
+<text x="403.20000000000005" y="164.0" fill="var(--green)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >ε</text>
+<text x="430" y="40" fill="var(--blue)" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >f(θ) = θ³</text>
+</svg>
+      </div>
+        <div class="side">
+
+          <p class="math left">[f(θ+ε) − f(θ)] / ε</p>
+          <p class="math left">(1.01³ − 1) / 0.01<br>= <span class="hl2">3.0301</span></p>
+          <p class="cap left">True answer: 3 · error 0.03</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Gradient checking · step 2</div>
+      <h2>Two-sided is better</h2>
+      <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="art">
+<svg viewBox="0 0 460 340" role="img" aria-label="The curve f of theta equals theta cubed. A wide triangle spans from theta minus epsilon to theta plus epsilon, giving the two-sided difference.">
+<path d="M60 20 V300 H440" fill="none" stroke="#6a6a6a" stroke-width="1.4"/>
+<polyline points="60.0,289.8 64.2,289.1 68.3,288.5 72.5,287.8 76.6,287.1 80.8,286.4 85.0,285.6 89.1,284.8 93.3,284.0 97.4,283.2 101.6,282.3 105.8,281.4 109.9,280.5 114.1,279.5 118.2,278.5 122.4,277.5 126.6,276.4 130.7,275.4 134.9,274.2 139.0,273.1 143.2,271.9 147.4,270.7 151.5,269.4 155.7,268.1 159.8,266.8 164.0,265.4 168.2,264.0 172.3,262.6 176.5,261.1 180.6,259.6 184.8,258.1 189.0,256.5 193.1,254.8 197.3,253.2 201.4,251.4 205.6,249.7 209.8,247.9 213.9,246.1 218.1,244.2 222.2,242.2 226.4,240.3 230.6,238.3 234.7,236.2 238.9,234.1 243.0,232.0 247.2,229.8 251.4,227.5 255.5,225.2 259.7,222.9 263.8,220.5 268.0,218.1 272.2,215.6 276.3,213.1 280.5,210.5 284.6,207.9 288.8,205.2 293.0,202.4 297.1,199.6 301.3,196.8 305.4,193.9 309.6,191.0 313.8,188.0 317.9,184.9 322.1,181.8 326.2,178.6 330.4,175.4 334.6,172.1 338.7,168.8 342.9,165.4 347.0,162.0 351.2,158.4 355.4,154.9 359.5,151.2 363.7,147.6 367.8,143.8 372.0,140.0 376.2,136.1 380.3,132.2 384.5,128.2 388.6,124.1 392.8,120.0 397.0,115.8 401.1,111.6 405.3,107.3 409.4,102.9 413.6,98.4 417.8,93.9 421.9,89.4 426.1,84.7 430.2,80.0 434.4,75.2" fill="none" stroke="var(--blue)" stroke-width="3"/>
+<path d="M310 191 L434 75 L434 191z" fill="var(--green)" opacity=".18"/>
+<path d="M310 191 L434 75" stroke="var(--green)" stroke-width="3"/>
+<path d="M434 191 V75" stroke="var(--green)" stroke-width="1.6" stroke-dasharray="4 4"/>
+<path d="M310 191 H434" stroke="var(--green)" stroke-width="1.6" stroke-dasharray="4 4"/>
+<line x1="310" y1="296" x2="310" y2="304" stroke="#bdbdbd" stroke-width="1.6"/><text x="310" y="324" fill="#bdbdbd" font-size="14" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >θ−ε</text>
+<circle cx="310" cy="191" r="5" fill="var(--green)"/>
+<line x1="372" y1="296" x2="372" y2="304" stroke="#bdbdbd" stroke-width="1.6"/><text x="372" y="324" fill="#bdbdbd" font-size="14" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >θ</text>
+<circle cx="372" cy="140" r="5" fill="var(--green)"/>
+<line x1="434" y1="296" x2="434" y2="304" stroke="#bdbdbd" stroke-width="1.6"/><text x="434" y="324" fill="#bdbdbd" font-size="14" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >θ+ε</text>
+<circle cx="434" cy="75" r="5" fill="var(--green)"/>
+<text x="372.0" y="214.96448" fill="var(--green)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >2ε</text>
+<text x="430" y="40" fill="var(--blue)" font-size="16" font-weight="400" text-anchor="end" font-family="JetBrains Mono,monospace" >f(θ) = θ³</text>
+</svg>
+      </div>
+        <div class="side">
+
+          <p class="math left">[f(θ+ε) − f(θ−ε)] / 2ε</p>
+          <p class="math left">(1.01³ − 0.99³) / 0.02<br>= <span class="hl3">3.0001</span></p>
+          <p class="cap left">True answer: 3 · error 0.0001</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Gradient checking · step 3</div>
+      <h2>Flatten everything into θ</h2>
+      <div class="art">
+<svg viewBox="0 0 900 300" role="img" aria-label="Matrices W1, b1, W2, b2 up to WL, bL are each reshaped and concatenated into one long column vector theta."><defs><marker id="fl1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#9a9a9a"/></marker></defs>
+<rect x="30" y="60.0" width="70" height="60" rx="4" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<text x="65.0" y="144.0" fill="var(--blue)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >W[1]</text>
+<rect x="118" y="60.0" width="14" height="60" rx="4" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<text x="125.0" y="144.0" fill="var(--blue)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >b[1]</text>
+<rect x="150" y="65.0" width="56" height="50" rx="4" fill="#33224d" stroke="var(--purple)" stroke-width="2"/>
+<text x="178.0" y="139.0" fill="var(--purple)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >W[2]</text>
+<rect x="224" y="65.0" width="14" height="50" rx="4" fill="#33224d" stroke="var(--purple)" stroke-width="2"/>
+<text x="231.0" y="139.0" fill="var(--purple)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >b[2]</text>
+<text x="270" y="92" fill="#9a9a9a" font-size="26" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >…</text>
+<rect x="296" y="70.0" width="30" height="40" rx="4" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="311.0" y="134.0" fill="var(--green)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >W[L]</text>
+<rect x="344" y="70.0" width="14" height="40" rx="4" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="351.0" y="134.0" fill="var(--green)" font-size="15" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >b[L]</text>
+<path d="M386 90 h60" stroke="#9a9a9a" stroke-width="2.6" marker-end="url(#fl1)"/><text x="416" y="76" fill="#9a9a9a" font-size="14" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >reshape</text>
+<rect x="476" y="20" width="46" height="66" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<rect x="476" y="86.5" width="46" height="13" fill="#0a1a26" stroke="var(--blue)" stroke-width="2"/>
+<rect x="476" y="99.8" width="46" height="53" fill="#33224d" stroke="var(--purple)" stroke-width="2"/>
+<rect x="476" y="153.0" width="46" height="13" fill="#33224d" stroke="var(--purple)" stroke-width="2"/>
+<rect x="476" y="166.3" width="46" height="28" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<rect x="476" y="194.8" width="46" height="13" fill="#0f2a14" stroke="var(--green)" stroke-width="2"/>
+<text x="499" y="238.10000000000002" fill="var(--yellow)" font-size="30" font-weight="700" text-anchor="middle" font-family="JetBrains Mono,monospace" >θ</text>
+</svg>
+      </div>
+      <p class="cap">Do the same with dW, db → <b>dθ</b>. Is dθ really the gradient of J(θ)?</p>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Gradient checking · step 4</div>
+      <h2>Compare, one entry at a time</h2>
+
+      <p class="math">dθ<sub>approx</sub>[i] = [J(θ<sub>i</sub>+ε) − J(θ<sub>i</sub>−ε)] / 2ε</p>
+      <p class="math">check: <span class="hl">‖dθ<sub>approx</sub> − dθ‖ / (‖dθ<sub>approx</sub>‖ + ‖dθ‖)</span></p>
+    </div>
+  </section>
+  <section class="slide k-wide">
+    <div class="doc">
+      <div class="kicker">Gradient checking · read the result</div>
+      <h2>Is backprop correct?</h2>
+      <div class="art">
+<svg viewBox="0 0 880 220" role="img" aria-label="A log scale from ten to the minus 9 to ten to the minus 1. Around ten to the minus 7 is green, great. Around ten to the minus 5 is orange, look closer. Around ten to the minus 3 and above is red, likely a bug."><defs></defs>
+<rect x="60" y="60" width="285" height="60" fill="#0f2a14" stroke="var(--green)" stroke-width="2.4"/>
+<text x="202.5" y="98" fill="var(--green)" font-size="22" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif" >great</text>
+<rect x="345" y="60" width="190" height="60" fill="#2a1608" stroke="var(--orange)" stroke-width="2.4"/>
+<text x="440.0" y="98" fill="var(--orange)" font-size="22" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif" >look closer</text>
+<rect x="535" y="60" width="285" height="60" fill="#2a0c0e" stroke="var(--red)" stroke-width="2.4"/>
+<text x="677.5" y="98" fill="var(--red)" font-size="22" font-weight="700" text-anchor="middle" font-family="Poppins,sans-serif" >bug!</text>
+<line x1="60" y1="120" x2="60" y2="132" stroke="#9a9a9a" stroke-width="2"/><text x="60.0" y="162" fill="#d8d8d8" font-size="22" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >10⁻⁹</text>
+<line x1="250" y1="120" x2="250" y2="132" stroke="#9a9a9a" stroke-width="2"/><text x="250.0" y="162" fill="#d8d8d8" font-size="22" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >10⁻⁷</text>
+<line x1="440" y1="120" x2="440" y2="132" stroke="#9a9a9a" stroke-width="2"/><text x="440.0" y="162" fill="#d8d8d8" font-size="22" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >10⁻⁵</text>
+<line x1="630" y1="120" x2="630" y2="132" stroke="#9a9a9a" stroke-width="2"/><text x="630.0" y="162" fill="#d8d8d8" font-size="22" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >10⁻³</text>
+<line x1="820" y1="120" x2="820" y2="132" stroke="#9a9a9a" stroke-width="2"/><text x="820.0" y="162" fill="#d8d8d8" font-size="22" font-weight="400" text-anchor="middle" font-family="JetBrains Mono,monospace" >10⁻¹</text>
+<text x="440" y="34" fill="#bdbdbd" font-size="20" font-weight="400" text-anchor="middle" font-family="Poppins,sans-serif" >the check ratio (ε = 10⁻⁷)</text>
+<text x="60.0" y="204" fill="#8a8a8a" font-size="18" font-weight="400" text-anchor="start" font-family="Poppins,sans-serif" >← smaller is better</text>
+</svg>
+      </div>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Gradient checking · tips</div>
+      <h2>Grad check rules</h2>
+      <ul class="pts">
+        <li>Debug only — <b>not</b> in training</li>
+        <li>If it fails, find the bad <b>component</b></li>
+        <li>Include the <b>λ</b> term</li>
+        <li>Turn <b>dropout off</b></li>
+        <li>Run at <b>random init</b></li>
+      </ul>
+    </div>
+  </section>
+  <section class="slide ">
+    <div class="doc">
+      <div class="kicker">Summary</div>
+      <h2>Remember</h2>
+      <ul class="pts">
+        <li>Train error → <b>bias</b>; gap → <b>variance</b></li>
+        <li>Bias → bigger net. Variance → data or regularise</li>
+        <li><b>L2</b> and <b>dropout</b> fight overfitting</li>
+        <li><b>Normalise</b> inputs, scale initial weights</li>
+        <li><b>Grad check</b> to debug backprop</li>
+      </ul>
+    </div>
+  </section>
+  <section class="slide">
+    <div class="center">
+      <div class="tag">Next</div>
+      <div class="big">Optimisation<br>Algorithms</div>
+    </div>
+  </section>
+  <section class="slide">
+    <div class="center">
+      <div class="big">Questions?</div>
+      <div class="sub" style="margin-top:1.2em">
+        Dr. Naila Marir · CoE 108<br>
+        <span style="font-family:var(--mono);font-size:.85em">namarir@effatuniversity.edu.sa</span>
+      </div>
+      <div class="sub" style="font-size:clamp(12px,1.1vw,18px);margin-top:2em;color:#4a4a4a">
+        Adapted from Andrew Ng · Deep Learning Specialization · deeplearning.ai
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="bar-progress" id="progress"></div>
+<div class="hint" id="hint">← →</div>
+<div class="credit">CS 4085 · Ch 2 · L1</div>
+
+<script>
+(function(){
+  var slides   = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var progress = document.getElementById('progress');
+  var hint     = document.getElementById('hint');
+  var i = 0;
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); if (k !== i) s.classList.remove('show'); });
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+    if (location.hash !== '#' + (i + 1)) history.replaceState(null, '', '#' + (i + 1));
+  }
+  function next(){ show(i + 1); }
+  function prev(){ show(i - 1); }
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    switch(e.key){
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); show(0); break;
+      case 'End':  e.preventDefault(); show(slides.length - 1); break;
+      case 'a': case 'A': {
+        var cur = slides[i];
+        if (cur && cur.classList.contains('k-q')) { e.preventDefault(); cur.classList.toggle('show'); }
+        break;
+      }
+      case 'f': case 'F':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+        break;
+    }
+    hint.classList.add('hide');
+  });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a')) return;
+    (e.clientX > window.innerWidth * 0.5) ? next() : prev();
+    hint.classList.add('hide');
+  });
+
+  var startX = null;
+  document.addEventListener('touchstart', function(e){ startX = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (startX === null) return;
+    var dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 48) { (dx < 0) ? next() : prev(); }
+    startX = null;
+  }, {passive:true});
+
+  var start = parseInt((location.hash || '').replace('#',''), 10);
+  show(isNaN(start) ? 0 : start - 1);
+  setTimeout(function(){ hint.classList.add('hide'); }, 5000);
+})();
+</script>
